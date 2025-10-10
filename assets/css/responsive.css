@@ -1,0 +1,858 @@
+/* =====================================================
+   RESPONSIVE.CSS - PREMIUM MOBILE-FIRST
+   Clean, Minimal, Perfect Stacking
+===================================================== */
+
+/* =====================================================
+   LARGE DESKTOP - 1200px+
+===================================================== */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1200px;
+    }
+}
+
+/* =====================================================
+   TABLET LANDSCAPE - 968px to 1199px
+===================================================== */
+@media (max-width: 1199px) {
+    .categories-offers-grid {
+        grid-template-columns: 240px 1fr;
+    }
+    
+    .stores-grid-cd {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .latest-deals-grid-premium {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .deal-carousel-card {
+        width: 260px;
+    }
+}
+
+/* =====================================================
+   TABLET - 768px to 967px
+===================================================== */
+@media (max-width: 967px) {
+    /* Container */
+    .container {
+        padding: 0 16px;
+    }
+    
+    /* Hero Banners */
+    .hero-banners-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    
+    .hero-banner-image {
+        min-height: 160px;
+        max-height: 200px;
+    }
+    
+    /* Three Steps */
+    .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    /* Hot Picks */
+    .section-header-inline {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .section-header-inline h2 {
+        font-size: 18px;
+    }
+    
+    .see-more {
+        padding: 7px 16px;
+        font-size: 11px;
+    }
+    
+    /* Top Offers */
+    .categories-offers-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .trending-categories-sidebar {
+        position: relative;
+        top: 0;
+        order: 1;
+    }
+    
+    .offers-main-area {
+        order: 2;
+    }
+    
+    .offers-grid-3col {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    
+    /* Top Stores */
+    .stores-grid-cd {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        grid-auto-rows: 105px;
+    }
+    
+    .store-logo-cd {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .store-featured .store-logo-cd {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .store-logo-fallback {
+        font-size: 14px;
+    }
+    
+    .store-featured .store-logo-fallback {
+        font-size: 24px;
+    }
+    
+    /* Latest Deals */
+    .latest-deals-grid-premium {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    
+    .deal-carousel-card {
+        width: 240px;
+    }
+    
+    .deal-compact-card {
+        height: 320px;
+    }
+    
+    .compact-image {
+        height: 140px;
+    }
+    
+    /* Giveaway */
+    .giveaway-content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .giveaway-image {
+        order: -1;
+    }
+    
+    .giveaway-title {
+        font-size: 22px;
+    }
+    
+    /* Stats */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .stat-box {
+        padding: 20px 14px;
+    }
+    
+    .stat-icon {
+        font-size: 34px;
+    }
+    
+    .stat-number {
+        font-size: 26px;
+    }
+    
+    /* Newsletter */
+    .newsletter-icon {
+        font-size: 42px;
+    }
+    
+    .newsletter-title {
+        font-size: 20px;
+    }
+    
+    .newsletter-description {
+        font-size: 13px;
+    }
+    
+    /* Section Headers */
+    .section-header-premium h2 {
+        font-size: 20px;
+    }
+    
+    .section-icon {
+        font-size: 32px;
+    }
+}
+
+/* =====================================================
+   MOBILE - 640px to 767px
+===================================================== */
+@media (max-width: 767px) {
+    /* Typography */
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 18px; }
+    
+    /* Container */
+    .container {
+        padding: 0 14px;
+    }
+    
+    /* Section Padding */
+    .hero-slider-cd,
+    .three-steps,
+    .hot-picks,
+    .top-offers-section-premium,
+    .top-stores-section-premium,
+    .latest-deals-section-carousel,
+    .latest-deals-section-premium,
+    .giveaway-section,
+    .about-stats-section,
+    .newsletter-section {
+        padding: 20px 0;
+    }
+    
+    /* Hero */
+    .hero-banner-item {
+        min-height: 140px;
+    }
+    
+    .hero-banner-image {
+        min-height: 140px;
+        max-height: 180px;
+    }
+    
+    /* Three Steps */
+    .steps-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+    
+    .step-item {
+        padding: 14px 10px;
+    }
+    
+    .step-number {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    
+    .step-icon {
+        font-size: 28px;
+    }
+    
+    .step-item h3 {
+        font-size: 13px;
+    }
+    
+    .step-item p {
+        font-size: 11px;
+    }
+    
+    /* Hot Picks */
+    .hot-picks-container {
+        padding: 18px 14px;
+        border-radius: 16px;
+    }
+    
+    .section-header-inline {
+        margin-bottom: 14px;
+    }
+    
+    .section-header-inline h2 {
+        font-size: 16px;
+    }
+    
+    .see-more {
+        padding: 6px 14px;
+        font-size: 10px;
+    }
+    
+    .deals-scroll {
+        gap: 12px;
+    }
+    
+    /* Top Offers */
+    .trending-categories-sidebar {
+        padding: 14px;
+    }
+    
+    .trending-categories-sidebar .sidebar-title {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .category-item-horizontal {
+        padding: 7px 10px;
+        gap: 8px;
+    }
+    
+    .category-icon-left {
+        width: 20px;
+        height: 20px;
+        font-size: 18px;
+    }
+    
+    .category-name-right {
+        font-size: 12px;
+    }
+    
+    .offers-grid-3col {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    /* Top Stores */
+    .stores-wrapper-cd {
+        padding: 14px;
+        border-radius: 14px;
+    }
+    
+    .stores-grid-cd {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        grid-auto-rows: 95px;
+    }
+    
+    .store-item-cd {
+        padding: 10px 8px;
+        gap: 5px;
+    }
+    
+    .store-logo-cd {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .store-featured {
+        grid-column: span 2;
+        grid-row: span 1;
+    }
+    
+    .store-featured .store-logo-cd {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .store-logo-fallback {
+        font-size: 13px;
+    }
+    
+    .store-featured .store-logo-fallback {
+        font-size: 20px;
+    }
+    
+    .store-name-cd {
+        font-size: 11px;
+    }
+    
+    .store-cashback-cd {
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+    
+    .view-all-text {
+        font-size: 12px;
+    }
+    
+    /* Latest Deals */
+    .latest-deals-grid-premium {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .carousel-nav {
+        display: none;
+    }
+    
+    .deal-carousel-card {
+        width: 220px;
+    }
+    
+    .deal-compact-card {
+        height: 300px;
+    }
+    
+    .compact-image {
+        height: 130px;
+    }
+    
+    .compact-content {
+        padding: 12px;
+    }
+    
+    .compact-store {
+        font-size: 10px;
+    }
+    
+    .compact-title {
+        font-size: 13px;
+        height: 34px;
+    }
+    
+    .compact-price {
+        font-size: 16px;
+    }
+    
+    .compact-old-price {
+        font-size: 11px;
+    }
+    
+    .compact-cashback {
+        font-size: 9px;
+    }
+    
+    .compact-btn {
+        padding: 8px;
+        font-size: 12px;
+    }
+    
+    .view-all-btn-premium {
+        padding: 9px 20px;
+        font-size: 12px;
+    }
+    
+    /* Giveaway */
+    .giveaway-title {
+        font-size: 20px;
+    }
+    
+    .giveaway-description {
+        font-size: 14px;
+    }
+    
+    .giveaway-prize {
+        font-size: 15px;
+    }
+    
+    .giveaway-btn {
+        padding: 10px 22px;
+        font-size: 13px;
+    }
+    
+    /* Stats */
+    .about-stats-section .section-title {
+        font-size: 18px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .stat-box {
+        padding: 18px 12px;
+    }
+    
+    .stat-icon {
+        font-size: 32px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+    }
+    
+    .about-description {
+        font-size: 14px;
+    }
+    
+    /* Newsletter */
+    .newsletter-icon {
+        font-size: 38px;
+    }
+    
+    .newsletter-title {
+        font-size: 18px;
+    }
+    
+    .newsletter-description {
+        font-size: 12px;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .newsletter-input {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .newsletter-btn {
+        padding: 10px 24px;
+        font-size: 13px;
+    }
+    
+    /* Section Headers */
+    .section-header-premium {
+        margin-bottom: 18px;
+    }
+    
+    .section-header-premium h2 {
+        font-size: 18px;
+    }
+    
+    .section-header-premium p {
+        font-size: 12px;
+    }
+    
+    .section-icon {
+        font-size: 28px;
+    }
+}
+
+/* =====================================================
+   SMALL MOBILE - 480px to 639px
+===================================================== */
+@media (max-width: 639px) {
+    .stores-grid-cd {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .store-featured {
+        grid-column: span 1;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =====================================================
+   EXTRA SMALL - Below 480px
+===================================================== */
+@media (max-width: 479px) {
+    /* Container */
+    .container {
+        padding: 0 12px;
+    }
+    
+    /* All Sections */
+    .hero-slider-cd,
+    .three-steps,
+    .hot-picks,
+    .top-offers-section-premium,
+    .top-stores-section-premium,
+    .latest-deals-section-carousel,
+    .latest-deals-section-premium,
+    .giveaway-section,
+    .about-stats-section,
+    .newsletter-section {
+        padding: 16px 0;
+    }
+    
+    /* Hero */
+    .hero-banners-grid {
+        gap: 10px;
+    }
+    
+    .hero-banner-item {
+        min-height: 120px;
+        border-radius: 12px;
+    }
+    
+    .hero-banner-image {
+        min-height: 120px;
+        max-height: 160px;
+    }
+    
+    /* Three Steps */
+    .steps-title {
+        font-size: 15px;
+    }
+    
+    .steps-grid {
+        gap: 10px;
+    }
+    
+    .step-item {
+        padding: 12px 8px;
+        border-radius: 12px;
+    }
+    
+    /* Hot Picks */
+    .hot-picks-container {
+        padding: 16px 12px;
+        border-radius: 14px;
+    }
+    
+    .section-header-inline h2 {
+        font-size: 15px;
+    }
+    
+    .see-more {
+        padding: 5px 12px;
+        font-size: 10px;
+    }
+    
+    .deals-scroll {
+        gap: 10px;
+    }
+    
+    /* Top Offers */
+    .trending-categories-sidebar {
+        padding: 12px;
+    }
+    
+    .category-item-horizontal {
+        padding: 6px 8px;
+    }
+    
+    /* Top Stores */
+    .stores-wrapper-cd {
+        padding: 12px;
+    }
+    
+    .stores-grid-cd {
+        gap: 8px;
+        grid-auto-rows: 85px;
+    }
+    
+    .store-item-cd {
+        padding: 8px 6px;
+    }
+    
+    .store-logo-cd {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .store-featured .store-logo-cd {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .store-logo-fallback {
+        font-size: 12px;
+    }
+    
+    .store-featured .store-logo-fallback {
+        font-size: 18px;
+    }
+    
+    .store-name-cd {
+        font-size: 10px;
+    }
+    
+    .store-cashback-cd {
+        font-size: 8px;
+        padding: 2px 5px;
+    }
+    
+    /* Latest Deals */
+    .deal-carousel-card {
+        width: 200px;
+    }
+    
+    .deal-compact-card {
+        height: 280px;
+    }
+    
+    .compact-image {
+        height: 120px;
+    }
+    
+    .compact-discount-badge {
+        top: 8px;
+        right: 8px;
+        padding: 3px 8px;
+        font-size: 10px;
+    }
+    
+    .compact-content {
+        padding: 10px;
+    }
+    
+    .compact-title {
+        font-size: 12px;
+        height: 32px;
+    }
+    
+    .compact-price {
+        font-size: 15px;
+    }
+    
+    .compact-btn {
+        padding: 7px;
+        font-size: 11px;
+    }
+    
+    .view-all-btn-premium {
+        padding: 8px 18px;
+        font-size: 11px;
+    }
+    
+    /* Giveaway */
+    .giveaway-title {
+        font-size: 18px;
+    }
+    
+    .giveaway-description {
+        font-size: 13px;
+    }
+    
+    .giveaway-btn {
+        padding: 9px 20px;
+        font-size: 12px;
+    }
+    
+    /* Stats */
+    .stat-box {
+        padding: 16px 10px;
+    }
+    
+    .stat-icon {
+        font-size: 30px;
+    }
+    
+    .stat-number {
+        font-size: 22px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+    }
+    
+    /* Newsletter */
+    .newsletter-wrapper {
+        padding: 0 10px;
+    }
+    
+    .newsletter-icon {
+        font-size: 34px;
+    }
+    
+    .newsletter-title {
+        font-size: 16px;
+    }
+    
+    /* Section Headers */
+    .section-header-premium h2 {
+        font-size: 16px;
+    }
+    
+    .section-icon {
+        font-size: 26px;
+    }
+}
+
+/* =====================================================
+   LANDSCAPE MODE - Mobile
+===================================================== */
+@media (max-width: 767px) and (orientation: landscape) {
+    .hero-banner-item {
+        min-height: 100px;
+    }
+    
+    .hero-banner-image {
+        min-height: 100px;
+        max-height: 140px;
+    }
+    
+    .three-steps,
+    .hot-picks,
+    .top-offers-section-premium,
+    .top-stores-section-premium {
+        padding: 18px 0;
+    }
+}
+
+/* =====================================================
+   HOVER EFFECTS - Desktop Only
+===================================================== */
+@media (hover: hover) and (pointer: fine) {
+    .hero-banner-item:hover {
+        transform: translateY(-4px);
+    }
+    
+    .step-item:hover {
+        transform: translateY(-6px);
+    }
+    
+    .store-item-cd:hover {
+        transform: translateY(-4px);
+    }
+    
+    .deal-compact-card:hover {
+        transform: translateY(-5px);
+    }
+}
+
+/* =====================================================
+   TOUCH DEVICES - Remove Hover Effects
+===================================================== */
+@media (hover: none) and (pointer: coarse) {
+    .hero-banner-item:hover,
+    .step-item:hover,
+    .store-item-cd:hover,
+    .deal-compact-card:hover {
+        transform: none;
+    }
+}
+
+/* =====================================================
+   HIGH DPI DISPLAYS
+===================================================== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .hero-banner-image,
+    .compact-image img,
+    .store-logo-cd img {
+        image-rendering: -webkit-optimize-contrast;
+    }
+}
+
+/* =====================================================
+   REDUCE MOTION - Accessibility
+===================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* =====================================================
+   PRINT STYLES
+===================================================== */
+@media print {
+    .hero-slider-cd,
+    .hot-picks,
+    .see-more,
+    .view-all-btn-premium,
+    .compact-btn,
+    .giveaway-btn,
+    .newsletter-section,
+    .carousel-nav {
+        display: none !important;
+    }
+    
+    .deal-compact-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    * {
+        background: white !important;
+        color: black !important;
+    }
+}

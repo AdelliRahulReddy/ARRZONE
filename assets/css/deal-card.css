@@ -1,0 +1,472 @@
+/* =====================================================
+   DEAL CARDS - PREMIUM COMPACT DESIGN
+===================================================== */
+
+/* 3D Flip Card Container */
+.cd-deal-card {
+    perspective: 1000px;
+    width: 100%;
+    min-width: 240px;
+    max-width: 240px;
+}
+
+.cd-deal-inner {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.cd-deal-card:hover .cd-deal-inner {
+    transform: rotateY(180deg);
+}
+
+/* Front & Back Faces */
+.cd-deal-front,
+.cd-deal-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* ===== FRONT FACE ===== */
+.cd-deal-front {
+    background: white;
+    padding: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.cd-deal-card:hover .cd-deal-front {
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.15);
+}
+
+/* Discount Badge */
+.cd-discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+/* Store Logo */
+.cd-store-logo {
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.cd-store-text {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+    color: #667eea;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid rgba(102, 126, 234, 0.15);
+}
+
+/* Product Image */
+.cd-product-image {
+    width: 100%;
+    height: 150px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fd 0%, #e8f0fe 100%);
+}
+
+.cd-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.cd-deal-card:hover .cd-product-image img {
+    transform: scale(1.08);
+}
+
+.cd-no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Title */
+.cd-deal-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    height: 36px;
+    overflow: hidden;
+    text-align: center;
+    margin: 0;
+}
+
+.cd-deal-title a {
+    color: #2d3748;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cd-deal-title a:hover {
+    color: #667eea;
+}
+
+/* Cashback Badge */
+.cd-cashback-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(231, 76, 60, 0.05) 100%);
+    border: 1px solid rgba(231, 76, 60, 0.2);
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #e74c3c;
+    align-self: center;
+}
+
+.cd-cashback-icon {
+    font-size: 10px;
+}
+
+/* Price */
+.cd-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    justify-content: center;
+}
+
+.cd-price-main {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: var(--font-heading);
+}
+
+.cd-price-old {
+    font-size: 13px;
+    color: #cbd5e0;
+    text-decoration: line-through;
+}
+
+.cd-price-note {
+    font-size: 10px;
+    color: #718096;
+    margin: 0;
+    text-align: center;
+}
+
+/* Button */
+.cd-get-deal {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    margin-top: auto;
+}
+
+.cd-get-deal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+/* ===== BACK FACE ===== */
+.cd-deal-back {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: rotateY(180deg);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
+}
+
+.cd-back-content {
+    text-align: center;
+    width: 100%;
+}
+
+.cd-back-content h4 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+
+.cd-back-coupon {
+    margin-bottom: 14px;
+}
+
+.cd-back-coupon strong {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 6px;
+    opacity: 0.9;
+}
+
+.cd-back-coupon code {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    padding: 7px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.cd-back-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    opacity: 0.95;
+}
+
+.cd-back-expiry {
+    font-size: 11px;
+    opacity: 0.85;
+    margin-bottom: 16px;
+}
+
+.cd-back-button {
+    display: inline-block;
+    background: white;
+    color: #667eea;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.cd-back-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+    color: #667eea;
+}
+
+/* ===== LARGE DEAL CARD ===== */
+.deal-card-large {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(102, 126, 234, 0.08);
+    position: relative;
+}
+
+.deal-card-large:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(102, 126, 234, 0.15);
+}
+
+.deal-discount-badge-large {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    z-index: 10;
+}
+
+.deal-image-large {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: #f8f9fd;
+}
+
+.deal-image-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.deal-card-large:hover .deal-image-large img {
+    transform: scale(1.08);
+}
+
+.deal-store-logo-large {
+    margin: 12px 14px 8px;
+}
+
+.deal-store-logo-large span {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+    color: #667eea;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid rgba(102, 126, 234, 0.15);
+}
+
+.deal-title-large {
+    padding: 0 14px;
+    margin-bottom: 8px;
+}
+
+.deal-title-large a {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2d3748;
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+}
+
+.deal-title-large a:hover {
+    color: #667eea;
+}
+
+.deal-price-row-large {
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.price-current {
+    font-size: 20px;
+    font-weight: 800;
+    color: #27ae60;
+}
+
+.price-original {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.deal-cashback-large {
+    padding: 0 14px;
+    margin-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(231, 76, 60, 0.05) 100%);
+    border: 1px solid rgba(231, 76, 60, 0.2);
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #e74c3c;
+}
+
+.deal-btn-large {
+    display: block;
+    width: calc(100% - 28px);
+    margin: 0 14px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.deal-btn-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+/* ===== PLACEHOLDER STYLES ===== */
+.deal-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    min-height: 150px;
+}
+
+.placeholder-icon {
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.deal-card-large .deal-image-placeholder {
+    min-height: 180px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 767px) {
+    .cd-deal-card {
+        min-width: 220px;
+        max-width: 220px;
+    }
+    
+    .cd-deal-inner {
+        height: 360px;
+    }
+    
+    .cd-product-image {
+        height: 140px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cd-deal-card {
+        min-width: 200px;
+        max-width: 200px;
+    }
+    
+    .cd-deal-inner {
+        height: 340px;
+    }
+    
+    .cd-product-image {
+        height: 130px;
+    }
+}

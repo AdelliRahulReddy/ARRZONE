@@ -1,0 +1,327 @@
+/* =====================================================
+   DEALS ARCHIVE PAGE - PREMIUM DESIGN
+===================================================== */
+
+/* Page Container */
+.deals-archive-page {
+    padding: 30px 0;
+    background: linear-gradient(180deg, #f8f9fd 0%, #ffffff 100%);
+    min-height: 60vh;
+}
+
+/* Archive Header */
+.archive-header {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    text-align: center;
+}
+
+.archive-title {
+    font-size: 36px;
+    font-weight: 900;
+    color: #2d3748;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.archive-description {
+    font-size: 16px;
+    color: #718096;
+    margin: 0 0 16px 0;
+    line-height: 1.6;
+}
+
+.archive-count {
+    font-size: 15px;
+    color: #a0aec0;
+}
+
+.archive-count strong {
+    font-size: 28px;
+    font-weight: 900;
+    color: #667eea;
+    margin-right: 8px;
+}
+
+/* Toolbar */
+.archive-toolbar {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.08);
+}
+
+/* Filter Tabs */
+.archive-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 8px 18px;
+    background: white;
+    border: 2px solid #e8e8e8;
+    border-radius: 12px;
+    color: #4a5568;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.filter-tab:hover {
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Sort Dropdown */
+.archive-sort {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.archive-sort label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #718096;
+}
+
+.archive-sort select {
+    padding: 8px 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.archive-sort select:hover {
+    border-color: #667eea;
+}
+
+.archive-sort select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Deals Grid */
+.archive-deals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+/* No Results */
+.no-deals-found {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px dashed rgba(102, 126, 234, 0.2);
+}
+
+.no-deals-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.no-deals-found h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #2d3748;
+    margin: 0 0 10px 0;
+}
+
+.no-deals-found p {
+    font-size: 16px;
+    color: #718096;
+    margin: 0 0 20px 0;
+}
+
+.no-deals-found a {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.no-deals-found a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+/* Pagination */
+.archive-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pagination a,
+.pagination .current {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 16px;
+    background: white;
+    border: 2px solid #e8e8e8;
+    border-radius: 12px;
+    color: #2d3748;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.pagination .current {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.pagination .dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    color: #a0aec0;
+}
+
+/* Loading State */
+.deals-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(102, 126, 234, 0.1);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1199px) {
+    .archive-deals-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 967px) {
+    .archive-header {
+        padding: 24px;
+    }
+    
+    .archive-title {
+        font-size: 28px;
+    }
+    
+    .archive-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .archive-filters {
+        width: 100%;
+    }
+    
+    .archive-deals-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+@media (max-width: 640px) {
+    .archive-header {
+        padding: 20px;
+    }
+    
+    .archive-title {
+        font-size: 24px;
+    }
+    
+    .archive-count strong {
+        font-size: 20px;
+    }
+    
+    .filter-tab {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .archive-deals-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pagination a,
+    .pagination .current {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        font-size: 13px;
+    }
+}
