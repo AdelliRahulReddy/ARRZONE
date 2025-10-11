@@ -1,14 +1,23 @@
+/**
+ * Single Deal Page - Ultra Premium Design
+ * CouponDunia Inspired Layout
+ * 
+ * @package DealsIndia
+ */
+
 /* =====================================================
-   SINGLE DEAL PAGE - ULTRA PREMIUM DESIGN
+   PAGE LAYOUT
 ===================================================== */
 
-/* Page Layout */
 .single-deal-page {
     padding: 40px 0;
     background: linear-gradient(180deg, #f8f9fd 0%, #ffffff 100%);
 }
 
-/* Breadcrumb */
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+
 .deal-breadcrumb {
     display: flex;
     align-items: center;
@@ -19,16 +28,23 @@
 }
 
 .deal-breadcrumb a {
-    color: #667eea;
+    color: #00897B;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .deal-breadcrumb a:hover {
-    color: #764ba2;
+    color: #00695C;
 }
 
-/* Grid Layout */
+.deal-breadcrumb span {
+    color: #cbd5e0;
+}
+
+/* =====================================================
+   GRID LAYOUT
+===================================================== */
+
 .single-deal-grid {
     display: grid;
     grid-template-columns: 1fr 420px;
@@ -36,7 +52,10 @@
     align-items: start;
 }
 
-/* ===== LEFT COLUMN ===== */
+/* =====================================================
+   LEFT COLUMN
+===================================================== */
+
 .deal-left-column {
     display: flex;
     flex-direction: column;
@@ -50,12 +69,12 @@
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(0, 137, 123, 0.1);
     transition: all 0.3s ease;
 }
 
 .deal-featured-image:hover {
-    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 12px 40px rgba(0, 137, 123, 0.15);
 }
 
 .deal-featured-image img {
@@ -85,23 +104,26 @@
     position: absolute;
     top: 20px;
     left: 20px;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
     color: white;
     padding: 14px 24px;
     border-radius: 16px;
     font-size: 22px;
     font-weight: 900;
-    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
     letter-spacing: 0.5px;
 }
 
-/* Description Section */
+/* =====================================================
+   DESCRIPTION SECTION
+===================================================== */
+
 .deal-description-section {
     background: white;
     padding: 32px;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(102, 126, 234, 0.08);
+    border: 1px solid rgba(0, 137, 123, 0.08);
 }
 
 .deal-description-section h2 {
@@ -109,9 +131,10 @@
     font-weight: 800;
     margin-bottom: 20px;
     color: #2d3748;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .deal-description-content {
@@ -120,13 +143,30 @@
     font-size: 16px;
 }
 
-/* Related Deals */
+.deal-description-content p {
+    margin-bottom: 16px;
+}
+
+.deal-description-content ul,
+.deal-description-content ol {
+    margin: 16px 0;
+    padding-left: 24px;
+}
+
+.deal-description-content li {
+    margin-bottom: 8px;
+}
+
+/* =====================================================
+   RELATED DEALS
+===================================================== */
+
 .related-deals-section {
     background: white;
     padding: 32px;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(102, 126, 234, 0.08);
+    border: 1px solid rgba(0, 137, 123, 0.08);
 }
 
 .related-deals-section h2 {
@@ -142,13 +182,16 @@
     gap: 20px;
 }
 
-/* ===== RIGHT COLUMN - PURCHASE BOX ===== */
+/* =====================================================
+   RIGHT COLUMN - PURCHASE BOX
+===================================================== */
+
 .deal-purchase-box {
     background: white;
     border-radius: 20px;
     padding: 32px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(0, 137, 123, 0.1);
     position: sticky;
     top: 20px;
 }
@@ -160,13 +203,13 @@
     gap: 16px;
     margin-bottom: 24px;
     padding-bottom: 24px;
-    border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+    border-bottom: 2px solid rgba(0, 137, 123, 0.1);
 }
 
 .store-logo-big {
     width: 70px;
     height: 70px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -174,7 +217,14 @@
     color: white;
     font-weight: 900;
     font-size: 24px;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 137, 123, 0.3);
+}
+
+.store-logo-big img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 16px;
 }
 
 .store-info {
@@ -199,7 +249,10 @@
     display: inline-block;
 }
 
-/* Deal Title */
+/* =====================================================
+   DEAL TITLE
+===================================================== */
+
 .deal-title {
     font-size: 26px;
     font-weight: 900;
@@ -209,7 +262,10 @@
     letter-spacing: -0.5px;
 }
 
-/* Price Section */
+/* =====================================================
+   PRICE SECTION
+===================================================== */
+
 .deal-price-section {
     margin-bottom: 24px;
 }
@@ -217,9 +273,10 @@
 .deal-price-main {
     font-size: 48px;
     font-weight: 900;
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1;
     letter-spacing: -1px;
 }
@@ -229,6 +286,7 @@
     color: #cbd5e0;
     text-decoration: line-through;
     margin-top: 8px;
+    display: block;
 }
 
 .deal-price-save {
@@ -242,7 +300,10 @@
     display: inline-block;
 }
 
-/* Coupon Box */
+/* =====================================================
+   COUPON BOX
+===================================================== */
+
 .deal-coupon-box {
     background: linear-gradient(135deg, #fff9e6 0%, #ffedd5 100%);
     border: 2px dashed #ffa000;
@@ -274,9 +335,9 @@
     border-radius: 10px;
     font-size: 20px;
     font-weight: 900;
-    color: #e74c3c;
+    color: #00897B;
     letter-spacing: 2px;
-    border: 2px solid rgba(231, 76, 60, 0.2);
+    border: 2px solid rgba(0, 137, 123, 0.2);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -298,7 +359,10 @@
     box-shadow: 0 6px 20px rgba(255, 160, 0, 0.5);
 }
 
-/* Expiry Date */
+/* =====================================================
+   EXPIRY DATE
+===================================================== */
+
 .deal-expiry {
     background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
     color: #1976d2;
@@ -317,11 +381,14 @@
     border: 1px solid rgba(198, 40, 40, 0.2);
 }
 
-/* CTA Button */
+/* =====================================================
+   CTA BUTTON
+===================================================== */
+
 .deal-cta-button {
     display: block;
     width: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     color: white;
     text-align: center;
     padding: 20px;
@@ -333,13 +400,13 @@
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 24px;
-    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 24px rgba(0, 137, 123, 0.4);
     letter-spacing: 0.5px;
 }
 
 .deal-cta-button:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 36px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 12px 36px rgba(0, 137, 123, 0.5);
     text-decoration: none;
     color: white;
 }
@@ -350,7 +417,14 @@
     box-shadow: none !important;
 }
 
-/* Trust Badges */
+.deal-expired-btn:hover {
+    transform: none !important;
+}
+
+/* =====================================================
+   TRUST BADGES
+===================================================== */
+
 .deal-trust-badges {
     display: flex;
     flex-wrap: wrap;
@@ -361,19 +435,22 @@
 .trust-badge {
     flex: 1;
     min-width: 120px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(0, 137, 123, 0.05) 0%, rgba(0, 105, 92, 0.05) 100%);
     padding: 10px 14px;
     border-radius: 10px;
     font-size: 12px;
     font-weight: 700;
     color: #4a5568;
     text-align: center;
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(0, 137, 123, 0.1);
 }
 
-/* Meta Info */
+/* =====================================================
+   META INFO
+===================================================== */
+
 .deal-meta-info {
-    border-top: 1px solid rgba(102, 126, 234, 0.1);
+    border-top: 1px solid rgba(0, 137, 123, 0.1);
     padding-top: 24px;
     font-size: 14px;
     color: #718096;
@@ -390,23 +467,29 @@
 }
 
 .meta-item a {
-    color: #667eea;
+    color: #00897B;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .meta-item a:hover {
-    color: #764ba2;
+    color: #00695C;
     text-decoration: underline;
 }
 
-/* Expired Deal Style */
+/* =====================================================
+   EXPIRED DEAL STYLE
+===================================================== */
+
 .deal-purchase-box.deal-expired {
     opacity: 0.7;
     filter: grayscale(30%);
 }
 
-/* ===== RESPONSIVE ===== */
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
 @media (max-width: 968px) {
     .single-deal-grid {
         grid-template-columns: 1fr;
@@ -462,6 +545,7 @@
     .coupon-code-display code {
         width: 100%;
         text-align: center;
+        font-size: 16px;
     }
     
     .copy-coupon-btn {
@@ -472,4 +556,24 @@
         flex-direction: column;
         text-align: center;
     }
+    
+    .deal-title {
+        font-size: 20px;
+    }
+    
+    .deal-price-main {
+        font-size: 32px;
+    }
+}
+
+/* =====================================================
+   SMOOTH ANIMATIONS
+===================================================== */
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.deal-purchase-box * {
+    box-sizing: border-box;
 }

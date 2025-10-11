@@ -1,19 +1,23 @@
 <?php
 /**
  * Single Deal Template
- * Displays individual deal details
+ * 
+ * @package DealsIndia
+ * @version 3.1 - With Social Share
  */
 
 get_header();
 
 while (have_posts()) : the_post();
     
-    // Get all deal meta
-    $original_price = get_post_meta(get_the_ID(), 'original_price', true);
-    $sale_price = get_post_meta(get_the_ID(), 'sale_price', true);
-    $coupon_code = get_post_meta(get_the_ID(), 'coupon_code', true);
-    $affiliate_link = get_post_meta(get_the_ID(), 'affiliate_link', true);
-    $expiry_date = get_post_meta(get_the_ID(), 'expiry_date', true);
+    $deal_id = get_the_ID();
+    
+    // Get all deal meta (using CORRECT field names)
+    $original_price = get_post_meta($deal_id, 'deal_original_price', true);
+    $sale_price = get_post_meta($deal_id, 'deal_price', true);
+    $coupon_code = get_post_meta($deal_id, 'coupon_code', true);
+    $affiliate_link = get_post_meta($deal_id, 'deal_url', true);
+    $expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
     
     // Calculate discount
     $discount = 0;
@@ -22,18 +26,15 @@ while (have_posts()) : the_post();
     }
     
     // Get taxonomies
-    $stores = get_the_terms(get_the_ID(), 'store');
+    $stores = get_the_terms($deal_id, 'store');
     $store = ($stores && !is_wp_error($stores)) ? $stores[0] : null;
-    $categories = get_the_terms(get_the_ID(), 'deal_category');
+    $categories = get_the_terms($deal_id, 'deal_category');
     
     // Deal link
     $deal_link = $affiliate_link ? $affiliate_link : get_the_permalink();
     
     // Check expiry
-    $is_expired = false;
-    if ($expiry_date) {
-        $is_expired = (strtotime($expiry_date) < current_time('timestamp'));
-    }
+    $is_expired = dealsindia_is_deal_expired($deal_id);
 ?>
 
 <main class="single-deal-page">
@@ -66,14 +67,14 @@ while (have_posts()) : the_post();
                         </div>
                     <?php endif; ?>
                     
-                    <?php if ($discount > 0) : ?>
+                    <?php if ($discount > 0 && !$is_expired) : ?>
                         <div class="deal-discount-overlay"><?php echo $discount; ?>% OFF</div>
                     <?php endif; ?>
                 </div>
                 
                 <!-- Deal Description -->
                 <div class="deal-description-section">
-                    <h2><?php echo esc_html(get_option('dealsindia_deal_details_title', 'Deal Details')); ?></h2>
+                    <h2>Deal Details</h2>
                     <div class="deal-description-content">
                         <?php 
                         if (has_excerpt()) {
@@ -84,12 +85,17 @@ while (have_posts()) : the_post();
                     </div>
                 </div>
                 
+                <!-- Social Share Buttons -->
+                <div class="deal-social-share-section">
+                    <?php echo dealsindia_social_share_buttons($deal_id); ?>
+                </div>
+                
                 <!-- Related Deals -->
                 <?php
                 $related_args = array(
                     'post_type' => 'deals',
                     'posts_per_page' => 4,
-                    'post__not_in' => array(get_the_ID()),
+                    'post__not_in' => array($deal_id),
                     'orderby' => 'rand'
                 );
                 
@@ -109,7 +115,7 @@ while (have_posts()) : the_post();
                 if ($related->have_posts()) :
                 ?>
                 <div class="related-deals-section">
-                    <h2><?php echo esc_html(get_option('dealsindia_related_deals_title', 'Related Deals')); ?></h2>
+                    <h2>Related Deals</h2>
                     <div class="related-deals-grid">
                         <?php while ($related->have_posts()) : $related->the_post(); ?>
                             <?php get_template_part('template-parts/deal-card'); ?>
@@ -162,15 +168,28 @@ while (have_posts()) : the_post();
                     <!-- Coupon Code -->
                     <?php if ($coupon_code && !$is_expired) : ?>
                         <div class="deal-coupon-box">
-                            <label><?php echo esc_html(get_option('dealsindia_coupon_code_label', 'Coupon Code')); ?>:</label>
+                            <label>Coupon Code:</label>
                             <div class="coupon-code-display">
                                 <code id="coupon-code"><?php echo esc_html($coupon_code); ?></code>
-                                <button class="copy-coupon-btn">
+                                <button class="copy-coupon-btn" onclick="dealsindiaCopyCode()">
                                     <span class="copy-text">Copy</span>
                                     <span class="copied-text" style="display:none;">✓ Copied!</span>
                                 </button>
                             </div>
                         </div>
+                        
+                        <script>
+                        function dealsindiaCopyCode() {
+                            const code = document.getElementById('coupon-code').innerText;
+                            navigator.clipboard.writeText(code);
+                            document.querySelector('.copy-text').style.display = 'none';
+                            document.querySelector('.copied-text').style.display = 'inline';
+                            setTimeout(() => {
+                                document.querySelector('.copy-text').style.display = 'inline';
+                                document.querySelector('.copied-text').style.display = 'none';
+                            }, 2000);
+                        }
+                        </script>
                     <?php endif; ?>
                     
                     <!-- Expiry Date -->
@@ -179,7 +198,7 @@ while (have_posts()) : the_post();
                             <?php if ($is_expired) : ?>
                                 ⚠️ This deal expired on <?php echo date('M d, Y', strtotime($expiry_date)); ?>
                             <?php else : ?>
-                                ⏰ Expires on: <?php echo date('M d, Y', strtotime($expiry_date)); ?>
+                                ⏰ Expires on: <?php echo date('M d, Y h:i A', strtotime($expiry_date)); ?>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -188,9 +207,11 @@ while (have_posts()) : the_post();
                     <?php if (!$is_expired) : ?>
                         <a href="<?php echo esc_url($deal_link); ?>" 
                            class="deal-cta-button"
+                           data-deal-id="<?php echo $deal_id; ?>"
+                           data-track-deal="true"
                            target="_blank"
                            rel="nofollow noopener">
-                            <?php echo esc_html(get_option('dealsindia_get_deal_btn', 'Get This Deal →')); ?>
+                            Get This Deal →
                         </a>
                     <?php else : ?>
                         <button class="deal-cta-button deal-expired-btn" disabled>

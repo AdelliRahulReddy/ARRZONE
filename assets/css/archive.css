@@ -1,22 +1,31 @@
+/**
+ * Deals Archive Page - Premium Design
+ * CouponDunia-Inspired Teal/Green Theme
+ * 
+ * @package DealsIndia
+ */
+
 /* =====================================================
-   DEALS ARCHIVE PAGE - PREMIUM DESIGN
+   PAGE CONTAINER
 ===================================================== */
 
-/* Page Container */
 .deals-archive-page {
     padding: 30px 0;
     background: linear-gradient(180deg, #f8f9fd 0%, #ffffff 100%);
     min-height: 60vh;
 }
 
-/* Archive Header */
+/* =====================================================
+   ARCHIVE HEADER
+===================================================== */
+
 .archive-header {
     background: white;
     border-radius: 20px;
     padding: 32px;
     margin-bottom: 30px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(0, 137, 123, 0.1);
     text-align: center;
 }
 
@@ -26,9 +35,10 @@
     color: #2d3748;
     margin: 0 0 12px 0;
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .archive-description {
@@ -46,11 +56,14 @@
 .archive-count strong {
     font-size: 28px;
     font-weight: 900;
-    color: #667eea;
+    color: #00897B;
     margin-right: 8px;
 }
 
-/* Toolbar */
+/* =====================================================
+   TOOLBAR
+===================================================== */
+
 .archive-toolbar {
     background: white;
     border-radius: 16px;
@@ -62,10 +75,13 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.08);
+    border: 1px solid rgba(0, 137, 123, 0.08);
 }
 
-/* Filter Tabs */
+/* =====================================================
+   FILTER TABS
+===================================================== */
+
 .archive-filters {
     display: flex;
     gap: 8px;
@@ -82,22 +98,26 @@
     font-size: 14px;
     font-weight: 700;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .filter-tab:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: #00897B;
+    color: #00897B;
     transform: translateY(-2px);
 }
 
 .filter-tab.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     border-color: transparent;
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
 }
 
-/* Sort Dropdown */
+/* =====================================================
+   SORT DROPDOWN
+===================================================== */
+
 .archive-sort {
     display: flex;
     align-items: center;
@@ -112,7 +132,7 @@
 
 .archive-sort select {
     padding: 8px 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(0, 137, 123, 0.2);
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
@@ -123,16 +143,19 @@
 }
 
 .archive-sort select:hover {
-    border-color: #667eea;
+    border-color: #00897B;
 }
 
 .archive-sort select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #00897B;
+    box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.1);
 }
 
-/* Deals Grid */
+/* =====================================================
+   DEALS GRID
+===================================================== */
+
 .archive-deals-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -140,7 +163,10 @@
     margin-bottom: 32px;
 }
 
-/* No Results */
+/* =====================================================
+   NO RESULTS
+===================================================== */
+
 .no-deals-found {
     grid-column: 1 / -1;
     text-align: center;
@@ -148,7 +174,7 @@
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    border: 1px dashed rgba(102, 126, 234, 0.2);
+    border: 1px dashed rgba(0, 137, 123, 0.2);
 }
 
 .no-deals-icon {
@@ -172,23 +198,26 @@
 
 .no-deals-found a {
     display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     color: white;
     padding: 12px 28px;
     border-radius: 12px;
     text-decoration: none;
     font-weight: 700;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
 }
 
 .no-deals-found a:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(0, 137, 123, 0.4);
     color: white;
 }
 
-/* Pagination */
+/* =====================================================
+   PAGINATION
+===================================================== */
+
 .archive-pagination {
     display: flex;
     justify-content: center;
@@ -222,18 +251,18 @@
 }
 
 .pagination a:hover {
-    background: #667eea;
-    border-color: #667eea;
+    background: #00897B;
+    border-color: #00897B;
     color: white;
     transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
 }
 
 .pagination .current {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00897B 0%, #00695C 100%);
     border-color: transparent;
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
 }
 
 .pagination .dots {
@@ -244,7 +273,10 @@
     color: #a0aec0;
 }
 
-/* Loading State */
+/* =====================================================
+   LOADING STATE
+===================================================== */
+
 .deals-loading {
     text-align: center;
     padding: 60px 20px;
@@ -254,8 +286,8 @@
     display: inline-block;
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(102, 126, 234, 0.1);
-    border-top-color: #667eea;
+    border: 4px solid rgba(0, 137, 123, 0.1);
+    border-top-color: #00897B;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -264,7 +296,10 @@
     to { transform: rotate(360deg); }
 }
 
-/* ===== RESPONSIVE ===== */
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
 @media (max-width: 1199px) {
     .archive-deals-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -311,6 +346,8 @@
     .filter-tab {
         flex: 1;
         text-align: center;
+        font-size: 13px;
+        padding: 8px 12px;
     }
     
     .archive-deals-grid {
@@ -323,5 +360,13 @@
         height: 38px;
         padding: 0 12px;
         font-size: 13px;
+    }
+    
+    .no-deals-found {
+        padding: 60px 20px;
+    }
+    
+    .no-deals-icon {
+        font-size: 48px;
     }
 }

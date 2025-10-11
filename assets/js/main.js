@@ -1,7 +1,7 @@
 /**
  * Main Frontend JavaScript
  * DealsIndia Theme - All frontend interactions
- * Version: 3.0
+ * Version: 3.0 - Complete with Newsletter AJAX
  */
 
 (function() {
@@ -42,13 +42,28 @@
         });
     };
     
+    // =====================================================
+    // STICKY HEADER ON SCROLL
+    // =====================================================
+    const stickyHeaderInit = () => {
+        const header = document.querySelector('.site-header');
+        if (!header) return;
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    };
     
     // =====================================================
     // HERO SLIDER
     // =====================================================
     const heroSliderInit = () => {
         const slides = document.querySelectorAll('.slide-cd');
-        if (slides.length <= 1) return; // No slider needed for single slide
+        if (slides.length <= 1) return;
         
         let currentSlide = 0;
         const totalSlides = slides.length;
@@ -87,7 +102,6 @@
         });
     };
     
-    
     // =====================================================
     // HOT PICKS HORIZONTAL SCROLL
     // =====================================================
@@ -95,9 +109,7 @@
         const scrollContainer = document.querySelector('.deals-scroll');
         if (!scrollContainer) return;
         
-        const scrollAmount = 300; // pixels to scroll
-        
-        // Create scroll buttons
+        const scrollAmount = 300;
         const scrollWrapper = scrollContainer.parentElement;
         
         // Left arrow
@@ -116,7 +128,6 @@
         scrollWrapper.appendChild(leftArrow);
         scrollWrapper.appendChild(rightArrow);
         
-        // Scroll functions
         const scrollLeft = () => {
             scrollContainer.scrollBy({
                 left: -scrollAmount,
@@ -134,7 +145,6 @@
         leftArrow.addEventListener('click', scrollLeft);
         rightArrow.addEventListener('click', scrollRight);
         
-        // Show/hide arrows based on scroll position
         const updateArrows = () => {
             const isAtStart = scrollContainer.scrollLeft <= 0;
             const isAtEnd = scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 1;
@@ -147,9 +157,9 @@
         };
         
         scrollContainer.addEventListener('scroll', updateArrows);
-        updateArrows(); // Initial state
+        updateArrows();
         
-        // Mouse drag to scroll (optional enhancement)
+        // Mouse drag to scroll
         let isDown = false;
         let startX;
         let scrollLeftPos;
@@ -180,7 +190,6 @@
         });
     };
     
-    
     // =====================================================
     // COPY COUPON CODE
     // =====================================================
@@ -194,7 +203,6 @@
                 
                 const textToCopy = code.textContent;
                 
-                // Modern clipboard API
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(textToCopy).then(() => {
                         showCopiedState(btn);
@@ -202,7 +210,6 @@
                         console.error('Failed to copy:', err);
                     });
                 } else {
-                    // Fallback for older browsers
                     const textarea = document.createElement('textarea');
                     textarea.value = textToCopy;
                     textarea.style.position = 'fixed';
@@ -234,7 +241,6 @@
         };
     };
     
-    
     // =====================================================
     // STORE ARCHIVE SORTING
     // =====================================================
@@ -249,14 +255,12 @@
             window.location.href = currentUrl.toString();
         });
         
-        // Set selected option based on URL param
         const urlParams = new URLSearchParams(window.location.search);
         const currentSort = urlParams.get('orderby');
         if (currentSort) {
             sortSelect.value = currentSort;
         }
     };
-    
     
     // =====================================================
     // SMOOTH SCROLL TO ANCHOR LINKS
@@ -279,9 +283,8 @@
         });
     };
     
-    
     // =====================================================
-    // LAZY LOAD IMAGES (Optional Enhancement)
+    // LAZY LOAD IMAGES
     // =====================================================
     const lazyLoadInit = () => {
         if ('IntersectionObserver' in window) {
@@ -304,42 +307,136 @@
         }
     };
     
-    
     // =====================================================
-    // NEWSLETTER FORM HANDLER (Basic validation)
+    // NEWSLETTER FORM HANDLER WITH AJAX
     // =====================================================
     const newsletterInit = () => {
-        const form = document.querySelector('.newsletter-form');
+        const form = document.getElementById('newsletter-form');
         if (!form) return;
-        
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const emailInput = this.querySelector('input[type="email"]');
-            const email = emailInput.value.trim();
-            
-            if (!email || !isValidEmail(email)) {
-                alert('Please enter a valid email address.');
-                return;
-            }
-            
-            // TODO: Add AJAX submission to save newsletter subscribers
-            // For now, just show success message
-            alert('✅ Thank you for subscribing! You will receive deals in your inbox soon.');
-            emailInput.value = '';
+
+            const formData = new FormData(this);
+            const messageDiv = document.getElementById('newsletter-message');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Subscribing...';
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                messageDiv.style.display = 'block';
+                
+                if (data.success) {
+                    messageDiv.innerHTML = `<div style="color: #10b981; background: #d1fae5; padding: 12px 20px; border-radius: 8px; font-weight: 600; text-align: center;">${data.data.message}</div>`;
+                    form.reset();
+                } else {
+                    messageDiv.innerHTML = `<div style="color: #ef4444; background: #fee2e2; padding: 12px 20px; border-radius: 8px; font-weight: 600; text-align: center;">${data.data.message}</div>`;
+                }
+
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            })
+            .catch(error => {
+                messageDiv.style.display = 'block';
+                messageDiv.innerHTML = `<div style="color: #ef4444; background: #fee2e2; padding: 12px 20px; border-radius: 8px; text-align: center;">An error occurred. Please try again.</div>`;
+                
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            });
         });
     };
     
-    const isValidEmail = (email) => {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    // =====================================================
+    // FAQ ACCORDION
+    // =====================================================
+    const faqAccordionInit = () => {
+        const faqButtons = document.querySelectorAll('.faq-question');
+
+        faqButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const faqId = this.dataset.faqToggle;
+                const answer = document.getElementById(faqId);
+                const icon = this.querySelector('.faq-icon');
+
+                if (!answer) return;
+
+                const isOpen = answer.classList.contains('active');
+
+                // Close all other FAQs
+                document.querySelectorAll('.faq-answer').forEach(item => {
+                    item.classList.remove('active');
+                    item.style.maxHeight = null;
+                });
+
+                document.querySelectorAll('.faq-icon').forEach(item => {
+                    item.textContent = '+';
+                });
+
+                // Toggle current FAQ
+                if (!isOpen) {
+                    answer.classList.add('active');
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    icon.textContent = '−';
+                }
+            });
+        });
     };
     
+    // =====================================================
+    // LATEST DEALS CAROUSEL NAVIGATION
+    // =====================================================
+    const dealsCarouselInit = () => {
+        const track = document.querySelector('.deals-carousel-track');
+        const leftBtn = document.querySelector('.carousel-nav-left');
+        const rightBtn = document.querySelector('.carousel-nav-right');
+        
+        if (!track || !leftBtn || !rightBtn) return;
+        
+        const scrollAmount = 300;
+        
+        leftBtn.addEventListener('click', () => {
+            track.scrollBy({
+                left: -scrollAmount,
+                behavior: 'smooth'
+            });
+        });
+        
+        rightBtn.addEventListener('click', () => {
+            track.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Hide arrows when at start/end
+        track.addEventListener('scroll', () => {
+            leftBtn.style.opacity = track.scrollLeft <= 0 ? '0.3' : '1';
+            rightBtn.style.opacity = 
+                track.scrollLeft >= track.scrollWidth - track.clientWidth ? '0.3' : '1';
+        });
+    };
     
     // =====================================================
-    // INITIALIZE ALL FUNCTIONS ON DOM READY
+    // INITIALIZE ALL FUNCTIONS
     // =====================================================
     const init = () => {
         mobileMenuInit();
+        stickyHeaderInit();
         heroSliderInit();
         hotPicksScrollInit();
         copyCouponInit();
@@ -347,7 +444,8 @@
         smoothScrollInit();
         lazyLoadInit();
         newsletterInit();
-        stickyHeaderInit();
+        faqAccordionInit();
+        dealsCarouselInit();
     };
     
     // Run on DOM ready
@@ -356,36 +454,21 @@
     } else {
         init();
     }
-    
-    // Sticky Header on Scroll
-const stickyHeaderInit = () => {
-    const header = document.querySelector('.site-header');
-    if (!header) return;
-    
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
-};
 
 })();
 
-
 // =====================================================
-// GLOBAL UTILITY FUNCTIONS (if needed by inline code)
+// GLOBAL UTILITY FUNCTIONS (Backward Compatibility)
 // =====================================================
 
-// Store sorting (kept for backward compatibility)
+// Store sorting
 function sortStoreDeals(sortBy) {
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('orderby', sortBy);
     window.location.href = currentUrl.toString();
 }
 
-// Copy coupon (kept for backward compatibility)
+// Copy coupon
 function copyCoupon() {
     const code = document.getElementById('coupon-code');
     if (!code) return;
@@ -396,46 +479,17 @@ function copyCoupon() {
         navigator.clipboard.writeText(textToCopy).then(() => {
             const btn = document.querySelector('.copy-coupon-btn');
             if (btn) {
-                btn.querySelector('.copy-text').style.display = 'none';
-                btn.querySelector('.copied-text').style.display = 'inline';
+                const copyText = btn.querySelector('.copy-text');
+                const copiedText = btn.querySelector('.copied-text');
+                
+                if (copyText) copyText.style.display = 'none';
+                if (copiedText) copiedText.style.display = 'inline';
                 
                 setTimeout(() => {
-                    btn.querySelector('.copy-text').style.display = 'inline';
-                    btn.querySelector('.copied-text').style.display = 'none';
+                    if (copyText) copyText.style.display = 'inline';
+                    if (copiedText) copiedText.style.display = 'none';
                 }, 2000);
             }
         });
     }
 }
-
-// Latest Deals Carousel Navigation
-document.addEventListener('DOMContentLoaded', function() {
-    const track = document.querySelector('.deals-carousel-track');
-    const leftBtn = document.querySelector('.carousel-nav-left');
-    const rightBtn = document.querySelector('.carousel-nav-right');
-    
-    if (!track || !leftBtn || !rightBtn) return;
-    
-    const scrollAmount = 300;
-    
-    leftBtn.addEventListener('click', () => {
-        track.scrollBy({
-            left: -scrollAmount,
-            behavior: 'smooth'
-        });
-    });
-    
-    rightBtn.addEventListener('click', () => {
-        track.scrollBy({
-            left: scrollAmount,
-            behavior: 'smooth'
-        });
-    });
-    
-    // Hide arrows when at start/end
-    track.addEventListener('scroll', () => {
-        leftBtn.style.opacity = track.scrollLeft <= 0 ? '0.3' : '1';
-        rightBtn.style.opacity = 
-            track.scrollLeft >= track.scrollWidth - track.clientWidth ? '0.3' : '1';
-    });
-});

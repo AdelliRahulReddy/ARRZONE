@@ -1,5 +1,5 @@
 /* =====================================================
-   RESPONSIVE.CSS - PREMIUM MOBILE-FIRST
+   RESPONSIVE.CSS - FIXED STORES GRID
    Clean, Minimal, Perfect Stacking
 ===================================================== */
 
@@ -20,8 +20,9 @@
         grid-template-columns: 240px 1fr;
     }
     
+    /* ✅ FIXED: Keep 6 columns */
     .stores-grid-cd {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(6, 1fr) !important;
     }
     
     .latest-deals-grid-premium {
@@ -95,9 +96,9 @@
         gap: 14px;
     }
     
-    /* Top Stores */
+    /* ✅ FIXED: Top Stores - 4 columns for tablet */
     .stores-grid-cd {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr) !important;
         gap: 12px;
         grid-auto-rows: 105px;
     }
@@ -312,14 +313,14 @@
         gap: 12px;
     }
     
-    /* Top Stores */
+    /* Top Stores - 3 columns mobile */
     .stores-wrapper-cd {
         padding: 14px;
         border-radius: 14px;
     }
     
     .stores-grid-cd {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr) !important;
         gap: 10px;
         grid-auto-rows: 95px;
     }
@@ -335,7 +336,7 @@
     }
     
     .store-featured {
-        grid-column: span 2;
+        grid-column: span 3;
         grid-row: span 1;
     }
     
@@ -521,12 +522,12 @@
 ===================================================== */
 @media (max-width: 639px) {
     .stores-grid-cd {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px;
     }
     
     .store-featured {
-        grid-column: span 1;
+        grid-column: span 2;
     }
     
     .stats-grid {

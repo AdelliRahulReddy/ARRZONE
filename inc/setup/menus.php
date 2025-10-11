@@ -2,6 +2,9 @@
 /**
  * Navigation Menus
  * Register and manage theme menus
+ * 
+ * @package DealsIndia
+ * @version 3.0 - Added footer fallback
  */
 
 if (!defined('ABSPATH')) exit;
@@ -23,9 +26,22 @@ add_action('init', 'dealsindia_register_menus');
  */
 function dealsindia_fallback_menu() {
     echo '<ul class="nav-menu-items">';
-    echo '<li><a href="' . esc_url(home_url('/')) . '">Home</a></li>';
-    echo '<li><a href="' . esc_url(get_post_type_archive_link('deals')) . '">Deals</a></li>';
-    echo '<li><a href="' . esc_url(home_url('/store/')) . '">Stores</a></li>';
-    echo '<li><a href="' . esc_url(home_url('/deal_category/')) . '">Categories</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/')) . '">' . __('Home', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(get_post_type_archive_link('deals')) . '">' . __('Deals', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/store/')) . '">' . __('Stores', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/deal_category/')) . '">' . __('Categories', 'dealsindia') . '</a></li>';
+    echo '</ul>';
+}
+
+/**
+ * Fallback menu for footer navigation
+ */
+function dealsindia_footer_fallback_menu() {
+    echo '<ul class="footer-menu">';
+    echo '<li><a href="' . esc_url(home_url('/')) . '">' . __('Home', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/about')) . '">' . __('About Us', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/contact')) . '">' . __('Contact', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/privacy-policy')) . '">' . __('Privacy Policy', 'dealsindia') . '</a></li>';
+    echo '<li><a href="' . esc_url(home_url('/terms-of-service')) . '">' . __('Terms of Service', 'dealsindia') . '</a></li>';
     echo '</ul>';
 }

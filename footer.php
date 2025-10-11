@@ -1,60 +1,61 @@
+<?php
+/**
+ * Footer Template
+ * 
+ * @package DealsIndia
+ * @version 3.0 - Fully Dynamic
+ */
+?>
+
 <footer class="site-footer">
     <div class="container">
         
-        <!-- Main Footer Content -->
+        <!-- Footer Content Grid -->
         <div class="footer-content">
             
             <!-- About Section -->
             <div class="footer-section footer-about">
-                <h3>
-                    <?php 
-                    $footer_logo = get_option('dealsindia_footer_logo_text', '💰 ' . get_bloginfo('name')); 
-                    echo esc_html($footer_logo);
-                    ?>
-                </h3>
-                <p><?php echo esc_html(get_option('dealsindia_footer_description', 'India\'s best deals and coupons platform. Save money on your favorite brands.')); ?></p>
+                <?php if (has_custom_logo()) : ?>
+                    <div class="footer-logo">
+                        <?php the_custom_logo(); ?>
+                    </div>
+                <?php else : ?>
+                    <h3><?php bloginfo('name'); ?></h3>
+                <?php endif; ?>
+                
+                <p><?php echo esc_html(get_theme_mod('dealsindia_footer_about', 'ARRZONE is India\'s leading deals and cashback platform, helping millions save money every day.')); ?></p>
                 
                 <!-- Social Media Links -->
                 <?php 
-                $social_links = array(
-                    'facebook' => get_option('dealsindia_facebook_url'),
-                    'twitter' => get_option('dealsindia_twitter_url'),
-                    'instagram' => get_option('dealsindia_instagram_url'),
-                    'youtube' => get_option('dealsindia_youtube_url'),
-                    'telegram' => get_option('dealsindia_telegram_url')
-                );
+                $facebook = get_theme_mod('dealsindia_social_facebook');
+                $twitter = get_theme_mod('dealsindia_social_twitter');
+                $instagram = get_theme_mod('dealsindia_social_instagram');
+                $youtube = get_theme_mod('dealsindia_social_youtube');
                 
-                $has_social = array_filter($social_links);
-                if (!empty($has_social)) :
+                if ($facebook || $twitter || $instagram || $youtube) :
                 ?>
                 <div class="footer-social">
-                    <?php if ($social_links['facebook']) : ?>
-                        <a href="<?php echo esc_url($social_links['facebook']); ?>" target="_blank" rel="noopener" aria-label="Facebook">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    <?php if ($facebook) : ?>
+                        <a href="<?php echo esc_url($facebook); ?>" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                            <svg width="20" height="20" fill="currentColor"><use href="#icon-facebook"/></svg>
                         </a>
                     <?php endif; ?>
                     
-                    <?php if ($social_links['twitter']) : ?>
-                        <a href="<?php echo esc_url($social_links['twitter']); ?>" target="_blank" rel="noopener" aria-label="Twitter">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                    <?php if ($twitter) : ?>
+                        <a href="<?php echo esc_url($twitter); ?>" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                            <svg width="20" height="20" fill="currentColor"><use href="#icon-twitter"/></svg>
                         </a>
                     <?php endif; ?>
                     
-                    <?php if ($social_links['instagram']) : ?>
-                        <a href="<?php echo esc_url($social_links['instagram']); ?>" target="_blank" rel="noopener" aria-label="Instagram">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    <?php if ($instagram) : ?>
+                        <a href="<?php echo esc_url($instagram); ?>" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                            <svg width="20" height="20" fill="currentColor"><use href="#icon-instagram"/></svg>
                         </a>
                     <?php endif; ?>
                     
-                    <?php if ($social_links['youtube']) : ?>
-                        <a href="<?php echo esc_url($social_links['youtube']); ?>" target="_blank" rel="noopener" aria-label="YouTube">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                        </a>
-                    <?php endif; ?>
-                    
-                    <?php if ($social_links['telegram']) : ?>
-                        <a href="<?php echo esc_url($social_links['telegram']); ?>" target="_blank" rel="noopener" aria-label="Telegram">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M.707 8.475C.275 8.64 0 9.508 0 9.508s.284.867.718 1.03l5.09 1.897 1.986 6.38a1.102 1.102 0 0 0 1.75.527l2.96-2.41a.405.405 0 0 1 .494-.013l5.34 3.87a1.1 1.1 0 0 0 1.046.135 1.1 1.1 0 0 0 .682-.803l3.91-18.795A1.102 1.102 0 0 0 22.5.075L.706 8.475z"/></svg>
+                    <?php if ($youtube) : ?>
+                        <a href="<?php echo esc_url($youtube); ?>" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                            <svg width="20" height="20" fill="currentColor"><use href="#icon-youtube"/></svg>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -63,97 +64,118 @@
             
             <!-- Quick Links -->
             <div class="footer-section">
-                <h4><?php echo esc_html(get_option('dealsindia_footer_links_title', 'Quick Links')); ?></h4>
+                <h4><?php _e('Quick Links', 'dealsindia'); ?></h4>
                 <?php
-                // Try to use footer menu first
                 if (has_nav_menu('footer')) {
                     wp_nav_menu(array(
                         'theme_location' => 'footer',
-                        'menu_class' => 'footer-links',
+                        'menu_class' => 'footer-menu',
                         'container' => false,
-                        'depth' => 1
+                        'depth' => 1,
+                        'fallback_cb' => 'dealsindia_footer_fallback_menu'
                     ));
                 } else {
-                    // Fallback to dynamic pages
-                    echo '<ul class="footer-links">';
-                    echo '<li><a href="' . esc_url(home_url('/')) . '">Home</a></li>';
-                    
-                    // Get important pages
-                    $pages = get_pages(array('number' => 4));
-                    foreach ($pages as $page) {
-                        echo '<li><a href="' . get_permalink($page->ID) . '">' . esc_html($page->post_title) . '</a></li>';
-                    }
-                    echo '</ul>';
+                    dealsindia_footer_fallback_menu();
                 }
                 ?>
             </div>
             
-            <!-- Categories -->
+            <!-- Popular Categories -->
             <div class="footer-section">
-                <h4><?php echo esc_html(get_option('dealsindia_footer_categories_title', 'Categories')); ?></h4>
-                <ul class="footer-links">
-                    <?php
-                    $footer_cat_count = get_option('dealsindia_footer_category_count', 6);
-                    $categories = get_terms(array(
-                        'taxonomy' => 'deal_category',
-                        'hide_empty' => true,
-                        'number' => $footer_cat_count,
-                        'orderby' => 'count',
-                        'order' => 'DESC'
-                    ));
-                    
-                    if ($categories && !is_wp_error($categories)) :
-                        foreach ($categories as $category) : ?>
-                            <li><a href="<?php echo esc_url(get_term_link($category)); ?>"><?php echo esc_html($category->name); ?></a></li>
-                        <?php endforeach;
-                    endif;
-                    ?>
+                <h4><?php _e('Popular Categories', 'dealsindia'); ?></h4>
+                <?php
+                $categories = get_terms(array(
+                    'taxonomy' => 'deal_category',
+                    'number' => 6,
+                    'orderby' => 'count',
+                    'order' => 'DESC',
+                    'hide_empty' => true
+                ));
+                
+                if (!empty($categories) && !is_wp_error($categories)) :
+                ?>
+                <ul class="footer-menu">
+                    <?php foreach ($categories as $category) : ?>
+                        <li>
+                            <a href="<?php echo esc_url(get_term_link($category)); ?>">
+                                <?php echo esc_html($category->name); ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
                 </ul>
+                <?php else : ?>
+                <p><?php _e('No categories available yet.', 'dealsindia'); ?></p>
+                <?php endif; ?>
             </div>
             
-            <!-- Popular Stores -->
+            <!-- Top Stores -->
             <div class="footer-section">
-                <h4><?php echo esc_html(get_option('dealsindia_footer_stores_title', 'Popular Stores')); ?></h4>
-                <ul class="footer-links">
-                    <?php
-                    $footer_store_count = get_option('dealsindia_footer_store_count', 6);
-                    $stores = get_terms(array(
-                        'taxonomy' => 'store',
-                        'hide_empty' => true,
-                        'number' => $footer_store_count,
-                        'orderby' => 'count',
-                        'order' => 'DESC'
-                    ));
-                    
-                    if ($stores && !is_wp_error($stores)) :
-                        foreach ($stores as $store) : ?>
-                            <li><a href="<?php echo esc_url(get_term_link($store)); ?>"><?php echo esc_html($store->name); ?></a></li>
-                        <?php endforeach;
-                    endif;
-                    ?>
+                <h4><?php _e('Top Stores', 'dealsindia'); ?></h4>
+                <?php
+                $stores = get_terms(array(
+                    'taxonomy' => 'store',
+                    'number' => 6,
+                    'orderby' => 'count',
+                    'order' => 'DESC',
+                    'hide_empty' => true
+                ));
+                
+                if (!empty($stores) && !is_wp_error($stores)) :
+                ?>
+                <ul class="footer-menu">
+                    <?php foreach ($stores as $store) : ?>
+                        <li>
+                            <a href="<?php echo esc_url(get_term_link($store)); ?>">
+                                <?php echo esc_html($store->name); ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
                 </ul>
+                <?php else : ?>
+                <p><?php _e('No stores available yet.', 'dealsindia'); ?></p>
+                <?php endif; ?>
             </div>
             
         </div>
         
         <!-- Footer Bottom -->
         <div class="footer-bottom">
-            <p>
-                <?php 
-                $copyright_text = get_option('dealsindia_copyright_text', '&copy; ' . date('Y') . ' ' . get_bloginfo('name') . '. All rights reserved.');
-                echo wp_kses_post($copyright_text);
-                ?>
-            </p>
-            
-            <?php 
-            $footer_credit = get_option('dealsindia_footer_credit');
-            if ($footer_credit) : ?>
-                <p class="footer-credit"><?php echo wp_kses_post($footer_credit); ?></p>
-            <?php endif; ?>
+            <div class="footer-bottom-content">
+                <p class="copyright">
+                    <?php 
+                    $copyright_text = get_theme_mod('dealsindia_copyright_text', '© ' . date('Y') . ' ARRZONE. All Rights Reserved.');
+                    echo wp_kses_post(str_replace('{year}', date('Y'), $copyright_text));
+                    ?>
+                </p>
+                
+                <div class="footer-payment-methods">
+                    <span><?php _e('We Accept:', 'dealsindia'); ?></span>
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-visa.svg'); ?>" alt="Visa" width="40" height="25" />
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-mastercard.svg'); ?>" alt="Mastercard" width="40" height="25" />
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-upi.svg'); ?>" alt="UPI" width="40" height="25" />
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-paytm.svg'); ?>" alt="Paytm" width="40" height="25" />
+                </div>
+            </div>
         </div>
         
     </div>
 </footer>
+
+<!-- SVG Icons (Hidden) -->
+<svg style="display: none;">
+    <symbol id="icon-facebook" viewBox="0 0 24 24">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </symbol>
+    <symbol id="icon-twitter" viewBox="0 0 24 24">
+        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+    </symbol>
+    <symbol id="icon-instagram" viewBox="0 0 24 24">
+        <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
+    </symbol>
+    <symbol id="icon-youtube" viewBox="0 0 24 24">
+        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </symbol>
+</svg>
 
 <?php wp_footer(); ?>
 </body>

@@ -1,50 +1,79 @@
-jQuery(document).ready(function($) {
+/**
+ * Store Logo & Banner Upload JavaScript
+ * 
+ * @package DealsIndia
+ */
+
+jQuery(document).ready(function($){
+    'use strict';
     
-    // Upload button click
-    $(document).on('click', '.upload-store-logo-btn', function(e) {
+    // Logo Upload
+    var logoFrame;
+    $('.store-logo-upload-btn').on('click', function(e){
         e.preventDefault();
         
-        var button = $(this);
-        var preview = button.siblings('.store-logo-preview');
-        var input = button.siblings('#store_logo_id');
-        var removeBtn = button.siblings('.remove-store-logo-btn');
+        if(logoFrame){
+            logoFrame.open();
+            return;
+        }
         
-        var mediaUploader = wp.media({
-            title: 'Choose Store Logo',
+        logoFrame = wp.media({
+            title: 'Select Store Logo',
             button: {
                 text: 'Use this logo'
             },
-            multiple: false,
-            library: {
-                type: 'image'
-            }
+            multiple: false
         });
         
-        mediaUploader.on('select', function() {
-            var attachment = mediaUploader.state().get('selection').first().toJSON();
-            
-            input.val(attachment.id);
-            preview.html('<img src="' + attachment.url + '" style="max-width: 150px; max-height: 150px; display: block; border: 1px solid #ddd; padding: 5px; background: white;">');
-            button.text('Change Logo');
-            removeBtn.show();
+        logoFrame.on('select', function(){
+            var attachment = logoFrame.state().get('selection').first().toJSON();
+            $('#store_logo_id').val(attachment.id);
+            $('#store-logo-preview').attr('src', attachment.url).show();
+            $('.store-logo-remove-btn').show();
         });
         
-        mediaUploader.open();
+        logoFrame.open();
     });
     
-    // Remove button click
-    $(document).on('click', '.remove-store-logo-btn', function(e) {
+    $('.store-logo-remove-btn').on('click', function(e){
+        e.preventDefault();
+        $('#store_logo_id').val('');
+        $('#store-logo-preview').hide();
+        $(this).hide();
+    });
+    
+    // Banner Upload
+    var bannerFrame;
+    $('.store-banner-upload-btn').on('click', function(e){
         e.preventDefault();
         
-        var button = $(this);
-        var preview = button.siblings('.store-logo-preview');
-        var input = button.siblings('#store_logo_id');
-        var uploadBtn = button.siblings('.upload-store-logo-btn');
+        if(bannerFrame){
+            bannerFrame.open();
+            return;
+        }
         
-        input.val('');
-        preview.html('');
-        uploadBtn.text('Upload Logo');
-        button.hide();
+        bannerFrame = wp.media({
+            title: 'Select Store Banner',
+            button: {
+                text: 'Use this banner'
+            },
+            multiple: false
+        });
+        
+        bannerFrame.on('select', function(){
+            var attachment = bannerFrame.state().get('selection').first().toJSON();
+            $('#store_banner_id').val(attachment.id);
+            $('#store-banner-preview').attr('src', attachment.url).show();
+            $('.store-banner-remove-btn').show();
+        });
+        
+        bannerFrame.open();
     });
     
+    $('.store-banner-remove-btn').on('click', function(e){
+        e.preventDefault();
+        $('#store_banner_id').val('');
+        $('#store-banner-preview').hide();
+        $(this).hide();
+    });
 });

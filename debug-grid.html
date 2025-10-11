@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Grid Debug - ARRZONE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #e53935;
+        }
+        .debug-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e53935;
+            margin-bottom: 15px;
+        }
+        .debug-info {
+            font-size: 14px;
+            line-height: 1.8;
+            font-family: monospace;
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success { color: #4caf50; font-weight: bold; }
+        .error { color: #e53935; font-weight: bold; }
+        .warning { color: #ff9800; font-weight: bold; }
+        
+        /* Test Grid */
+        .test-stores-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .test-store-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        button {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #c62828;
+        }
+    </style>
+</head>
+<body>
+
+<div class="debug-container">
+    <h1 style="color: #e53935; margin-bottom: 30px;">🔍 ARRZONE Grid Diagnostic Tool</h1>
+    
+    <!-- Test Grid -->
+    <div class="debug-section">
+        <div class="debug-title">TEST GRID (Should show 6 columns):</div>
+        <div class="test-stores-grid">
+            <div class="test-store-item">1</div>
+            <div class="test-store-item">2</div>
+            <div class="test-store-item">3</div>
+            <div class="test-store-item">4</div>
+            <div class="test-store-item">5</div>
+            <div class="test-store-item">6</div>
+        </div>
+    </div>
+    
+    <!-- Browser Info -->
+    <div class="debug-section">
+        <div class="debug-title">1. Browser Information:</div>
+        <div class="debug-info" id="browser-info">Loading...</div>
+    </div>
+    
+    <!-- Screen Info -->
+    <div class="debug-section">
+        <div class="debug-title">2. Screen Information:</div>
+        <div class="debug-info" id="screen-info">Loading...</div>
+    </div>
+    
+    <!-- CSS Files -->
+    <div class="debug-section">
+        <div class="debug-title">3. CSS Files Loaded:</div>
+        <div class="debug-info" id="css-files">Loading...</div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="debug-section">
+        <div class="debug-title">4. Quick Actions:</div>
+        <button onclick="clearAllCache()">🗑️ Clear All Cache</button>
+        <button onclick="checkWordPressCache()">🔍 Check WP Cache</button>
+        <button onclick="window.location.href='http://localhost:10010'">🏠 Go to Homepage</button>
+        <button onclick="window.location.href='http://localhost:10010/wp-admin/'">⚙️ Go to Admin</button>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="debug-section">
+        <div class="debug-title">5. Next Steps:</div>
+        <div class="debug-info">
+            <strong>If test grid above shows 4 columns (not 6):</strong><br>
+            → Your browser cache is blocking the new CSS<br>
+            → Press Ctrl + Shift + Delete → Clear Everything<br>
+            → Close browser completely and reopen<br>
+            <br>
+            <strong>If test grid shows 6 columns but homepage shows 4:</strong><br>
+            → WordPress cache plugin is active<br>
+            → Go to WP Admin → Plugins → Deactivate cache plugins<br>
+            → Or check Settings → Permalinks → Save again<br>
+            <br>
+            <strong>Screen width info below will tell you which media query is active!</strong>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    <div class="debug-section">
+        <div class="debug-title">6. Diagnosis Result:</div>
+        <div class="debug-info" id="diagnosis"></div>
+    </div>
+</div>
+
+<script>
+// Browser Info
+document.getElementById('browser-info').innerHTML = `
+    <strong>Browser:</strong> ${navigator.userAgent.includes('Chrome') ? '✅ Chrome' : '❌ Other'}<br>
+    <strong>User Agent:</strong> ${navigator.userAgent}
+`;
+
+// Screen Info
+const width = window.innerWidth;
+let breakpoint = '';
+if (width >= 1200) breakpoint = '✅ Desktop (1200px+) - Should show 6 columns';
+else if (width >= 968) breakpoint = '⚠️ Tablet Landscape (968-1199px) - Should show 6 columns';
+else if (width >= 768) breakpoint = '⚠️ Tablet (768-967px) - Should show 4 columns';
+else if (width >= 640) breakpoint = '⚠️ Mobile Large (640-767px) - Should show 3 columns';
+else breakpoint = '⚠️ Mobile (below 640px) - Should show 2 columns';
+
+document.getElementById('screen-info').innerHTML = `
+    <strong>Window Width:</strong> <span class="${width >= 1200 ? 'success' : 'warning'}">${width}px</span><br>
+    <strong>Window Height:</strong> ${window.innerHeight}px<br>
+    <strong>Device Pixel Ratio:</strong> ${window.devicePixelRatio}<br>
+    <strong>Active Breakpoint:</strong> ${breakpoint}
+`;
+
+// CSS Files
+let cssHTML = '';
+let cssIndex = 1;
+Array.from(document.styleSheets).forEach(sheet => {
+    try {
+        const url = sheet.href || 'inline styles';
+        const fileName = url.includes('/') ? url.split('/').pop() : url;
+        cssHTML += `<strong>${cssIndex}.</strong> ${fileName}<br>`;
+        cssIndex++;
+    } catch(e) {
+        cssHTML += `<strong>${cssIndex}.</strong> [Cross-origin stylesheet]<br>`;
+        cssIndex++;
+    }
+});
+document.getElementById('css-files').innerHTML = cssHTML;
+
+// Test Grid Columns
+setTimeout(() => {
+    const testGrid = document.querySelector('.test-stores-grid');
+    const computedColumns = window.getComputedStyle(testGrid).gridTemplateColumns;
+    const columnCount = computedColumns.split(' ').length;
+    
+    let diagnosis = '';
+    
+    if (columnCount === 6 && width >= 1200) {
+        diagnosis = '<span class="success">✅ PERFECT!</span><br>Test grid shows 6 columns correctly.<br><br>';
+        diagnosis += '<strong>If your homepage still shows 4 columns:</strong><br>';
+        diagnosis += '1. You have a WordPress cache plugin active<br>';
+        diagnosis += '2. Go to WP Admin → find cache plugin → Clear cache<br>';
+        diagnosis += '3. Or temporarily deactivate the cache plugin<br>';
+        diagnosis += '4. Common plugins: WP Super Cache, W3 Total Cache, WP Rocket';
+    } else if (columnCount === 4) {
+        diagnosis = '<span class="error">❌ PROBLEM FOUND!</span><br>Test grid showing 4 columns instead of 6.<br><br>';
+        diagnosis += '<strong>The issue is:</strong> Your BROWSER CACHE is stuck!<br><br>';
+        diagnosis += '<strong>Solution:</strong><br>';
+        diagnosis += '1. Press Ctrl + Shift + Delete<br>';
+        diagnosis += '2. Select "All time" or "Everything"<br>';
+        diagnosis += '3. Check all boxes (cache, cookies, everything)<br>';
+        diagnosis += '4. Click "Clear data"<br>';
+        diagnosis += '5. Close browser completely<br>';
+        diagnosis += '6. Reopen and visit this page again';
+    } else {
+        diagnosis = `<span class="warning">⚠️ UNEXPECTED</span><br>Grid showing ${columnCount} columns.<br>Expected 6 at your screen width (${width}px).`;
+    }
+    
+    document.getElementById('diagnosis').innerHTML = diagnosis;
+}, 500);
+
+function clearAllCache() {
+    alert('MANUAL STEPS:\n\n1. Press Ctrl + Shift + Delete\n2. Select "All time"\n3. Clear everything\n4. Close browser\n5. Reopen');
+}
+
+function checkWordPressCache() {
+    window.open('http://localhost:10010/wp-admin/plugins.php', '_blank');
+}
+</script>
+
+</body>
+</html>
