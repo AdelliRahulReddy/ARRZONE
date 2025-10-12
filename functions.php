@@ -62,6 +62,8 @@ require_once get_template_directory() . '/inc/queries/archive-sorting.php';
 // ADMIN
 // ===================================================== 
 require_once get_template_directory() . '/inc/admin/category-icon-upload.php';
+require_once get_template_directory() . '/inc/setup/customizer-footer.php';
+
 // Store Logo Upload
 
 

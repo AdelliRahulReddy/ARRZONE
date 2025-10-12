@@ -1,148 +1,191 @@
 <?php
 /**
- * Deal Card - Simple & Working Version
- * No extra functions needed
+ * Deal Card Component - PREMIUM FLIP DESIGN
+ * Modern card with premium back design
+ * 
+ * @package DealsIndia
  */
 
-$deal_id = get_the_ID();
-$original_price = get_post_meta($deal_id, 'deal_original_price', true);
-$sale_price = get_post_meta($deal_id, 'deal_price', true);
-$coupon_code = get_post_meta($deal_id, 'coupon_code', true);
-$affiliate_link = get_post_meta($deal_id, 'deal_url', true);
-$is_featured = get_post_meta($deal_id, 'is_featured', true);
+// Get deal data
+$deal_title = get_the_title();
+$deal_url = get_post_meta(get_the_ID(), 'deal_url', true);
+$deal_price = get_post_meta(get_the_ID(), 'deal_price', true);
+$old_price = get_post_meta(get_the_ID(), 'old_price', true);
+$discount = get_post_meta(get_the_ID(), 'discount_percentage', true);
+$cashback = get_post_meta(get_the_ID(), 'cashback_amount', true);
+$coupon_code = get_post_meta(get_the_ID(), 'coupon_code', true);
+$store_terms = wp_get_post_terms(get_the_ID(), 'store');
+$store_name = !empty($store_terms) ? $store_terms[0]->name : '';
+$featured_image = get_the_post_thumbnail_url(get_the_ID(), 'medium');
+$is_featured = get_post_meta(get_the_ID(), 'is_featured', true);
+$is_trending = get_post_meta(get_the_ID(), 'is_trending', true);
+$end_date = get_post_meta(get_the_ID(), 'deal_end_date', true);
 
-// Calculate discount
-$discount = 0;
-if ($original_price && $sale_price && $original_price > 0) {
-    $discount = round((($original_price - $sale_price) / $original_price) * 100);
+// Calculate savings
+$savings = '';
+if ($old_price && $deal_price) {
+    $save_amount = $old_price - $deal_price;
+    $savings = '₹' . number_format($save_amount, 0);
 }
-
-// Get store
-$stores = get_the_terms($deal_id, 'store');
-$store = ($stores && !is_wp_error($stores)) ? $stores[0] : null;
-$store_cashback = $store ? get_term_meta($store->term_id, 'store_cashback', true) : '';
-
-// Deal link
-$deal_link = $affiliate_link ? $affiliate_link : get_the_permalink();
 ?>
 
-<div class="cd-deal-card" data-deal-id="<?php echo $deal_id; ?>">
+<article class="cd-deal-card">
     <div class="cd-deal-inner">
         
-        <!-- FRONT FACE -->
+        <!-- FRONT SIDE -->
         <div class="cd-deal-front">
             
             <!-- Product Image -->
-            <div class="cd-product-image">
-                <?php if (has_post_thumbnail()) : ?>
-                    <?php the_post_thumbnail('medium'); ?>
+            <a href="<?php the_permalink(); ?>" class="cd-product-image">
+                <?php if ($featured_image) : ?>
+                    <img src="<?php echo esc_url($featured_image); ?>" 
+                         alt="<?php echo esc_attr($deal_title); ?>" 
+                         loading="lazy">
                 <?php else : ?>
-                    <div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999;">
-                        No Image
-                    </div>
+                    <div class="cd-no-image">📦</div>
                 <?php endif; ?>
                 
-                <!-- Store Badge -->
-                <?php if ($store) : ?>
-                    <div class="cd-store-text"><?php echo esc_html($store->name); ?></div>
+                <!-- Badges on Image -->
+                <?php if ($discount) : ?>
+                    <span class="cd-discount-badge"><?php echo esc_html($discount); ?>% OFF</span>
                 <?php endif; ?>
                 
-                <!-- Discount Badge -->
-                <?php if ($discount > 0) : ?>
-                    <div class="cd-discount-badge"><?php echo $discount; ?>% OFF</div>
+                <?php if ($is_trending) : ?>
+                    <span class="cd-trending-badge">🔥 Trending</span>
                 <?php endif; ?>
                 
-                <!-- Featured Badge -->
-                <?php if ($is_featured) : ?>
-                    <div class="cd-trending-badge">⭐ FEATURED</div>
+                <?php if ($store_name) : ?>
+                    <div class="cd-store-text"><?php echo esc_html($store_name); ?></div>
                 <?php endif; ?>
-            </div>
+            </a>
             
-            <!-- Content -->
+            <!-- Content Area -->
             <div class="cd-deal-content">
-                
-                <!-- Title -->
                 <h3 class="cd-deal-title">
-                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                    <a href="<?php the_permalink(); ?>"><?php echo esc_html(wp_trim_words($deal_title, 8)); ?></a>
                 </h3>
                 
-                <!-- Price -->
-                <?php if ($sale_price) : ?>
-                    <div class="cd-price-row">
-                        <span class="cd-price-main">₹<?php echo number_format($sale_price); ?></span>
-                        <?php if ($original_price && $original_price > $sale_price) : ?>
-                            <span class="cd-price-old">₹<?php echo number_format($original_price); ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <p class="cd-price-note">*Best Price</p>
+                <!-- Price Row -->
+                <div class="cd-price-row">
+                    <?php if ($deal_price) : ?>
+                        <span class="cd-price-main">₹<?php echo esc_html(number_format($deal_price, 0)); ?></span>
+                    <?php endif; ?>
+                    
+                    <?php if ($old_price) : ?>
+                        <span class="cd-price-old">₹<?php echo esc_html(number_format($old_price, 0)); ?></span>
+                    <?php endif; ?>
+                </div>
+                
+                <?php if ($cashback) : ?>
+                    <div class="cd-cashback-badge">💰 <?php echo esc_html($cashback); ?> Cashback</div>
                 <?php endif; ?>
                 
-                <!-- Cashback -->
-                <?php if ($store_cashback) : ?>
-                    <div class="cd-cashback-badge">
-                        <span class="cd-cashback-icon">💰</span>
-                        Upto <?php echo esc_html($store_cashback); ?>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- Button -->
-                <a href="<?php echo esc_url($deal_link); ?>" 
+                <!-- Get Deal Button -->
+                <a href="<?php echo esc_url($deal_url); ?>" 
                    class="cd-get-deal" 
-                   <?php echo $affiliate_link ? 'target="_blank" rel="nofollow noopener"' : ''; ?>>
-                    <?php echo $coupon_code ? 'Get Code' : 'Get Deal'; ?>
+                   target="_blank" 
+                   rel="nofollow noopener">
+                    Get Deal →
                 </a>
             </div>
         </div>
         
-        <!-- BACK FACE -->
+        <!-- BACK SIDE - PREMIUM DESIGN -->
         <div class="cd-deal-back">
-            <h4 class="cd-back-title">Deal Details</h4>
             
-            <div class="cd-back-details">
-                
-                <!-- Coupon -->
-                <?php if ($coupon_code) : ?>
-                    <div class="cd-detail-item">
-                        <strong>Coupon:</strong> <code><?php echo esc_html($coupon_code); ?></code>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- Store -->
-                <?php if ($store) : ?>
-                    <div class="cd-detail-item">
-                        <span class="cd-detail-icon">🏪</span>
-                        <span>Store: <strong><?php echo esc_html($store->name); ?></strong></span>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- Discount -->
-                <?php if ($discount > 0) : ?>
-                    <div class="cd-detail-item">
-                        <span class="cd-detail-icon">💸</span>
-                        <span>Save <?php echo esc_html($discount); ?>%</span>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- Verified -->
-                <div class="cd-detail-item">
-                    <span class="cd-detail-icon">✓</span>
-                    <span>Verified Deal</span>
+            <!-- Premium Back Header -->
+            <div class="cd-back-header">
+                <div class="cd-back-store-logo">
+                    <?php if ($store_name) : ?>
+                        <span class="cd-store-badge"><?php echo esc_html($store_name); ?></span>
+                    <?php endif; ?>
                 </div>
-                
-                <!-- Limited -->
-                <div class="cd-detail-item">
-                    <span class="cd-detail-icon">⚡</span>
-                    <span>Limited Time Offer</span>
-                </div>
+                <?php if ($is_featured) : ?>
+                    <span class="cd-featured-star">⭐</span>
+                <?php endif; ?>
             </div>
             
-            <!-- Button -->
-            <a href="<?php echo esc_url($deal_link); ?>" 
-               class="cd-back-button" 
-               <?php echo $affiliate_link ? 'target="_blank" rel="nofollow noopener"' : ''; ?>>
-                Get This Deal →
-            </a>
+            <!-- Deal Title -->
+            <h4 class="cd-back-title">
+                <?php echo esc_html(wp_trim_words($deal_title, 6)); ?>
+            </h4>
+            
+            <!-- Key Info Grid -->
+            <div class="cd-info-grid">
+                
+                <!-- Price Info -->
+                <?php if ($deal_price) : ?>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon">💳</div>
+                    <div class="cd-info-text">
+                        <span class="cd-info-label">Deal Price</span>
+                        <span class="cd-info-value">₹<?php echo esc_html(number_format($deal_price, 0)); ?></span>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Savings Info -->
+                <?php if ($savings) : ?>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon">💰</div>
+                    <div class="cd-info-text">
+                        <span class="cd-info-label">You Save</span>
+                        <span class="cd-info-value green"><?php echo esc_html($savings); ?></span>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Discount Info -->
+                <?php if ($discount) : ?>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon">🏷️</div>
+                    <div class="cd-info-text">
+                        <span class="cd-info-label">Discount</span>
+                        <span class="cd-info-value"><?php echo esc_html($discount); ?>% OFF</span>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Cashback Info -->
+                <?php if ($cashback) : ?>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon">🎁</div>
+                    <div class="cd-info-text">
+                        <span class="cd-info-label">Cashback</span>
+                        <span class="cd-info-value"><?php echo esc_html($cashback); ?></span>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- Coupon Code (if exists) -->
+            <?php if ($coupon_code) : ?>
+            <div class="cd-coupon-box">
+                <div class="cd-coupon-label">Coupon Code</div>
+                <div class="cd-coupon-code"><?php echo esc_html($coupon_code); ?></div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Expiry (if exists) -->
+            <?php if ($end_date) : ?>
+            <div class="cd-expiry-info">
+                ⏰ Ends: <?php echo esc_html(date('M j', strtotime($end_date))); ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Action Buttons -->
+            <div class="cd-back-actions">
+                <a href="<?php the_permalink(); ?>" class="cd-details-btn">
+                    View Details
+                </a>
+                <a href="<?php echo esc_url($deal_url); ?>" 
+                   class="cd-shop-btn" 
+                   target="_blank" 
+                   rel="nofollow noopener">
+                    Shop Now →
+                </a>
+            </div>
         </div>
         
     </div>
-</div>
+</article>

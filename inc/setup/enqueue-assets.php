@@ -2,9 +2,10 @@
 /**
  * Enqueue Styles & Scripts
  * FIXED: Inline style override for stores grid
+ * Added: Store Page CSS support + Admin Media Upload
  * 
  * @package DealsIndia
- * @version 3.5 - Final Fix
+ * @version 3.7 - Admin Scripts Fixed
  */
 
 if (!defined('ABSPATH')) exit;
@@ -81,8 +82,14 @@ function dealsindia_enqueue_styles() {
         wp_enqueue_style('dealsindia-archive', $uri . '/assets/css/archive.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
     }
     
-    if (is_tax('deal_category') || is_tax('store')) {
+    // Category Archive CSS
+    if (is_tax('deal_category')) {
         wp_enqueue_style('dealsindia-category', $uri . '/assets/css/category-page.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
+    }
+    
+    // Store Archive CSS
+    if (is_tax('store')) {
+        wp_enqueue_style('dealsindia-store-page', $uri . '/assets/css/store-page.css', array('dealsindia-base', 'dealsindia-responsive'), $version . '-' . time());
     }
 }
 add_action('wp_enqueue_scripts', 'dealsindia_enqueue_styles');
@@ -143,7 +150,7 @@ function dealsindia_enqueue_scripts() {
 add_action('wp_enqueue_scripts', 'dealsindia_enqueue_scripts');
 
 /**
- * Enqueue admin scripts
+ * Enqueue admin scripts - FIXED
  */
 function dealsindia_admin_scripts($hook) {
     $valid_hooks = array('post.php', 'post-new.php', 'edit-tags.php', 'term.php');
@@ -152,8 +159,34 @@ function dealsindia_admin_scripts($hook) {
         return;
     }
     
+    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '3.0';
+    $uri = defined('DEALSINDIA_URI') ? DEALSINDIA_URI : get_template_directory_uri();
+    
+    // WordPress Media Library
     wp_enqueue_media();
+    
+    // Color Picker
     wp_enqueue_style('wp-color-picker');
     wp_enqueue_script('wp-color-picker');
+    
+    // ✅ Store Logo & Banner Upload Script
+    wp_enqueue_script(
+        'dealsindia-store-logo-upload',
+        $uri . '/assets/js/store-logo-upload.js',
+        array('jquery', 'media-upload', 'media-views'),
+        $version,
+        true
+    );
+    
+    // Category Icon Upload Script
+    if (file_exists(get_template_directory() . '/assets/js/category-icon-upload.js')) {
+        wp_enqueue_script(
+            'dealsindia-category-icon-upload',
+            $uri . '/assets/js/category-icon-upload.js',
+            array('jquery', 'media-upload', 'media-views'),
+            $version,
+            true
+        );
+    }
 }
 add_action('admin_enqueue_scripts', 'dealsindia_admin_scripts');

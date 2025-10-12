@@ -2,6 +2,7 @@
 Folder PATH listing for volume Windows
 Volume serial number is D4CD-3897
 C:.
+|   (echo
 |   404.php
 |   archive-deals.php
 |   arrzone_project_full.txt
@@ -47,7 +48,6 @@ C:.
 |   |       category-icon-upload.php
 |   |       dealsindia-manager.php
 |   |       newsletter-admin.php
-|   |       store-logo-upload.php
 |   |       
 |   +---helpers
 |   |       analytics-tracker.php
@@ -764,8 +764,9 @@ require_once get_template_directory() . '/dealsindia-demo-content.php';
  * Clean, Working Version
  * 
  * @package DealsIndia
- * @version 4.0
+ * @version 4.5 - Added Social Share
  */
+
 
 // ===================================================== 
 // THEME SETUP
@@ -775,6 +776,7 @@ require_once get_template_directory() . '/inc/setup/enqueue-assets.php';
 require_once get_template_directory() . '/inc/setup/customizer.php';
 require_once get_template_directory() . '/inc/setup/menus.php';
 
+
 // ===================================================== 
 // POST TYPES
 // ===================================================== 
@@ -783,12 +785,14 @@ require_once get_template_directory() . '/inc/post-types/hero-banners.php';
 require_once get_template_directory() . '/inc/post-types/work-steps.php';
 require_once get_template_directory() . '/inc/post-types/giveaways.php';
 
+
 // ===================================================== 
 // TAXONOMIES
 // ===================================================== 
 require_once get_template_directory() . '/inc/taxonomies/stores.php';
 require_once get_template_directory() . '/inc/taxonomies/deal-categories.php';
 require_once get_template_directory() . '/inc/taxonomies/term-meta.php';
+
 
 // ===================================================== 
 // META BOXES
@@ -798,6 +802,7 @@ require_once get_template_directory() . '/inc/meta-boxes/banner-meta.php';
 require_once get_template_directory() . '/inc/meta-boxes/step-meta.php';
 require_once get_template_directory() . '/inc/meta-boxes/giveaway-meta.php';
 
+
 // ===================================================== 
 // HELPERS
 // ===================================================== 
@@ -805,92 +810,149 @@ require_once get_template_directory() . '/inc/helpers/template-helpers.php';
 require_once get_template_directory() . '/inc/helpers/text-helpers.php';
 require_once get_template_directory() . '/inc/helpers/color-helpers.php';
 
+
 // ===================================================== 
 // QUERIES
 // ===================================================== 
 require_once get_template_directory() . '/inc/queries/deal-queries.php';
 require_once get_template_directory() . '/inc/queries/archive-sorting.php';
 
+
 // ===================================================== 
 // ADMIN
 // ===================================================== 
 require_once get_template_directory() . '/inc/admin/category-icon-upload.php';
+// Store Logo Upload
+
 
 // ===================================================== 
-// ANALYTICS TABLE CREATION
+// ✅ EMERGENCY FIXES - Missing Helper Functions
+// These will be moved to proper files later
 // ===================================================== 
-function dealsindia_create_analytics_table() {
-    global $wpdb;
-    
-    $table_name = $wpdb->prefix . 'dealsindia_views';
-    $charset_collate = $wpdb->get_charset_collate();
-    
-    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
-        id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        deal_id bigint(20) UNSIGNED NOT NULL,
-        ip_address varchar(45) NOT NULL,
-        user_agent varchar(255) DEFAULT NULL,
-        viewed_at datetime NOT NULL,
-        PRIMARY KEY (id),
-        KEY deal_id (deal_id),
-        KEY ip_address (ip_address),
-        KEY viewed_at (viewed_at)
-    ) $charset_collate;";
-    
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-}
-add_action('after_switch_theme', 'dealsindia_create_analytics_table');
 
-// ===================================================== 
-// HOT PICKS CUSTOMIZER
-// ===================================================== 
-function dealsindia_hot_picks_customizer($wp_customize) {
-    
-    // Hot Picks Section
-    $wp_customize->add_section('dealsindia_hot_picks', array(
-        'title' => __('Hot Picks Section', 'dealsindia'),
-        'priority' => 31,
-    ));
-    
-    // Title
-    $wp_customize->add_setting('hot_picks_title', array(
-        'default' => 'Festival Hot Picks!',
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport' => 'refresh',
-    ));
-    
-    $wp_customize->add_control('hot_picks_title', array(
-        'label' => __('Section Title', 'dealsindia'),
-        'section' => 'dealsindia_hot_picks',
-        'type' => 'text',
-    ));
-    
-    // Button Text
-    $wp_customize->add_setting('hot_picks_button_text', array(
-        'default' => 'See More',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    
-    $wp_customize->add_control('hot_picks_button_text', array(
-        'label' => __('Button Text', 'dealsindia'),
-        'section' => 'dealsindia_hot_picks',
-        'type' => 'text',
-    ));
-    
-    // Background Image
-    $wp_customize->add_setting('hot_picks_bg_image', array(
-        'default' => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ));
-    
-    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'hot_picks_bg_image', array(
-        'label' => __('Background Image', 'dealsindia'),
-        'section' => 'dealsindia_hot_picks',
-        'settings' => 'hot_picks_bg_image',
-    )));
+/**
+ * Check if deal is expired
+ */
+if (!function_exists('dealsindia_is_deal_expired')) {
+    function dealsindia_is_deal_expired($deal_id) {
+        $expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
+        
+        if (empty($expiry_date)) {
+            return false;
+        }
+        
+        $expiry_timestamp = strtotime($expiry_date);
+        $current_timestamp = current_time('timestamp');
+        
+        return ($current_timestamp > $expiry_timestamp);
+    }
 }
-add_action('customize_register', 'dealsindia_hot_picks_customizer');
+
+/**
+ * Get time remaining until deal expires
+ */
+if (!function_exists('dealsindia_get_time_remaining')) {
+    function dealsindia_get_time_remaining($deal_id) {
+        $expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
+        
+        if (empty($expiry_date)) {
+            return __('No expiry', 'dealsindia');
+        }
+        
+        $expiry_timestamp = strtotime($expiry_date);
+        $current_timestamp = current_time('timestamp');
+        
+        if ($current_timestamp > $expiry_timestamp) {
+            return __('Expired', 'dealsindia');
+        }
+        
+        $difference = $expiry_timestamp - $current_timestamp;
+        $days = floor($difference / 86400);
+        $hours = floor(($difference % 86400) / 3600);
+        
+        if ($days > 0) {
+            return sprintf(__('%d days left', 'dealsindia'), $days);
+        } elseif ($hours > 0) {
+            return sprintf(__('%d hours left', 'dealsindia'), $hours);
+        } else {
+            return __('Ending soon', 'dealsindia');
+        }
+    }
+}
+
+/**
+ * Display social share buttons
+ */
+if (!function_exists('dealsindia_social_share_buttons')) {
+    function dealsindia_social_share_buttons() {
+        global $post;
+        
+        if (!$post) return;
+        
+        $url = urlencode(get_permalink());
+        $title = urlencode(get_the_title());
+        
+        $facebook_url = 'https://www.facebook.com/sharer/sharer.php?u=' . $url;
+        $twitter_url = 'https://twitter.com/intent/tweet?url=' . $url . '&text=' . $title;
+        $whatsapp_url = 'https://api.whatsapp.com/send?text=' . $title . ' ' . $url;
+        $telegram_url = 'https://t.me/share/url?url=' . $url . '&text=' . $title;
+        
+        echo '<div class="social-share-buttons">';
+        echo '<span class="share-label">' . __('Share:', 'dealsindia') . '</span>';
+        echo '<a href="' . esc_url($facebook_url) . '" target="_blank" rel="noopener" class="share-btn share-facebook" aria-label="Share on Facebook"><i class="fab fa-facebook-f"></i></a>';
+        echo '<a href="' . esc_url($twitter_url) . '" target="_blank" rel="noopener" class="share-btn share-twitter" aria-label="Share on Twitter"><i class="fab fa-twitter"></i></a>';
+        echo '<a href="' . esc_url($whatsapp_url) . '" target="_blank" rel="noopener" class="share-btn share-whatsapp" aria-label="Share on WhatsApp"><i class="fab fa-whatsapp"></i></a>';
+        echo '<a href="' . esc_url($telegram_url) . '" target="_blank" rel="noopener" class="share-btn share-telegram" aria-label="Share on Telegram"><i class="fab fa-telegram-plane"></i></a>';
+        echo '</div>';
+    }
+}
+
+// TEMPORARY - Remove after testing
+add_action('init', function() {
+    header("Cache-Control: no-cache, no-store, must-revalidate");
+    header("Pragma: no-cache");
+    header("Expires: 0");
+});
+
+// TEMPORARY: Force load homepage CSS
+add_action('wp_head', function() {
+    if (is_front_page() || is_home()) {
+        $css_file = get_template_directory() . '/assets/css/homepage.css';
+        if (file_exists($css_file)) {
+            echo '<style id="force-homepage-css">';
+            echo file_get_contents($css_file);
+            echo '</style>';
+        } else {
+            echo '<!-- homepage.css NOT FOUND at: ' . $css_file . ' -->';
+        }
+        
+        // Force inline grid fix
+        echo '<style id="force-stores-grid">
+        .top-stores-section-premium .stores-grid-cd {
+            display: grid !important;
+            grid-template-columns: repeat(6, 1fr) !important;
+            gap: 16px !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+        }
+        @media (max-width: 967px) {
+            .top-stores-section-premium .stores-grid-cd {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+        }
+        @media (max-width: 767px) {
+            .top-stores-section-premium .stores-grid-cd {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+        @media (max-width: 639px) {
+            .top-stores-section-premium .stores-grid-cd {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        </style>';
+    }
+}, 999);
 
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\header.php === 
 <?php
@@ -898,7 +960,7 @@ add_action('customize_register', 'dealsindia_hot_picks_customizer');
  * Header Template
  * 
  * @package DealsIndia
- * @version 3.0 - With Mobile Navigation
+ * @version 3.1 - With Stores Grid Fix
  */
 ?>
 <!DOCTYPE html>
@@ -907,6 +969,40 @@ add_action('customize_register', 'dealsindia_hot_picks_customizer');
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <?php if (is_front_page() || is_home()) : ?>
+    <style id="stores-grid-fix">
+    /* STORES GRID FIX - INJECTED IN HEAD */
+    .top-stores-section-premium .stores-grid-cd {
+        display: grid !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 16px !important;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+    }
+    @media (max-width: 1199px) {
+        .top-stores-section-premium .stores-grid-cd {
+            grid-template-columns: repeat(6, 1fr) !important;
+        }
+    }
+    @media (max-width: 967px) {
+        .top-stores-section-premium .stores-grid-cd {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+    }
+    @media (max-width: 767px) {
+        .top-stores-section-premium .stores-grid-cd {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+    }
+    @media (max-width: 639px) {
+        .top-stores-section-premium .stores-grid-cd {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+    </style>
+    <?php endif; ?>
+    
     <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
@@ -1081,11 +1177,12 @@ add_action('customize_register', 'dealsindia_hot_picks_customizer');
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\index.php === 
 <?php
 /**
- * Homepage Template
- * CouponDunia-Style Layout
+ * Homepage Template - 100% Dynamic
+ * ABSOLUTELY ZERO hardcoded emojis, text, or icons
+ * Everything from WordPress Customizer or database
  * 
  * @package DealsIndia
- * @version 4.0
+ * @version 7.0 - ZERO HARDCODING
  */
 
 get_header();
@@ -1093,67 +1190,55 @@ get_header();
 
 <main class="homepage">
     
-    <!-- ===== HERO BANNERS SECTION ===== -->
-    <section class="hero-slider-cd">
-        <div class="container">
-            <?php get_template_part('template-parts/hero-slider-section'); ?>
-        </div>
-    </section>
+<!-- 1. WELCOME TEXT SECTION -->
+<section class="welcome-text-section">
+    <div class="container">
+        <h1 class="welcome-text"><?php echo esc_html(get_theme_mod('welcome_text', 'Welcome to ' . get_bloginfo('name') . ' - India\'s Trusted Coupons, Offers & Cashback Website')); ?></h1>
+    </div>
+</section>
 
-    <!-- ===== THREE STEPS SECTION ===== -->
-    <section class="three-steps">
-        <div class="container">
-            <h2 class="steps-title">Start saving money in 3 simple steps</h2>
-            <div class="steps-grid">
-                <?php
-                $steps = dealsindia_get_work_steps();
-                if (!empty($steps)) :
-                    $step_number = 1;
-                    foreach ($steps as $step) :
-                        setup_postdata($step);
-                        $icon = get_post_meta($step->ID, 'step_icon', true);
-                        ?>
-                        <div class="step-item">
-                            <div class="step-number"><?php echo $step_number; ?></div>
-                            <?php if ($icon) : ?>
-                                <span class="step-icon"><?php echo esc_html($icon); ?></span>
-                            <?php endif; ?>
-                            <h3><?php echo esc_html($step->post_title); ?></h3>
-                            <p><?php echo esc_html($step->post_content); ?></p>
-                        </div>
-                        <?php
-                        $step_number++;
-                    endforeach;
-                    wp_reset_postdata();
-                else :
-                    // Default steps if none created
+<!-- 2. HERO BANNERS SECTION -->
+<section class="hero-slider-cd">
+    <div class="container">
+        <?php get_template_part('template-parts/hero-slider-section'); ?>
+    </div>
+</section>
+
+<!-- 3. THREE STEPS SECTION -->
+<section class="three-steps">
+    <div class="container">
+        <h2 class="steps-title"><?php echo esc_html(get_theme_mod('steps_section_title', 'Three Steps To Save With ' . get_bloginfo('name'))); ?></h2>
+        <div class="steps-grid">
+            <?php
+            $steps = dealsindia_get_work_steps();
+            if (!empty($steps)) :
+                $step_number = 1;
+                foreach ($steps as $step) :
+                    setup_postdata($step);
+                    $icon = get_post_meta($step->ID, 'step_icon', true);
                     ?>
                     <div class="step-item">
-                        <div class="step-number">1</div>
-                        <span class="step-icon">🛒</span>
-                        <h3>Browse & Shop</h3>
-                        <p>Find amazing deals and click to shop</p>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">2</div>
-                        <span class="step-icon">💰</span>
-                        <h3>Earn Cashback</h3>
-                        <p>Get cashback added to your wallet</p>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">3</div>
-                        <span class="step-icon">🎁</span>
-                        <h3>Redeem Rewards</h3>
-                        <p>Withdraw to your bank account</p>
+                        <div class="step-number"><?php echo $step_number; ?></div>
+                        <?php if ($icon) : ?>
+                            <span class="step-icon"><?php echo esc_html($icon); ?></span>
+                        <?php endif; ?>
+                        <h3><?php echo esc_html($step->post_title); ?></h3>
+                        <p><?php echo esc_html(wp_trim_words($step->post_content, 12, '...')); ?></p>
                     </div>
                     <?php
-                endif;
-                ?>
-            </div>
+                    $step_number++;
+                endforeach;
+                wp_reset_postdata();
+            else :
+                // NO DEFAULT STEPS - If none in database, show nothing
+                echo '<p style="text-align:center;grid-column:1/-1;color:#999;">' . esc_html__('Add steps from admin panel to display here.', 'dealsindia') . '</p>';
+            endif;
+            ?>
         </div>
-    </section>
+    </div>
+</section>
 
-   <!-- ===== HOT PICKS SECTION (With Background) ===== -->
+<!-- 4. HOT PICKS SECTION -->
 <section class="hot-picks">
     <div class="container">
         <div class="hot-picks-container" <?php 
@@ -1164,23 +1249,29 @@ get_header();
         ?>>
             <div class="hot-picks-content">
                 <div class="section-header-inline">
-                    <h2><?php echo esc_html(get_theme_mod('hot_picks_title', 'Festival Hot Picks!')); ?></h2>
-                    <a href="<?php echo get_post_type_archive_link('deals'); ?>" class="see-more">
-                        <?php echo esc_html(get_theme_mod('hot_picks_button_text', 'See More')); ?> ›
+                    <h2><?php echo esc_html(get_theme_mod('hot_picks_title', __('Festival Hot Picks!', 'dealsindia'))); ?></h2>
+                    <a href="<?php echo esc_url(get_post_type_archive_link('deals')); ?>" class="see-more">
+                        <?php echo esc_html(get_theme_mod('hot_picks_button_text', __('See More', 'dealsindia'))); ?> ›
                     </a>
                 </div>
                 
                 <div class="deals-scroll-wrapper">
                     <div class="deals-scroll">
                         <?php
-                        $hot_picks = dealsindia_get_hot_picks(12);
+                        $hot_picks_count = get_theme_mod('hot_picks_count', 12);
+                        $hot_picks = dealsindia_get_hot_picks($hot_picks_count);
+                        
                         if ($hot_picks->have_posts()) :
                             while ($hot_picks->have_posts()) : $hot_picks->the_post();
                                 get_template_part('template-parts/deal-card');
                             endwhile;
                             wp_reset_postdata();
                         else :
-                            echo '<p style="color:white;padding:20px;">' . esc_html__('No hot picks available at the moment.', 'dealsindia') . '</p>';
+                            ?>
+                            <div class="no-deals-message">
+                                <p><?php echo esc_html(get_theme_mod('no_hot_picks_message', __('No hot picks available right now. Check back soon for amazing deals!', 'dealsindia'))); ?></p>
+                            </div>
+                            <?php
                         endif;
                         ?>
                     </div>
@@ -1190,260 +1281,369 @@ get_header();
     </div>
 </section>
 
+<!-- 5. TOP STORES SECTION -->
+<section class="top-stores-section-premium">
+    <div class="container">
+       <div class="section-header-premium">
+            <?php 
+            $stores_icon = get_theme_mod('stores_section_icon', ''); 
+            if ($stores_icon) : 
+            ?>
+                <span class="section-icon"><?php echo esc_html($stores_icon); ?></span>
+            <?php endif; ?>
+            
+            <h2><?php echo esc_html(get_theme_mod('top_stores_title', __('Top Stores', 'dealsindia'))); ?></h2>
+            <p><?php echo esc_html(get_theme_mod('top_stores_subtitle', __('Shop from India\'s most trusted brands', 'dealsindia'))); ?></p>
+        </div>
 
-    <!-- ===== TOP OFFERS SECTION (Sidebar + Grid) ===== -->
-    <section class="top-offers-section-premium">
-        <div class="container">
-            <div class="section-header-premium">
-                <span class="section-icon">🔥</span>
-                <h2>Top Offers</h2>
-                <p>Grab the best deals across all categories</p>
-            </div>
-
-            <div class="categories-offers-grid">
-                <!-- Left Sidebar: Trending Categories -->
-                <aside class="trending-categories-sidebar">
-                    <h3 class="sidebar-title">Trending Categories</h3>
-                    <nav class="categories-list-vertical">
-                        <?php
-                        $categories = get_terms(array(
-                            'taxonomy' => 'deal_category',
-                            'hide_empty' => true,
-                            'number' => 8,
-                            'orderby' => 'count',
-                            'order' => 'DESC'
-                        ));
+        <div class="stores-wrapper-cd">
+            <div class="stores-grid-cd">
+                <?php
+                $stores_count = get_theme_mod('top_stores_count', 8);
+                $stores = get_terms(array(
+                    'taxonomy' => 'store',
+                    'hide_empty' => true,
+                    'number' => $stores_count,
+                    'orderby' => 'count',
+                    'order' => 'DESC'
+                ));
+                
+                if (!empty($stores) && !is_wp_error($stores)) :
+                    $store_index = 0;
+                    foreach ($stores as $store) :
+                        $logo_id = get_term_meta($store->term_id, 'store_logo_id', true);
+                        $logo = $logo_id ? wp_get_attachment_url($logo_id) : '';
+                        $cashback = get_term_meta($store->term_id, 'store_cashback', true);
+                        $is_featured = ($store_index === 0);
                         
-                        if (!empty($categories) && !is_wp_error($categories)) :
-                            foreach ($categories as $category) :
-                                $icon = get_term_meta($category->term_id, 'category_icon', true);
-                                ?>
-                                <a href="<?php echo get_term_link($category); ?>" class="category-item-horizontal">
-                                    <div class="category-icon-left">
-                                        <?php if ($icon) : ?>
-                                            <img src="<?php echo esc_url($icon); ?>" alt="<?php echo esc_attr($category->name); ?>" class="category-icon-image">
-                                        <?php else : ?>
-                                            <span>📦</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <span class="category-name-right"><?php echo esc_html($category->name); ?></span>
-                                </a>
-                                <?php
-                            endforeach;
-                        else :
-                            echo '<p style="font-size:12px;color:#999;">No categories found</p>';
-                        endif;
+                        $color1 = '#' . substr(md5($store->name), 0, 6);
+                        $color2 = '#' . substr(md5($store->name . 'x'), 0, 6);
+                        $initials = strtoupper(substr($store->name, 0, 2));
                         ?>
-                    </nav>
-                </aside>
-
-                <!-- Right Grid: Top Offers -->
-                <div class="offers-grid-3col">
-                    <?php
-                    $top_offers = new WP_Query(array(
-                        'post_type' => 'deals',
-                        'posts_per_page' => 9,
-                        'post_status' => 'publish',
-                        'orderby' => 'date',
-                        'order' => 'DESC',
-                        'meta_query' => array(
-                            array(
-                                'key' => 'is_featured',
-                                'value' => '1',
-                                'compare' => '='
-                            )
-                        )
-                    ));
-                    
-                    if ($top_offers->have_posts()) :
-                        while ($top_offers->have_posts()) : $top_offers->the_post();
-                            get_template_part('template-parts/deal-card');
-                        endwhile;
-                        wp_reset_postdata();
-                    else :
-                        // Fallback to latest deals
-                        $fallback = new WP_Query(array(
-                            'post_type' => 'deals',
-                            'posts_per_page' => 9,
-                            'post_status' => 'publish'
-                        ));
-                        while ($fallback->have_posts()) : $fallback->the_post();
-                            get_template_part('template-parts/deal-card');
-                        endwhile;
-                        wp_reset_postdata();
-                    endif;
+                        <a href="<?php echo esc_url(get_term_link($store)); ?>" 
+                           class="store-item-cd <?php echo $is_featured ? 'store-featured' : ''; ?>">
+                            
+                            <div class="store-logo-cd">
+                                <?php if ($logo) : ?>
+                                    <img src="<?php echo esc_url($logo); ?>" 
+                                         alt="<?php echo esc_attr($store->name); ?>" 
+                                         loading="lazy">
+                                <?php else : ?>
+                                    <div class="store-logo-fallback" 
+                                         style="background: linear-gradient(135deg, <?php echo esc_attr($color1); ?>, <?php echo esc_attr($color2); ?>);">
+                                        <?php echo esc_html($initials); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <div class="store-name-cd">
+                                <?php echo esc_html($store->name); ?>
+                            </div>
+                            
+                            <?php if ($cashback) : ?>
+                                <div class="store-cashback-cd">
+                                    <?php 
+                                    $cashback_icon = get_theme_mod('cashback_icon', '');
+                                    if ($cashback_icon) : 
+                                    ?>
+                                        <span class="cashback-icon"><?php echo esc_html($cashback_icon); ?></span>
+                                    <?php endif; ?>
+                                    <?php echo esc_html(sprintf(__('Upto %s', 'dealsindia'), $cashback)); ?>
+                                </div>
+                            <?php endif; ?>
+                        </a>
+                        <?php
+                        $store_index++;
+                    endforeach;
                     ?>
-                </div>
+                    <a href="<?php echo esc_url(get_post_type_archive_link('deals')); ?>" 
+                       class="store-item-cd store-view-all">
+                        <div class="view-all-text">
+                            <?php echo esc_html(get_theme_mod('view_all_stores_text', __('View All Stores', 'dealsindia'))); ?> →
+                        </div>
+                    </a>
+                    <?php
+                else :
+                    ?>
+                    <p class="no-stores-message">
+                        <?php echo esc_html__('No stores found. Add stores from admin panel.', 'dealsindia'); ?>
+                    </p>
+                    <?php
+                endif;
+                ?>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ===== TOP STORES SECTION ===== -->
-    <section class="top-stores-section-premium">
-        <div class="container">
-            <div class="section-header-premium">
-                <span class="section-icon">🏪</span>
-                <h2>Top Stores</h2>
-                <p>Shop from India's most trusted brands</p>
-            </div>
+<!-- 6. TOP OFFERS SECTION -->
+<section class="top-offers-section-premium">
+    <div class="container">
+        <div class="section-header-premium">
+            <?php 
+            $offers_icon = get_theme_mod('offers_section_icon', '');
+            if ($offers_icon) : 
+            ?>
+                <span class="section-icon"><?php echo esc_html($offers_icon); ?></span>
+            <?php endif; ?>
+            
+            <h2><?php echo esc_html(get_theme_mod('top_offers_title', __('Offers', 'dealsindia'))); ?></h2>
+            <p><?php echo esc_html(get_theme_mod('top_offers_subtitle', __('Grab the best deals across all categories', 'dealsindia'))); ?></p>
+        </div>
 
-            <div class="stores-wrapper-cd">
-                <div class="stores-grid-cd">
+        <div class="categories-offers-grid">
+            <aside class="trending-categories-sidebar">
+                <h3 class="sidebar-title"><?php echo esc_html(get_theme_mod('sidebar_title', __('Trending Categories', 'dealsindia'))); ?></h3>
+                <nav class="categories-list-vertical">
                     <?php
-                    $stores = get_terms(array(
-                        'taxonomy' => 'store',
+                    $sidebar_cat_count = get_theme_mod('sidebar_categories_count', 8);
+                    $categories = get_terms(array(
+                        'taxonomy' => 'deal_category',
                         'hide_empty' => true,
-                        'number' => 15,
+                        'number' => $sidebar_cat_count,
                         'orderby' => 'count',
                         'order' => 'DESC'
                     ));
                     
-                    if (!empty($stores) && !is_wp_error($stores)) :
-                        $store_index = 0;
-                        foreach ($stores as $store) :
-                            $logo = get_term_meta($store->term_id, 'store_logo', true);
-                            $cashback = get_term_meta($store->term_id, 'store_cashback', true);
-                            $is_featured = ($store_index === 0); // First store is featured
+                    if (!empty($categories) && !is_wp_error($categories)) :
+                        foreach ($categories as $category) :
+                            $icon = get_term_meta($category->term_id, 'category_icon', true);
                             ?>
-                            <a href="<?php echo get_term_link($store); ?>" class="store-item-cd <?php echo $is_featured ? 'store-featured' : ''; ?>">
-                                <div class="store-logo-cd">
-                                    <?php if ($logo) : ?>
-                                        <img src="<?php echo esc_url($logo); ?>" alt="<?php echo esc_attr($store->name); ?>">
-                                    <?php else : ?>
-                                        <div class="store-logo-fallback" style="background: linear-gradient(135deg, <?php echo '#' . substr(md5($store->name), 0, 6); ?>, <?php echo '#' . substr(md5($store->name . 'dark'), 0, 6); ?>);">
-                                            <?php echo strtoupper(substr($store->name, 0, 2)); ?>
-                                        </div>
+                            <a href="<?php echo esc_url(get_term_link($category)); ?>" class="category-item-horizontal">
+                                <div class="category-icon-left">
+                                    <?php if ($icon) : ?>
+                                        <img src="<?php echo esc_url($icon); ?>" 
+                                             alt="<?php echo esc_attr($category->name); ?>" 
+                                             class="category-icon-image" 
+                                             loading="lazy">
+                                    <?php else : 
+                                        $default_cat_icon = get_theme_mod('category_default_icon', '');
+                                        if ($default_cat_icon) : 
+                                        ?>
+                                            <span><?php echo esc_html($default_cat_icon); ?></span>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
-                                <div class="store-name-cd"><?php echo esc_html($store->name); ?></div>
-                                <?php if ($cashback) : ?>
-                                    <div class="store-cashback-cd">
-                                        <span class="cashback-icon">💰</span>
-                                        Upto <?php echo esc_html($cashback); ?>
-                                    </div>
-                                <?php endif; ?>
+                                <span class="category-name-right"><?php echo esc_html($category->name); ?></span>
                             </a>
                             <?php
-                            $store_index++;
                         endforeach;
-                        
-                        // Add "View All" card
-                        ?>
-                        <a href="<?php echo get_post_type_archive_link('deals'); ?>" class="store-item-cd store-view-all">
-                            <div class="view-all-text">View All<br>Stores →</div>
-                        </a>
-                        <?php
                     else :
-                        echo '<p style="grid-column:1/-1;text-align:center;color:#999;">No stores found</p>';
+                        ?>
+                        <p class="no-categories-message">
+                            <?php echo esc_html__('No categories found', 'dealsindia'); ?>
+                        </p>
+                        <?php
                     endif;
                     ?>
-                </div>
-            </div>
-        </div>
-    </section>
+                </nav>
+            </aside>
 
-    <!-- ===== LATEST DEALS SECTION ===== -->
-    <section class="latest-deals-section-premium">
-        <div class="container">
-            <div class="section-header-premium">
-                <span class="section-icon">⚡</span>
-                <h2>Latest Deals</h2>
-                <p>Fresh deals added daily</p>
-            </div>
-
-            <div class="latest-deals-grid-premium">
+            <div class="offers-grid-3col">
                 <?php
-                $latest_deals = new WP_Query(array(
+                $top_offers_count = get_theme_mod('top_offers_count', 9);
+                $top_offers = new WP_Query(array(
                     'post_type' => 'deals',
-                    'posts_per_page' => 12,
+                    'posts_per_page' => $top_offers_count,
                     'post_status' => 'publish',
                     'orderby' => 'date',
-                    'order' => 'DESC'
+                    'order' => 'DESC',
+                    'meta_query' => array(
+                        array(
+                            'key' => 'is_featured',
+                            'value' => '1',
+                            'compare' => '='
+                        )
+                    )
                 ));
                 
-                if ($latest_deals->have_posts()) :
-                    while ($latest_deals->have_posts()) : $latest_deals->the_post();
+                if ($top_offers->have_posts()) :
+                    while ($top_offers->have_posts()) : $top_offers->the_post();
                         get_template_part('template-parts/deal-card');
                     endwhile;
                     wp_reset_postdata();
                 else :
-                    echo '<p style="grid-column:1/-1;text-align:center;color:#999;">No deals found</p>';
+                    $fallback = new WP_Query(array(
+                        'post_type' => 'deals',
+                        'posts_per_page' => $top_offers_count,
+                        'post_status' => 'publish',
+                        'orderby' => 'date',
+                        'order' => 'DESC'
+                    ));
+                    
+                    if ($fallback->have_posts()) :
+                        while ($fallback->have_posts()) : $fallback->the_post();
+                            get_template_part('template-parts/deal-card');
+                        endwhile;
+                        wp_reset_postdata();
+                    else :
+                        ?>
+                        <p class="no-offers-message">
+                            <?php echo esc_html__('No offers available. Add deals from admin panel.', 'dealsindia'); ?>
+                        </p>
+                        <?php
+                    endif;
                 endif;
                 ?>
             </div>
-
-            <div class="section-footer-center">
-                <a href="<?php echo get_post_type_archive_link('deals'); ?>" class="view-all-btn-premium">
-                    View All Deals
-                    <span>→</span>
-                </a>
-            </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ===== GIVEAWAY SECTION (If Active) ===== -->
-    <?php
-    $active_giveaway = new WP_Query(array(
-        'post_type' => 'giveaway',
-        'posts_per_page' => 1,
-        'post_status' => 'publish',
-        'meta_query' => array(
-            array(
-                'key' => 'giveaway_active',
-                'value' => '1',
-                'compare' => '='
-            )
-        )
-    ));
-    
-    if ($active_giveaway->have_posts()) :
-        while ($active_giveaway->have_posts()) : $active_giveaway->the_post();
-            $prize = get_post_meta(get_the_ID(), 'giveaway_prize', true);
-            $bg_color = get_post_meta(get_the_ID(), 'giveaway_bg_color', true);
-            $bg_style = $bg_color ? "background: linear-gradient(135deg, $bg_color, " . dealsindia_adjust_brightness($bg_color, -20) . ");" : "background: linear-gradient(135deg, #667eea, #764ba2);";
-            ?>
-            <section class="giveaway-section" style="<?php echo esc_attr($bg_style); ?>">
-                <div class="container">
-                    <div class="giveaway-content-wrapper">
-                        <div class="giveaway-left">
-                            <h2 class="giveaway-title"><?php the_title(); ?></h2>
-                            <div class="giveaway-description"><?php the_content(); ?></div>
-                            <?php if ($prize) : ?>
-                                <div class="giveaway-prize">🎁 Prize: <?php echo esc_html($prize); ?></div>
-                            <?php endif; ?>
-                            <a href="<?php the_permalink(); ?>" class="giveaway-btn">Enter Now!</a>
-                        </div>
-                        <div class="giveaway-image">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('large'); ?>
-                            <?php endif; ?>
-                        </div>
+<!-- 7. LATEST DEALS SECTION -->
+<section class="latest-deals-section-premium">
+    <div class="container">
+        <div class="latest-deals-container" <?php 
+            $latest_deals_bg = get_theme_mod('latest_deals_bg_image');
+            if ($latest_deals_bg) {
+                echo 'style="background-image:url(' . esc_url($latest_deals_bg) . ');"';
+            }
+        ?>>
+            <div class="latest-deals-content">
+                <div class="section-header-inline">
+                    <?php 
+                    $latest_deals_icon = get_theme_mod('latest_deals_icon', '');
+                    if ($latest_deals_icon) : 
+                    ?>
+                        <span class="section-icon-inline"><?php echo esc_html($latest_deals_icon); ?></span>
+                    <?php endif; ?>
+                    
+                    <h2><?php echo esc_html(get_theme_mod('latest_deals_title', __('Latest Deals', 'dealsindia'))); ?></h2>
+                    <a href="<?php echo esc_url(get_post_type_archive_link('deals')); ?>" class="see-more">
+                        <?php echo esc_html(get_theme_mod('view_all_btn_text', __('View All Deals', 'dealsindia'))); ?> ›
+                    </a>
+                </div>
+                
+                <div class="deals-scroll-wrapper">
+                    <div class="deals-scroll">
+                        <?php
+                        $latest_deals_count = get_theme_mod('latest_deals_count', 8);
+                        $latest_deals = new WP_Query(array(
+                            'post_type' => 'deals',
+                            'posts_per_page' => $latest_deals_count,
+                            'post_status' => 'publish',
+                            'orderby' => 'date',
+                            'order' => 'DESC'
+                        ));
+                        
+                        if ($latest_deals->have_posts()) :
+                            while ($latest_deals->have_posts()) : $latest_deals->the_post();
+                                get_template_part('template-parts/deal-card');
+                            endwhile;
+                            wp_reset_postdata();
+                        else :
+                            ?>
+                            <div class="no-deals-message">
+                                <p><?php echo esc_html__('No deals found. Add deals from admin panel.', 'dealsindia'); ?></p>
+                            </div>
+                            <?php
+                        endif;
+                        ?>
                     </div>
                 </div>
-            </section>
-            <?php
-        endwhile;
-        wp_reset_postdata();
-    endif;
-    ?>
-
-    <!-- ===== NEWSLETTER SECTION ===== -->
-    <section class="newsletter-section">
-        <div class="container">
-            <div class="newsletter-wrapper">
-                <div class="newsletter-icon">✉️</div>
-                <h2 class="newsletter-title">Never Miss a Deal!</h2>
-                <p class="newsletter-description">Subscribe to get the hottest deals delivered to your inbox</p>
-                <form class="newsletter-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" id="newsletter-form">
-                    <input type="email" name="newsletter_email" class="newsletter-input" placeholder="Enter your email" required>
-                    <input type="hidden" name="action" value="dealsindia_newsletter_subscribe">
-                    <?php wp_nonce_field('dealsindia_newsletter', 'newsletter_nonce'); ?>
-                    <button type="submit" class="newsletter-btn">Subscribe</button>
-                </form>
-                <p class="newsletter-privacy">We respect your privacy. Unsubscribe anytime.</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
+<!-- 8. GIVEAWAY SECTION (If Active) -->
+<?php
+$active_giveaway = new WP_Query(array(
+    'post_type' => 'giveaway',
+    'posts_per_page' => 1,
+    'post_status' => 'publish',
+    'meta_query' => array(
+        array(
+            'key' => 'giveaway_active',
+            'value' => '1',
+            'compare' => '='
+        )
+    )
+));
+
+if ($active_giveaway->have_posts()) :
+    while ($active_giveaway->have_posts()) : $active_giveaway->the_post();
+        $prize = get_post_meta(get_the_ID(), 'giveaway_prize', true);
+        $bg_color = get_post_meta(get_the_ID(), 'giveaway_bg_color', true);
+        if (!$bg_color) $bg_color = '#5e35b1';
+        
+        $bg_dark = '#4527a0';
+        if (function_exists('dealsindia_adjust_brightness')) {
+            $bg_dark = dealsindia_adjust_brightness($bg_color, -20);
+        }
+        ?>
+        <section class="giveaway-section" style="background: linear-gradient(135deg, <?php echo esc_attr($bg_color); ?>, <?php echo esc_attr($bg_dark); ?>);">
+            <div class="container">
+                <div class="giveaway-content-wrapper">
+                    <div class="giveaway-left">
+                        <h2 class="giveaway-title"><?php the_title(); ?></h2>
+                        <div class="giveaway-description"><?php the_excerpt(); ?></div>
+                        <?php if ($prize) : ?>
+                            <div class="giveaway-prize">
+                                <?php 
+                                $giveaway_icon = get_theme_mod('giveaway_prize_icon', '');
+                                if ($giveaway_icon) {
+                                    echo esc_html($giveaway_icon) . ' ';
+                                }
+                                ?>
+                                <?php echo esc_html(sprintf(__('Prize: %s', 'dealsindia'), $prize)); ?>
+                            </div>
+                        <?php endif; ?>
+                        <a href="<?php the_permalink(); ?>" class="giveaway-btn">
+                            <?php echo esc_html(get_theme_mod('giveaway_button_text', __('Enter Giveaway Now!', 'dealsindia'))); ?>
+                        </a>
+                    </div>
+                    <div class="giveaway-image">
+                        <?php if (has_post_thumbnail()) : ?>
+                            <?php the_post_thumbnail('large', array('alt' => get_the_title())); ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <?php
+    endwhile;
+    wp_reset_postdata();
+endif;
+?>
+
+<!-- 9. NEWSLETTER SECTION -->
+<section class="newsletter-section">
+    <div class="container">
+        <div class="newsletter-wrapper">
+            <?php 
+            $newsletter_icon = get_theme_mod('newsletter_icon', '');
+            if ($newsletter_icon) : 
+            ?>
+                <div class="newsletter-icon"><?php echo esc_html($newsletter_icon); ?></div>
+            <?php endif; ?>
+            
+            <h2 class="newsletter-title"><?php echo esc_html(get_theme_mod('newsletter_title', __('Never Miss a Deal!', 'dealsindia'))); ?></h2>
+            <p class="newsletter-description"><?php echo esc_html(get_theme_mod('newsletter_subtitle', __('Subscribe to get the hottest deals delivered to your inbox', 'dealsindia'))); ?></p>
+            <form class="newsletter-form" method="post" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" id="newsletter-form">
+                <input type="email" 
+                       name="newsletter_email" 
+                       class="newsletter-input" 
+                       placeholder="<?php echo esc_attr(get_theme_mod('newsletter_placeholder', __('Enter your email address', 'dealsindia'))); ?>" 
+                       required>
+                <input type="hidden" name="action" value="dealsindia_newsletter_subscribe">
+                <?php wp_nonce_field('dealsindia_newsletter', 'newsletter_nonce'); ?>
+                <button type="submit" class="newsletter-btn">
+                    <?php echo esc_html(get_theme_mod('newsletter_btn_text', __('Subscribe', 'dealsindia'))); ?>
+                </button>
+            </form>
+            <p class="newsletter-privacy">
+                <?php 
+                $privacy_icon = get_theme_mod('newsletter_privacy_icon', '');
+                if ($privacy_icon) {
+                    echo esc_html($privacy_icon) . ' ';
+                }
+                ?>
+                <?php echo esc_html(get_theme_mod('newsletter_privacy', __('We respect your privacy. Unsubscribe anytime.', 'dealsindia'))); ?>
+            </p>
+        </div>
+    </div>
+</section>
 
 </main>
 
@@ -2169,14 +2369,20 @@ if (!empty($similar_stores)) :
 
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\style.css === 
 /*
-Theme Name: DealsIndia
-Theme URI: http://dealsindia.local
-Description: Premium deals website with modular CSS
-Version: 2.0
-Author: DealsIndia Team
+Theme Name: ARRZONE
+Theme URI: https://yoursite.com
+Author: Your Name
+Author URI: https://yoursite.com
+Description: Deals, Coupons, and Cashback Aggregator Platform - CouponDunia Style Premium Design
+Version: 1.0.0
+Requires at least: 5.8
+Tested up to: 6.4
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: arrzone
+Tags: deals, coupons, cashback, ecommerce, shopping
 */
-
-/* All CSS loaded from /assets/css/ via functions.php */
 
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\animations.css === 
 /**
@@ -2867,86 +3073,94 @@ sers
         font-size: 48px;
     }
 }
-.sers
+sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\base.css === 
 /**
- * DealsIndia Base Styles
- * CouponDunia-Inspired Premium Design
- * Compact, Clean, Mobile-First
+ * ARRZONE Base Styles
+ * Exact CouponDunia Design System
+ * Premium, Modern, Production-Ready
  * 
- * @package DealsIndia
- * @version 4.0 - Complete Redesign
+ * @package ARRZONE
+ * @version 5.0 - CouponDunia Clone
  */
 
+
 /* =====================================================
-   CSS VARIABLES - DESIGN SYSTEM
+   CSS VARIABLES - COUPONDUNIA DESIGN SYSTEM
 ===================================================== */
 
 :root {
-    /* Primary Colors - Teal Theme */
-    --color-primary: #00897B;
-    --color-primary-dark: #00695C;
-    --color-primary-light: #4DB6AC;
+    /* Primary Colors - CouponDunia Red Theme */
+    --color-primary: #e53935;          /* Main Red */
+    --color-primary-dark: #d32f2f;     /* Darker Red */
+    --color-primary-light: #ff5252;    /* Lighter Red */
     
-    /* Secondary - Purple Accents */
-    --color-secondary: #7C4DFF;
-    --color-secondary-dark: #6200EA;
-    --color-secondary-light: #B388FF;
+    /* Secondary - Dark Theme for Header */
+    --color-dark: #2d2d2d;             /* Header/Footer Dark */
+    --color-dark-light: #424242;       /* Hover states */
     
-    /* Success & Actions */
-    --color-success: #4CAF50;
-    --color-warning: #FF9800;
-    --color-danger: #F44336;
-    --color-info: #2196F3;
+    /* Accent Colors */
+    --color-orange: #f57c00;           /* Orange Accents */
+    --color-teal: #00897b;             /* Teal for Hot Picks */
+    --color-teal-dark: #00695c;
+    --color-purple: #5e35b1;           /* Purple for special sections */
     
-    /* Neutrals - Compact Theme */
-    --color-white: #FFFFFF;
-    --color-gray-50: #FAFAFA;
-    --color-gray-100: #F5F5F5;
-    --color-gray-200: #EEEEEE;
-    --color-gray-300: #E0E0E0;
-    --color-gray-400: #BDBDBD;
-    --color-gray-500: #9E9E9E;
+    /* Success & Status */
+    --color-success: #388e3c;          /* Green for cashback */
+    --color-warning: #ff9800;
+    --color-danger: #f44336;
+    --color-info: #0288d1;             /* Blue for links */
+    
+    /* Neutrals - Clean & Modern */
+    --color-white: #ffffff;
+    --color-gray-50: #fafafa;
+    --color-gray-100: #f5f5f5;         /* Page background */
+    --color-gray-200: #eeeeee;
+    --color-gray-300: #e0e0e0;         /* Borders */
+    --color-gray-400: #bdbdbd;
+    --color-gray-500: #9e9e9e;         /* Secondary text */
     --color-gray-600: #757575;
-    --color-gray-700: #616161;
+    --color-gray-700: #616161;         /* Body text */
     --color-gray-800: #424242;
-    --color-gray-900: #212121;
+    --color-gray-900: #212121;         /* Headings */
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #00897B 0%, #00695C 100%);
-    --gradient-hot: linear-gradient(135deg, #7C4DFF 0%, #6200EA 100%);
-    --gradient-featured: linear-gradient(135deg, #FF6F00 0%, #FF5722 100%);
-    --gradient-discount: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    /* Gradients - CouponDunia Style */
+    --gradient-primary: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
+    --gradient-teal: linear-gradient(135deg, #00897b 0%, #00695c 100%);
+    --gradient-purple: linear-gradient(135deg, #7e57c2 0%, #5e35b1 100%);
+    --gradient-orange: linear-gradient(135deg, #ff6f00 0%, #ff5722 100%);
+    --gradient-green: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
     
-    /* Typography - COMPACT */
-    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-secondary: 'Poppins', 'Inter', sans-serif;
+    /* Typography - Roboto (CouponDunia Font) */
+    --font-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    --font-secondary: 'Roboto', sans-serif;
     
-    /* Font Sizes - Smaller for Compact Look */
-    --text-xs: 10px;
+    /* Font Sizes - CouponDunia Scale */
+    --text-xs: 11px;
     --text-sm: 12px;
-    --text-base: 13px;
-    --text-md: 14px;
-    --text-lg: 16px;
-    --text-xl: 18px;
-    --text-2xl: 20px;
-    --text-3xl: 24px;
-    --text-4xl: 28px;
+    --text-base: 14px;
+    --text-md: 16px;
+    --text-lg: 18px;
+    --text-xl: 20px;
+    --text-2xl: 24px;
+    --text-3xl: 28px;
+    --text-4xl: 32px;
     
     /* Font Weights */
+    --font-light: 300;
     --font-normal: 400;
     --font-medium: 500;
     --font-semibold: 600;
     --font-bold: 700;
-    --font-extrabold: 800;
     
-    /* Line Heights - Compact */
+    /* Line Heights */
     --leading-tight: 1.2;
-    --leading-snug: 1.3;
-    --leading-normal: 1.4;
-    --leading-relaxed: 1.5;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 1.75;
     
-    /* Spacing - TIGHT */
+    /* Spacing - CouponDunia Scale */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -2956,35 +3170,49 @@ sers
     --space-8: 32px;
     --space-10: 40px;
     --space-12: 48px;
+    --space-16: 64px;
     
-    /* Border Radius */
+    /* Border Radius - Soft & Modern */
     --radius-sm: 4px;
-    --radius-md: 6px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
     --radius-full: 9999px;
     
-    /* Shadows - Subtle */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.12);
-    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.15);
+    /* Shadows - Subtle & Professional */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.18);
+    --shadow-2xl: 0 16px 32px rgba(0, 0, 0, 0.20);
     
     /* Transitions */
-    --transition-fast: 150ms ease;
-    --transition-base: 200ms ease;
-    --transition-slow: 300ms ease;
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
     
     /* Container Widths */
     --container-sm: 640px;
     --container-md: 768px;
     --container-lg: 1024px;
-    --container-xl: 1280px;
-    --container-2xl: 1440px;
+    --container-xl: 1200px;     /* CouponDunia max width */
+    --container-2xl: 1280px;
+    
+    /* Z-index layers */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
 }
 
+
 /* =====================================================
-   RESET & BASE
+   RESET & BASE - PRODUCTION READY
 ===================================================== */
 
 *, *::before, *::after {
@@ -2998,6 +3226,7 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;  /* ✅ Smooth scrolling */
 }
 
 body {
@@ -3005,52 +3234,112 @@ body {
     font-size: var(--text-base);
     font-weight: var(--font-normal);
     line-height: var(--leading-normal);
-    color: var(--color-gray-800);
-    background-color: var(--color-gray-50);
+    color: var(--color-gray-700);
+    background-color: var(--color-gray-100);
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
+/* Remove focus outline for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+::-moz-selection {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+
 /* =====================================================
-   TYPOGRAPHY - COMPACT
+   TYPOGRAPHY - COUPONDUNIA STYLE
 ===================================================== */
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-secondary);
+    font-family: var(--font-primary);
     font-weight: var(--font-bold);
     line-height: var(--leading-tight);
     color: var(--color-gray-900);
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
 }
 
-h1 { font-size: var(--text-4xl); }
-h2 { font-size: var(--text-3xl); }
-h3 { font-size: var(--text-2xl); }
-h4 { font-size: var(--text-xl); }
-h5 { font-size: var(--text-lg); }
-h6 { font-size: var(--text-md); }
+h1 { 
+    font-size: var(--text-4xl); 
+    margin-bottom: var(--space-6);
+}
+
+h2 { 
+    font-size: var(--text-3xl); 
+    margin-bottom: var(--space-5);
+}
+
+h3 { 
+    font-size: var(--text-2xl); 
+}
+
+h4 { 
+    font-size: var(--text-xl); 
+}
+
+h5 { 
+    font-size: var(--text-lg); 
+}
+
+h6 { 
+    font-size: var(--text-md); 
+    font-weight: var(--font-semibold);
+}
 
 p {
-    margin-bottom: var(--space-3);
-    line-height: var(--leading-normal);
+    margin-bottom: var(--space-4);
+    line-height: var(--leading-relaxed);
+    color: var(--color-gray-700);
 }
 
 a {
-    color: var(--color-primary);
+    color: var(--color-info);
     text-decoration: none;
     transition: color var(--transition-fast);
 }
 
 a:hover {
+    color: var(--color-primary);
+}
+
+a:active {
     color: var(--color-primary-dark);
 }
 
 strong, b {
-    font-weight: var(--font-semibold);
+    font-weight: var(--font-bold);
+}
+
+em, i {
+    font-style: italic;
 }
 
 small {
     font-size: var(--text-sm);
+    color: var(--color-gray-500);
 }
+
+mark {
+    background: #fff59d;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+}
+
 
 /* =====================================================
    CONTAINER & LAYOUT
@@ -3058,7 +3347,7 @@ small {
 
 .container {
     width: 100%;
-    max-width: var(--container-2xl);
+    max-width: var(--container-xl);
     margin: 0 auto;
     padding: 0 var(--space-4);
 }
@@ -3067,10 +3356,16 @@ small {
 .container-md { max-width: var(--container-md); }
 .container-lg { max-width: var(--container-lg); }
 .container-xl { max-width: var(--container-xl); }
+.container-2xl { max-width: var(--container-2xl); }
 
-/* Section Spacing - COMPACT */
+.container-fluid {
+    width: 100%;
+    padding: 0 var(--space-4);
+}
+
+/* Section Spacing */
 .section {
-    padding: var(--space-8) 0;
+    padding: var(--space-10) 0;
 }
 
 .section-sm {
@@ -3078,21 +3373,35 @@ small {
 }
 
 .section-lg {
-    padding: var(--space-12) 0;
+    padding: var(--space-16) 0;
 }
 
+/* Row & Column */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 calc(var(--space-4) * -0.5);
+}
+
+.col {
+    flex: 1;
+    padding: 0 calc(var(--space-4) * 0.5);
+}
+
+
 /* =====================================================
-   BUTTONS - COUPONDUNIA STYLE
+   BUTTONS - EXACT COUPONDUNIA STYLE
 ===================================================== */
 
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-2) var(--space-4);
+    gap: var(--space-2);
+    padding: 10px 20px;
     font-family: var(--font-primary);
-    font-size: var(--text-sm);
-    font-weight: var(--font-semibold);
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
     line-height: 1;
     text-align: center;
     text-decoration: none;
@@ -3102,34 +3411,39 @@ small {
     transition: all var(--transition-base);
     white-space: nowrap;
     user-select: none;
+    vertical-align: middle;
 }
 
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    pointer-events: none;
 }
 
-/* Primary Button */
+/* Primary Button - Red CTA */
 .btn-primary {
-    background: var(--gradient-primary);
+    background: var(--color-primary);
     color: var(--color-white);
     box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark);
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
 }
 
 .btn-primary:active {
     transform: translateY(0);
+    box-shadow: var(--shadow-sm);
 }
 
-/* Secondary Button */
+/* Secondary Button - Outline */
 .btn-secondary {
     background: var(--color-white);
     color: var(--color-primary);
-    border: 1px solid var(--color-primary);
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -3137,21 +3451,25 @@ small {
     color: var(--color-white);
 }
 
-/* Success Button */
+/* Success Button - Green */
 .btn-success {
     background: var(--color-success);
     color: var(--color-white);
 }
 
 .btn-success:hover:not(:disabled) {
-    background: #388E3C;
+    background: #2e7d32;
     transform: translateY(-1px);
 }
 
-/* Warning Button */
+/* Warning Button - Orange */
 .btn-warning {
     background: var(--color-warning);
     color: var(--color-white);
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #f57c00;
 }
 
 /* Danger Button */
@@ -3160,20 +3478,46 @@ small {
     color: var(--color-white);
 }
 
+.btn-danger:hover:not(:disabled) {
+    background: #d32f2f;
+}
+
+/* Ghost Button */
+.btn-ghost {
+    background: transparent;
+    color: var(--color-gray-700);
+    border: 1px solid var(--color-gray-300);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-400);
+}
+
 /* Button Sizes */
-.btn-sm {
-    padding: 6px 12px;
+.btn-xs {
+    padding: 4px 8px;
     font-size: var(--text-xs);
 }
 
+.btn-sm {
+    padding: 6px 12px;
+    font-size: var(--text-sm);
+}
+
 .btn-md {
-    padding: var(--space-2) var(--space-5);
-    font-size: var(--text-md);
+    padding: 10px 20px;
+    font-size: var(--text-base);
 }
 
 .btn-lg {
-    padding: var(--space-3) var(--space-6);
+    padding: 12px 28px;
     font-size: var(--text-lg);
+}
+
+.btn-xl {
+    padding: 16px 32px;
+    font-size: var(--text-xl);
 }
 
 .btn-block {
@@ -3181,28 +3525,33 @@ small {
     display: flex;
 }
 
+/* Button with icon */
+.btn .icon {
+    width: 16px;
+    height: 16px;
+}
+
+
 /* =====================================================
-   BADGES - COMPACT
+   BADGES - COUPONDUNIA STYLE
 ===================================================== */
 
 .badge {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    gap: var(--space-1);
+    padding: 4px 10px;
     font-size: var(--text-xs);
-    font-weight: var(--font-semibold);
+    font-weight: var(--font-bold);
     line-height: 1;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .badge-primary {
     background: var(--color-primary);
-    color: var(--color-white);
-}
-
-.badge-secondary {
-    background: var(--color-secondary);
     color: var(--color-white);
 }
 
@@ -3221,42 +3570,68 @@ small {
     color: var(--color-white);
 }
 
-.badge-hot {
-    background: var(--gradient-hot);
+.badge-info {
+    background: var(--color-info);
     color: var(--color-white);
 }
 
-.badge-discount {
-    background: var(--gradient-discount);
+.badge-hot {
+    background: var(--gradient-purple);
     color: var(--color-white);
 }
+
+.badge-cashback {
+    background: var(--gradient-green);
+    color: var(--color-white);
+}
+
+.badge-exclusive {
+    background: var(--gradient-orange);
+    color: var(--color-white);
+}
+
 
 /* =====================================================
-   CARDS - MINIMAL
+   CARDS - MODERN & CLEAN
 ===================================================== */
 
 .card {
     background: var(--color-white);
-    border: 1px solid var(--color-gray-200);
+    border: 1px solid var(--color-gray-300);
     border-radius: var(--radius-lg);
     overflow: hidden;
     transition: all var(--transition-base);
+    box-shadow: var(--shadow-xs);
 }
 
 .card:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .card-body {
     padding: var(--space-4);
 }
 
+.card-header {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-gray-200);
+    font-weight: var(--font-semibold);
+}
+
+.card-footer {
+    padding: var(--space-4);
+    border-top: 1px solid var(--color-gray-200);
+    background: var(--color-gray-50);
+}
+
 .card-compact .card-body {
     padding: var(--space-3);
 }
 
+
 /* =====================================================
-   GRID - TIGHT SPACING
+   GRID SYSTEM
 ===================================================== */
 
 .grid {
@@ -3268,66 +3643,132 @@ small {
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
 .grid-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-6 { grid-template-columns: repeat(6, 1fr); }
 
+/* Responsive Grid */
+.grid-auto {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.grid-auto-sm {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+/* Gap Utilities */
+.gap-1 { gap: var(--space-1); }
 .gap-2 { gap: var(--space-2); }
 .gap-3 { gap: var(--space-3); }
 .gap-4 { gap: var(--space-4); }
+.gap-5 { gap: var(--space-5); }
 .gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }
+
 
 /* =====================================================
    UTILITIES
 ===================================================== */
 
-/* Text Utilities */
-.text-center { text-align: center; }
+/* Text Alignment */
 .text-left { text-align: left; }
+.text-center { text-align: center; }
 .text-right { text-align: right; }
 
+/* Font Sizes */
 .text-xs { font-size: var(--text-xs); }
 .text-sm { font-size: var(--text-sm); }
 .text-base { font-size: var(--text-base); }
 .text-md { font-size: var(--text-md); }
 .text-lg { font-size: var(--text-lg); }
+.text-xl { font-size: var(--text-xl); }
+.text-2xl { font-size: var(--text-2xl); }
 
+/* Font Weights */
+.font-light { font-weight: var(--font-light); }
 .font-normal { font-weight: var(--font-normal); }
 .font-medium { font-weight: var(--font-medium); }
 .font-semibold { font-weight: var(--font-semibold); }
 .font-bold { font-weight: var(--font-bold); }
 
-/* Color Utilities */
+/* Text Colors */
 .text-primary { color: var(--color-primary); }
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-danger { color: var(--color-danger); }
-.text-gray-600 { color: var(--color-gray-600); }
+.text-info { color: var(--color-info); }
+.text-muted { color: var(--color-gray-500); }
+.text-white { color: var(--color-white); }
+
+/* Background Colors */
+.bg-white { background: var(--color-white); }
+.bg-gray-50 { background: var(--color-gray-50); }
+.bg-gray-100 { background: var(--color-gray-100); }
+.bg-primary { background: var(--color-primary); }
 
 /* Spacing Utilities */
+.m-0 { margin: 0; }
 .mt-2 { margin-top: var(--space-2); }
 .mt-3 { margin-top: var(--space-3); }
 .mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
 .mb-2 { margin-bottom: var(--space-2); }
 .mb-3 { margin-bottom: var(--space-3); }
 .mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.p-4 { padding: var(--space-4); }
+.py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+.px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
 
-/* Display Utilities */
+/* Display */
 .d-none { display: none; }
 .d-block { display: block; }
+.d-inline { display: inline; }
+.d-inline-block { display: inline-block; }
 .d-flex { display: flex; }
 .d-inline-flex { display: inline-flex; }
+.d-grid { display: grid; }
 
-/* Flex Utilities */
+/* Flexbox */
+.flex-row { flex-direction: row; }
 .flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-start { align-items: flex-start; }
 .items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.justify-start { justify-content: flex-start; }
 .justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
 .justify-between { justify-content: space-between; }
-.gap-2 { gap: var(--space-2); }
 
-/* Misc */
+/* Border Radius */
 .rounded { border-radius: var(--radius-md); }
+.rounded-sm { border-radius: var(--radius-sm); }
 .rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Shadows */
+.shadow-none { box-shadow: none; }
+.shadow-xs { box-shadow: var(--shadow-xs); }
 .shadow-sm { box-shadow: var(--shadow-sm); }
 .shadow-md { box-shadow: var(--shadow-md); }
-.sers
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Overflow */
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+
+/* Position */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+/* Misc */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.cursor-pointer { cursor: pointer; }
+.pointer-events-none { pointer-events: none; }
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\category-page.css === 
 /* =====================================================
    CATEGORY ARCHIVE PAGE - PREMIUM DESIGN
@@ -3633,7 +4074,7 @@ small {
         font-size: 13px;
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\components.css === 
 /**
  * DealsIndia UI Components
@@ -4128,7 +4569,7 @@ small {
     gap: var(--space-3);
     justify-content: flex-end;
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\deal-card.css === 
 /**
  * Deal Cards - 3D Flip with CouponDunia Compact Style
@@ -4537,7 +4978,7 @@ small {
     font-weight: 800;
     font-size: 14px;
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\footer.css === 
 /* =====================================================
    FOOTER STYLES
@@ -4718,7 +5159,7 @@ small {
         font-size: 12px;
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\header.css === 
 /**
  * Header CSS - CouponDunia Style
@@ -5208,7 +5649,7 @@ small {
         font-size: 14px;
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\hero-banner.css === 
 /**
  * Hero Banner - Auto Swipe Carousel
@@ -5397,13 +5838,14 @@ small {
         display: none;
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\homepage.css === 
 /**
- * Homepage CSS - Premium Compact Design
- * Works with updated index.php structure
+ * ARRZONE Homepage CSS - UNIFIED THEME
+ * Consistent design language across all sections
  * 
- * @package DealsIndia
+ * @package ARRZONE
+ * @version 9.0 - UNIFIED
  */
 
 /* =====================================================
@@ -5416,206 +5858,92 @@ small {
 }
 
 /* =====================================================
-   HERO BANNERS SECTION
+   COMMON SECTION STYLES
 ===================================================== */
-.hero-slider-cd {
-    padding: 15px 0 20px;
-    background: linear-gradient(180deg, #f8f9fd 0%, #ffffff 100%);
-}
-
-.hero-banners-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-}
-
-.hero-banner-item {
-    position: relative;
-    overflow: hidden;
-    border-radius: 14px;
-    min-height: 180px;
-    background: #f0f0f0;
-    box-shadow: 0 3px 16px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
-}
-
-.hero-banner-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-}
-
-.hero-banner-link {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-.hero-banner-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
-    min-height: 180px;
-    max-height: 220px;
-}
-
-.hero-banner-item:hover .hero-banner-image {
-    transform: scale(1.04);
-}
-
-/* =====================================================
-   THREE STEPS SECTION
-===================================================== */
-.three-steps {
-    padding: 20px 0;
-    background: linear-gradient(180deg, #ffffff 0%, #f8f9fd 100%);
-}
-
-.steps-title {
-    text-align: center;
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 16px;
-    color: #2d3748;
-}
-
-.steps-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-}
-
-.step-item {
-    text-align: center;
-    padding: 16px 12px;
-    background: white;
-    border-radius: 14px;
-    border: 1px solid rgba(102, 126, 234, 0.08);
-    transition: all 0.3s ease;
-}
-
-.step-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
-    border-color: rgba(102, 126, 234, 0.2);
-}
-
-.step-number {
-    width: 28px;
-    height: 28px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 8px;
-}
-
-.step-icon {
-    font-size: 32px;
-    margin: 6px 0;
-    display: block;
-}
-
-.step-item h3 {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #2d3748;
-}
-
-.step-item p {
-    font-size: 12px;
-    color: #718096;
-    line-height: 1.4;
-    margin: 0;
-}
-
-/* =====================================================
-   HOT PICKS SECTION - WITH BACKGROUND IMAGE
-===================================================== */
-.hot-picks {
-    padding: 25px 0;
-    background: linear-gradient(180deg, #f8f9fd 0%, #ffffff 100%);
-}
-
-.hot-picks-container {
-    max-width: 100%;
-    padding: 22px 20px;
-    position: relative;
-    overflow: hidden;
-    border-radius: 20px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-    margin: 0;
-    background: linear-gradient(135deg, #00796B 0%, #00897B 50%, #26A69A 100%);
-    background-size: cover;
-    background-position: center;
-}
-
-/* If background image is uploaded, it will show through */
-.hot-picks-container[style*="background-image"]::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 121, 107, 0.85) 0%, rgba(0, 137, 123, 0.8) 100%);
-    z-index: 0;
-}
-
-.hot-picks-content {
-    position: relative;
-    z-index: 2;
-}
-
 .section-header-inline {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 
 .section-header-inline h2 {
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 24px;
+    font-weight: 700;
     color: white;
     margin: 0;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-icon-inline {
+    font-size: 28px;
 }
 
 .see-more {
-    background: linear-gradient(135deg, #ffd600 0%, #ffed4e 100%);
-    color: #2d3748;
+    background: #ffd600;
+    color: #212121;
     padding: 8px 20px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 3px 12px rgba(255, 214, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .see-more:hover {
     transform: translateY(-2px);
-    color: #2d3748;
-    box-shadow: 0 5px 16px rgba(255, 214, 0, 0.5);
+    background: #ffed4e;
+    color: #212121;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
+.section-header-premium {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.section-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: inline-block;
+    color: #e53935;
+}
+
+.section-header-premium h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #212121;
+}
+
+.section-header-premium p {
+    font-size: 16px;
+    color: #616161;
+    margin: 0;
+}
+
+/* =====================================================
+   HORIZONTAL SCROLL (Used by Hot Picks & Latest Deals)
+===================================================== */
 .deals-scroll-wrapper {
     position: relative;
+    margin: 0 -24px;
+    padding: 0 24px;
 }
 
 .deals-scroll {
     display: flex;
     gap: 16px;
     overflow-x: auto;
-    padding: 0;
-    margin: 0;
+    overflow-y: hidden;
+    padding: 4px 0 12px;
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.5) rgba(255, 255, 255, 0.1);
@@ -5631,7 +5959,7 @@ small {
 }
 
 .deals-scroll::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
 }
 
@@ -5640,106 +5968,601 @@ small {
     border-radius: 10px;
 }
 
-/* Deal cards inside hot-picks */
-.deals-scroll .cd-deal-card {
-    flex-shrink: 0;
-    width: 280px;
-}
-
 /* =====================================================
-   SECTION HEADER - PREMIUM
+   DEAL CARDS (Common Styling for Hot Picks & Latest Deals)
 ===================================================== */
-.section-header-premium {
-    text-align: center;
-    margin-bottom: 24px;
+.hot-picks .cd-deal-card,
+.latest-deals-section-premium .cd-deal-card {
+    flex-shrink: 0;
+    width: 220px;
+    height: 360px;
+    background: transparent;
+    perspective: 1200px;
 }
 
-.section-icon {
-    font-size: 36px;
+.hot-picks .cd-deal-inner,
+.latest-deals-section-premium .cd-deal-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.hot-picks .cd-deal-front,
+.latest-deals-section-premium .cd-deal-front {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    transform: rotateY(0deg);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.hot-picks .cd-deal-back,
+.latest-deals-section-premium .cd-deal-back {
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #f8f9fd 0%, #e8eef7 100%);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    transform: rotateY(180deg);
+    padding: 20px;
+    gap: 10px;
+    border-radius: 12px;
+}
+
+.hot-picks .cd-deal-card:hover .cd-deal-inner,
+.latest-deals-section-premium .cd-deal-card:hover .cd-deal-inner {
+    transform: rotateY(180deg);
+}
+
+.hot-picks .cd-product-image,
+.latest-deals-section-premium .cd-product-image {
+    height: 160px;
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.hot-picks .cd-product-image img,
+.latest-deals-section-premium .cd-product-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
+}
+
+.hot-picks .cd-deal-content,
+.latest-deals-section-premium .cd-deal-content {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    flex: 1;
+    background: white;
+}
+
+.hot-picks .cd-deal-title,
+.latest-deals-section-premium .cd-deal-title {
+    display: block;
+    font-size: 14px;
+    line-height: 1.3;
+    min-height: 36px;
     margin-bottom: 8px;
+}
+
+.hot-picks .cd-deal-title a,
+.latest-deals-section-premium .cd-deal-title a {
+    color: #212121;
+    text-decoration: none;
+}
+
+.hot-picks .cd-price-row,
+.latest-deals-section-premium .cd-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.hot-picks .cd-price-old,
+.latest-deals-section-premium .cd-price-old {
+    font-size: 13px;
+    color: #9e9e9e;
+    text-decoration: line-through;
+}
+
+.hot-picks .cd-price-note,
+.latest-deals-section-premium .cd-price-note {
+    font-size: 11px;
+    color: #616161;
+}
+
+.hot-picks .cd-cashback-badge,
+.latest-deals-section-premium .cd-cashback-badge {
+    display: inline-flex;
+    margin: 6px 0;
+}
+
+.hot-picks .cd-get-deal,
+.latest-deals-section-premium .cd-get-deal {
+    display: block;
+    width: 100%;
+    margin-top: auto;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.hot-picks .cd-discount-badge,
+.hot-picks .cd-store-text,
+.latest-deals-section-premium .cd-discount-badge,
+.latest-deals-section-premium .cd-store-text {
+    position: absolute;
+    z-index: 5;
+    width: auto;
+    height: auto;
+}
+
+.hot-picks .cd-trending-badge,
+.latest-deals-section-premium .cd-trending-badge {
     display: inline-block;
 }
 
-.section-header-premium h2 {
-    font-size: 22px;
-    font-weight: 900;
-    margin: 0 0 6px 0;
-    color: #2d3748;
-    line-height: 1.2;
+.hot-picks .cd-back-details,
+.latest-deals-section-premium .cd-back-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.section-header-premium p {
+.hot-picks .cd-detail-item,
+.latest-deals-section-premium .cd-detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* =====================================================
+   1. WELCOME TEXT SECTION
+===================================================== */
+.welcome-text-section {
+    padding: 16px 0;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.welcome-text {
+    font-size: 15px;
+    font-weight: 400;
+    color: #424242;
+    text-align: center;
+    margin: 0;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+}
+
+/* =====================================================
+   2. HERO BANNERS SECTION
+===================================================== */
+.hero-slider-cd {
+    padding: 24px 0;
+    background: #f5f5f5;
+}
+
+.hero-banners-carousel {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-banners-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-banners-slide {
+    min-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.hero-banner-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    min-height: 240px;
+    max-height: 240px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.hero-banner-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.hero-banner-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.hero-banner-image {
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    transition: transform 0.4s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.hero-banner-item:hover .hero-banner-image {
+    transform: scale(1.03);
+}
+
+.hero-banner-placeholder {
+    width: 100%;
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e53935 0%, #ff5252 100%);
+}
+
+/* Carousel Controls */
+.carousel-dots {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0;
+}
+
+.carousel-dot.active {
+    width: 28px;
+    border-radius: 4px;
+    background: #e53935;
+}
+
+.carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #212121;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-arrow:hover {
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-arrow-prev { left: 16px; }
+.carousel-arrow-next { right: 16px; }
+
+/* =====================================================
+   3. THREE STEPS SECTION
+===================================================== */
+.three-steps {
+    padding: 28px 0;
+    background: white;
+}
+
+.steps-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 28px;
+    color: #2d3748;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.step-item {
+    text-align: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    transition: transform 0.3s ease;
+}
+
+.step-item:hover {
+    transform: translateY(-4px);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #e8eaf6;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #5e35b1;
+    margin-bottom: 12px;
+}
+
+.step-icon {
+    font-size: 56px;
+    margin: 10px 0 14px;
+    display: block;
+    line-height: 1;
+}
+
+.step-item h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #2d3748;
+    line-height: 1.3;
+}
+
+.step-item p {
     font-size: 14px;
     color: #718096;
+    line-height: 1.5;
     margin: 0;
 }
 
 /* =====================================================
-   TOP OFFERS SECTION - WITH SIDEBAR
+   4. HOT PICKS SECTION (Green Theme)
+===================================================== */
+.hot-picks {
+    padding: 28px 0;
+    background: #f5f5f5;
+}
+
+.hot-picks-container {
+    max-width: 100%;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, #00897b 0%, #00695c 100%);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.hot-picks-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.03);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.hot-picks-content {
+    position: relative;
+    z-index: 2;
+}
+
+/* Hot Picks Specific Colors */
+.hot-picks .cd-price-main {
+    font-size: 18px;
+    color: #00897b;
+    font-weight: 700;
+}
+
+.hot-picks .cd-get-deal {
+    background: #00897b;
+}
+
+.hot-picks .cd-get-deal:hover {
+    background: #00695c;
+}
+
+/* =====================================================
+   5. TOP STORES SECTION
+===================================================== */
+.top-stores-section-premium {
+    padding: 30px 0;
+    background: #f5f5f5;
+}
+
+.top-stores-section-premium .stores-wrapper-cd {
+    background: linear-gradient(135deg, #e8f0fe 0%, #f0f4f8 100%);
+    padding: 20px 16px;
+    border-radius: 12px;
+}
+
+.top-stores-section-premium .stores-grid-cd {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 12px !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+}
+
+.top-stores-section-premium .store-item-cd {
+    background: white;
+    padding: 16px 12px;
+    border-radius: 10px;
+    text-align: center;
+    min-height: 120px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.top-stores-section-premium .store-item-cd:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.top-stores-section-premium .store-logo-cd {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.top-stores-section-premium .store-logo-cd img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.top-stores-section-premium .store-featured .store-logo-cd {
+    width: 100px;
+    height: 100px;
+}
+
+.top-stores-section-premium .store-name-cd {
+    font-size: 13px;
+    font-weight: 700;
+    color: #212121;
+}
+
+.top-stores-section-premium .store-cashback-cd {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: rgba(56, 142, 60, 0.1);
+    color: #388e3c;
+    border-radius: 12px;
+}
+
+.top-stores-section-premium .store-view-all {
+    background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+}
+
+.top-stores-section-premium .view-all-text {
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* =====================================================
+   6. TOP OFFERS SECTION
 ===================================================== */
 .top-offers-section-premium {
-    padding: 25px 0;
-    background: linear-gradient(180deg, #ffffff 0%, #f8f9fd 100%);
+    padding: 32px 0;
+    background: white;
 }
 
 .categories-offers-grid {
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 20px;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
     align-items: start;
 }
 
-/* Sidebar */
 .trending-categories-sidebar {
     background: white;
-    padding: 18px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 12px;
     position: sticky;
     top: 100px;
-    border: 1px solid rgba(102, 126, 234, 0.08);
-    box-shadow: 0 3px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .trending-categories-sidebar .sidebar-title {
-    font-size: 16px;
-    font-weight: 800;
-    margin: 0 0 14px 0;
-    color: #2d3748;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    color: #212121;
 }
 
 .categories-list-vertical {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .category-item-horizontal {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: #f8f9fd;
-    border-radius: 10px;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #f5f5f5;
+    border-radius: 8px;
     text-decoration: none;
     transition: all 0.3s ease;
     border: 1px solid transparent;
 }
 
 .category-item-horizontal:hover {
-    transform: translateX(4px);
-    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.12);
-    border-color: rgba(102, 126, 234, 0.2);
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.15);
+    border-color: #e53935;
     background: white;
 }
 
 .category-icon-left {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 20px;
 }
 
 .category-icon-image {
@@ -5749,236 +6572,122 @@ small {
 }
 
 .category-name-right {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    color: #2d3748;
+    color: #212121;
 }
 
-/* Main Grid */
 .offers-grid-3col {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 20px;
 }
 
 /* =====================================================
-   TOP STORES SECTION
-===================================================== */
-.top-stores-section-premium {
-    padding: 25px 0;
-    background: linear-gradient(180deg, #f8f9fd 0%, #ffffff 100%);
-}
-
-.stores-wrapper-cd {
-    background: linear-gradient(135deg, rgba(232, 240, 254, 0.4) 0%, rgba(240, 244, 248, 0.4) 100%);
-    border-radius: 16px;
-    padding: 18px;
-    border: 1px solid rgba(102, 126, 234, 0.08);
-}
-
-.stores-grid-cd {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    grid-auto-rows: 110px;
-}
-
-.store-featured {
-    grid-column: span 1;
-    grid-row: span 2;
-}
-
-.store-item-cd {
-    background: white;
-    padding: 12px 10px;
-    border-radius: 12px;
-    text-align: center;
-    text-decoration: none;
-    border: 1px solid rgba(102, 126, 234, 0.06);
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-}
-
-.store-item-cd:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
-    border-color: rgba(102, 126, 234, 0.2);
-}
-
-.store-logo-cd {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.store-featured .store-logo-cd {
-    width: 100px;
-    height: 100px;
-}
-
-.store-logo-cd img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.store-logo-fallback {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 900;
-    font-size: 16px;
-    border-radius: 8px;
-}
-
-.store-featured .store-logo-fallback {
-    font-size: 28px;
-}
-
-.store-name-cd {
-    font-size: 12px;
-    font-weight: 700;
-    color: #2d3748;
-    margin-top: 2px;
-}
-
-.store-cashback-cd {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    font-size: 10px;
-    color: #e74c3c;
-    font-weight: 700;
-    background: rgba(231, 76, 60, 0.06);
-    padding: 4px 8px;
-    border-radius: 10px;
-}
-
-.cashback-icon {
-    font-size: 10px;
-}
-
-.store-view-all {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.04) 0%, rgba(118, 75, 162, 0.04) 100%);
-    border: 2px dashed rgba(102, 126, 234, 0.25);
-}
-
-.store-view-all:hover {
-    border-color: #667eea;
-    background: rgba(102, 126, 234, 0.08);
-}
-
-.view-all-text {
-    font-size: 13px;
-    font-weight: 800;
-    color: #667eea;
-}
-
-/* =====================================================
-   LATEST DEALS SECTION
+   7. LATEST DEALS SECTION (Red Theme)
 ===================================================== */
 .latest-deals-section-premium {
-    padding: 25px 0;
-    background: linear-gradient(180deg, #ffffff 0%, #f8f9fd 100%);
+    padding: 28px 0;
+    background: white;
 }
 
-.latest-deals-grid-premium {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
+.latest-deals-container {
+    max-width: 100%;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
-.section-footer-center {
-    text-align: center;
-    margin-top: 20px;
+.latest-deals-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.03);
+    z-index: 1;
+    pointer-events: none;
 }
 
-.view-all-btn-premium {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 10px 24px;
-    border-radius: 25px;
-    text-decoration: none;
+.latest-deals-content {
+    position: relative;
+    z-index: 2;
+}
+
+/* Latest Deals Specific Colors */
+.latest-deals-section-premium .cd-price-main {
+    font-size: 18px;
+    color: #e53935;
     font-weight: 700;
-    font-size: 13px;
-    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
-    transition: all 0.3s ease;
 }
 
-.view-all-btn-premium:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    color: white;
+.latest-deals-section-premium .cd-get-deal {
+    background: #e53935;
+}
+
+.latest-deals-section-premium .cd-get-deal:hover {
+    background: #c62828;
 }
 
 /* =====================================================
-   GIVEAWAY SECTION
+   8. GIVEAWAY SECTION
 ===================================================== */
 .giveaway-section {
-    padding: 30px 0;
+    padding: 48px 0;
     color: white;
+    background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%);
 }
 
 .giveaway-content-wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 35px;
+    gap: 48px;
     align-items: center;
 }
 
 .giveaway-title {
-    font-size: 26px;
-    font-weight: 900;
-    margin-bottom: 12px;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 16px;
     color: white;
 }
 
 .giveaway-description {
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
-    margin-bottom: 12px;
-    opacity: 0.95;
+    margin-bottom: 16px;
 }
 
 .giveaway-prize {
-    font-size: 16px;
-    font-weight: 800;
-    margin-bottom: 18px;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 24px;
 }
 
 .giveaway-btn {
     display: inline-block;
     background: white;
-    color: #2d3748;
-    padding: 12px 28px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: 800;
+    color: #5e35b1;
+    padding: 14px 32px;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 700;
     text-decoration: none;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .giveaway-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    color: #2d3748;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    color: #5e35b1;
 }
 
 .giveaway-image img {
@@ -5987,151 +6696,79 @@ small {
 }
 
 /* =====================================================
-   NEWSLETTER SECTION
+   9. NEWSLETTER SECTION
 ===================================================== */
 .newsletter-section {
-    padding: 30px 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 48px 0;
+    background: linear-gradient(135deg, #00897b 0%, #00695c 100%);
     color: white;
 }
 
 .newsletter-wrapper {
-    max-width: 650px;
+    max-width: 700px;
     margin: 0 auto;
     text-align: center;
 }
 
 .newsletter-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
+    font-size: 56px;
+    margin-bottom: 16px;
 }
 
 .newsletter-title {
-    font-size: 24px;
-    font-weight: 900;
-    margin-bottom: 10px;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
     color: white;
 }
 
 .newsletter-description {
-    font-size: 14px;
-    margin-bottom: 20px;
-    opacity: 0.95;
+    font-size: 16px;
+    margin-bottom: 28px;
 }
 
 .newsletter-form {
     display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 12px;
+    margin-bottom: 16px;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .newsletter-input {
     flex: 1;
-    padding: 12px 20px;
+    padding: 14px 24px;
     border: none;
-    border-radius: 25px;
+    border-radius: 24px;
     font-size: 14px;
 }
 
 .newsletter-btn {
     background: white;
-    color: #667eea;
-    padding: 12px 28px;
+    color: #00897b;
+    padding: 14px 32px;
     border: none;
-    border-radius: 25px;
+    border-radius: 24px;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .newsletter-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .newsletter-privacy {
     font-size: 12px;
     opacity: 0.85;
 }
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-@media (max-width: 1199px) {
-    .categories-offers-grid {
-        grid-template-columns: 240px 1fr;
-    }
-    
-    .stores-grid-cd {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .latest-deals-grid-premium {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 967px) {
-    .hero-banners-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .steps-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .categories-offers-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .trending-categories-sidebar {
-        position: relative;
-        top: 0;
-    }
-    
-    .offers-grid-3col {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .stores-grid-cd {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .latest-deals-grid-premium {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .giveaway-content-wrapper {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 767px) {
-    .offers-grid-3col {
-        grid-template-columns: 1fr;
-    }
-    
-    .stores-grid-cd {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .latest-deals-grid-premium {
-        grid-template-columns: 1fr;
-    }
-    
-    .newsletter-form {
-        flex-direction: column;
-    }
-    
-    .deals-scroll .cd-deal-card {
-        width: 240px;
-    }
-}
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\responsive.css === 
 /* =====================================================
-   RESPONSIVE.CSS - PREMIUM MOBILE-FIRST
+   RESPONSIVE.CSS - FIXED STORES GRID
    Clean, Minimal, Perfect Stacking
 ===================================================== */
 
@@ -6152,8 +6789,9 @@ small {
         grid-template-columns: 240px 1fr;
     }
     
+    /* ✅ FIXED: Keep 6 columns */
     .stores-grid-cd {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(6, 1fr) !important;
     }
     
     .latest-deals-grid-premium {
@@ -6227,9 +6865,9 @@ small {
         gap: 14px;
     }
     
-    /* Top Stores */
+    /* ✅ FIXED: Top Stores - 4 columns for tablet */
     .stores-grid-cd {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr) !important;
         gap: 12px;
         grid-auto-rows: 105px;
     }
@@ -6444,14 +7082,14 @@ small {
         gap: 12px;
     }
     
-    /* Top Stores */
+    /* Top Stores - 3 columns mobile */
     .stores-wrapper-cd {
         padding: 14px;
         border-radius: 14px;
     }
     
     .stores-grid-cd {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr) !important;
         gap: 10px;
         grid-auto-rows: 95px;
     }
@@ -6467,7 +7105,7 @@ small {
     }
     
     .store-featured {
-        grid-column: span 2;
+        grid-column: span 3;
         grid-row: span 1;
     }
     
@@ -6653,12 +7291,12 @@ small {
 ===================================================== */
 @media (max-width: 639px) {
     .stores-grid-cd {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px;
     }
     
     .store-featured {
-        grid-column: span 1;
+        grid-column: span 2;
     }
     
     .stats-grid {
@@ -6988,7 +7626,7 @@ small {
         color: black !important;
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\css\single-deal.css === 
 /**
  * Single Deal Page - Ultra Premium Design
@@ -7569,89 +8207,189 @@ small {
 .deal-purchase-box * {
     box-sizing: border-box;
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\js\banner-slider.js === 
 /**
- * Auto-Swipe Banner Slider
+ * Hero Banner Auto-Carousel
+ * Production Ready Version
+ * 
+ * @package ARRZONE
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    const slides = document.querySelectorAll('.banner-slide');
-    const dotsContainer = document.querySelector('.slider-dots');
-    const prevBtn = document.querySelector('.prev-arrow');
-    const nextBtn = document.querySelector('.next-arrow');
+(function() {
+    'use strict';
     
-    if (slides.length === 0) return;
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCarousel);
+    } else {
+        initCarousel();
+    }
     
-    let currentSlide = 0;
-    let autoSlideInterval;
-    
-    // Create dots
-    slides.forEach((_, index) => {
-        const dot = document.createElement('span');
-        dot.classList.add('dot');
-        if (index === 0) dot.classList.add('active');
-        dot.addEventListener('click', () => goToSlide(index));
-        dotsContainer.appendChild(dot);
-    });
-    
-    const dots = document.querySelectorAll('.dot');
-    
-    function showSlide(n) {
-        slides.forEach(slide => slide.classList.remove('active'));
-        dots.forEach(dot => dot.classList.remove('active'));
+    function initCarousel() {
+        const carousel = document.querySelector('.hero-banners-carousel');
         
-        currentSlide = (n + slides.length) % slides.length;
+        if (!carousel) {
+            console.log('Hero carousel not found on this page');
+            return;
+        }
         
-        slides[currentSlide].classList.add('active');
-        dots[currentSlide].classList.add('active');
+        const wrapper = carousel.querySelector('.hero-banners-wrapper');
+        const slides = carousel.querySelectorAll('.hero-banners-slide');
+        const prevBtn = carousel.querySelector('.carousel-arrow-prev');
+        const nextBtn = carousel.querySelector('.carousel-arrow-next');
+        const dotsContainer = carousel.querySelector('.carousel-dots');
+        
+        if (!wrapper || slides.length === 0) {
+            console.log('No slides found in carousel');
+            return;
+        }
+        
+        console.log('Found ' + slides.length + ' slides');
+        
+        let currentIndex = 0;
+        const totalSlides = slides.length;
+        let autoPlayInterval;
+        
+        // Only initialize carousel if more than 1 slide
+        if (totalSlides <= 1) {
+            console.log('Only 1 slide, hiding controls');
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (dotsContainer) dotsContainer.style.display = 'none';
+            return;
+        }
+        
+        // Create dots
+        function createDots() {
+            if (!dotsContainer) return;
+            
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('button');
+                dot.classList.add('carousel-dot');
+                if (i === 0) dot.classList.add('active');
+                dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+                dot.setAttribute('type', 'button');
+                dot.addEventListener('click', function() {
+                    goToSlide(i);
+                });
+                dotsContainer.appendChild(dot);
+            }
+            console.log('Created ' + totalSlides + ' dots');
+        }
+        
+        // Update dots
+        function updateDots() {
+            if (!dotsContainer) return;
+            
+            const dots = dotsContainer.querySelectorAll('.carousel-dot');
+            dots.forEach(function(dot, index) {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        // Go to specific slide
+        function goToSlide(index) {
+            currentIndex = index;
+            const translateX = -(currentIndex * 100);
+            wrapper.style.transform = 'translateX(' + translateX + '%)';
+            updateDots();
+            resetAutoPlay();
+            console.log('Moved to slide ' + (currentIndex + 1));
+        }
+        
+        // Next slide
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) >= totalSlides ? 0 : currentIndex + 1;
+            goToSlide(currentIndex);
+        }
+        
+        // Previous slide
+        function prevSlide() {
+            currentIndex = (currentIndex - 1) < 0 ? totalSlides - 1 : currentIndex - 1;
+            goToSlide(currentIndex);
+        }
+        
+        // Auto play
+        function startAutoPlay() {
+            autoPlayInterval = setInterval(nextSlide, 5000); // 5 seconds
+            console.log('Auto-play started');
+        }
+        
+        // Reset auto play
+        function resetAutoPlay() {
+            clearInterval(autoPlayInterval);
+            startAutoPlay();
+        }
+        
+        // Stop auto play
+        function stopAutoPlay() {
+            clearInterval(autoPlayInterval);
+            console.log('Auto-play stopped');
+        }
+        
+        // Initialize
+        function init() {
+            createDots();
+            
+            // Button events
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    prevSlide();
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    nextSlide();
+                });
+            }
+            
+            // Pause on hover
+            carousel.addEventListener('mouseenter', stopAutoPlay);
+            carousel.addEventListener('mouseleave', startAutoPlay);
+            
+            // Touch support for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            carousel.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+                stopAutoPlay();
+            }, { passive: true });
+            
+            carousel.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+                startAutoPlay();
+            }, { passive: true });
+            
+            function handleSwipe() {
+                if (touchEndX < touchStartX - 50) {
+                    nextSlide(); // Swipe left
+                }
+                if (touchEndX > touchStartX + 50) {
+                    prevSlide(); // Swipe right
+                }
+            }
+            
+            // Start auto play
+            startAutoPlay();
+            
+            console.log('Carousel initialized successfully');
+        }
+        
+        init();
     }
-    
-    function nextSlide() {
-        showSlide(currentSlide + 1);
-    }
-    
-    function prevSlide() {
-        showSlide(currentSlide - 1);
-    }
-    
-    function goToSlide(n) {
-        showSlide(n);
-        resetAutoSlide();
-    }
-    
-    function startAutoSlide() {
-        autoSlideInterval = setInterval(nextSlide, 4000); // 4 seconds
-    }
-    
-    function resetAutoSlide() {
-        clearInterval(autoSlideInterval);
-        startAutoSlide();
-    }
-    
-    // Event listeners
-    if (prevBtn) prevBtn.addEventListener('click', () => {
-        prevSlide();
-        resetAutoSlide();
-    });
-    
-    if (nextBtn) nextBtn.addEventListener('click', () => {
-        nextSlide();
-        resetAutoSlide();
-    });
-    
-    // Start auto-slide
-    showSlide(0);
-    startAutoSlide();
-    
-    // Pause on hover
-    const sliderWrapper = document.querySelector('.banner-slider-wrapper');
-    if (sliderWrapper) {
-        sliderWrapper.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
-        sliderWrapper.addEventListener('mouseleave', startAutoSlide);
-    }
-});
-.sers
+})();
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\js\category-icon-upload.js === 
 jQuery(document).ready(function($) {
     
@@ -7698,7 +8436,7 @@ jQuery(document).ready(function($) {
     });
     
 });
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\js\click-tracker.js === 
 /**
  * Deal Click Tracking
@@ -7759,7 +8497,7 @@ jQuery(document).ready(function($) {
     });
     
 })(jQuery);
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\js\filter.js === 
 /**
  * Deal Filtering & Search JavaScript
@@ -7846,7 +8584,7 @@ jQuery(document).ready(function($) {
     });
     
 })(jQuery);
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\js\main.js === 
 /**
  * Main Frontend JavaScript
@@ -8343,59 +9081,88 @@ function copyCoupon() {
         });
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\assets\js\store-logo-upload.js === 
-jQuery(document).ready(function($) {
+/**
+ * Store Logo & Banner Upload JavaScript
+ * 
+ * @package DealsIndia
+ */
+
+jQuery(document).ready(function($){
+    'use strict';
     
-    // Upload button click
-    $(document).on('click', '.upload-store-logo-btn', function(e) {
+    // Logo Upload
+    var logoFrame;
+    $('.store-logo-upload-btn').on('click', function(e){
         e.preventDefault();
         
-        var button = $(this);
-        var preview = button.siblings('.store-logo-preview');
-        var input = button.siblings('#store_logo_id');
-        var removeBtn = button.siblings('.remove-store-logo-btn');
+        if(logoFrame){
+            logoFrame.open();
+            return;
+        }
         
-        var mediaUploader = wp.media({
-            title: 'Choose Store Logo',
+        logoFrame = wp.media({
+            title: 'Select Store Logo',
             button: {
                 text: 'Use this logo'
             },
-            multiple: false,
-            library: {
-                type: 'image'
-            }
+            multiple: false
         });
         
-        mediaUploader.on('select', function() {
-            var attachment = mediaUploader.state().get('selection').first().toJSON();
-            
-            input.val(attachment.id);
-            preview.html('<img src="' + attachment.url + '" style="max-width: 150px; max-height: 150px; display: block; border: 1px solid #ddd; padding: 5px; background: white;">');
-            button.text('Change Logo');
-            removeBtn.show();
+        logoFrame.on('select', function(){
+            var attachment = logoFrame.state().get('selection').first().toJSON();
+            $('#store_logo_id').val(attachment.id);
+            $('#store-logo-preview').attr('src', attachment.url).show();
+            $('.store-logo-remove-btn').show();
         });
         
-        mediaUploader.open();
+        logoFrame.open();
     });
     
-    // Remove button click
-    $(document).on('click', '.remove-store-logo-btn', function(e) {
+    $('.store-logo-remove-btn').on('click', function(e){
+        e.preventDefault();
+        $('#store_logo_id').val('');
+        $('#store-logo-preview').hide();
+        $(this).hide();
+    });
+    
+    // Banner Upload
+    var bannerFrame;
+    $('.store-banner-upload-btn').on('click', function(e){
         e.preventDefault();
         
-        var button = $(this);
-        var preview = button.siblings('.store-logo-preview');
-        var input = button.siblings('#store_logo_id');
-        var uploadBtn = button.siblings('.upload-store-logo-btn');
+        if(bannerFrame){
+            bannerFrame.open();
+            return;
+        }
         
-        input.val('');
-        preview.html('');
-        uploadBtn.text('Upload Logo');
-        button.hide();
+        bannerFrame = wp.media({
+            title: 'Select Store Banner',
+            button: {
+                text: 'Use this banner'
+            },
+            multiple: false
+        });
+        
+        bannerFrame.on('select', function(){
+            var attachment = bannerFrame.state().get('selection').first().toJSON();
+            $('#store_banner_id').val(attachment.id);
+            $('#store-banner-preview').attr('src', attachment.url).show();
+            $('.store-banner-remove-btn').show();
+        });
+        
+        bannerFrame.open();
     });
     
+    $('.store-banner-remove-btn').on('click', function(e){
+        e.preventDefault();
+        $('#store_banner_id').val('');
+        $('#store-banner-preview').hide();
+        $(this).hide();
+    });
 });
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\admin-columns.php === 
 <?php
 /**
@@ -8553,7 +9320,7 @@ function dealsindia_deals_column_orderby($query) {
     }
 }
 add_action('pre_get_posts', 'dealsindia_deals_column_orderby');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\analytics-widget.php === 
 <?php
 /**
@@ -8711,7 +9478,7 @@ function dealsindia_analytics_widget_content() {
     </div>
     <?php
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\cache-manager.php === 
 <?php
 /**
@@ -8775,7 +9542,7 @@ function dealsindia_cache_cleared_notice() {
     }
 }
 add_action('admin_notices', 'dealsindia_cache_cleared_notice');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\category-icon-upload.php === 
 <?php
 /**
@@ -8788,7 +9555,7 @@ if (!defined('ABSPATH')) exit;
 // This file will handle category icon image uploads
 // (We already have emoji icons in term-meta.php)
 // If you want to add image upload capability later, code goes here
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\dealsindia-manager.php === 
 <?php
 /**
@@ -8800,7 +9567,7 @@ if (!defined('ABSPATH')) exit;
 
 // Placeholder for future admin dashboard
 // You can add custom admin pages here
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\newsletter-admin.php === 
 <?php
 /**
@@ -8921,192 +9688,7 @@ function dealsindia_export_subscribers() {
     
     fclose($output);
 }
-.sers
-=== FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\admin\store-logo-upload.php === 
-<?php
-/**
- * Store Logo & Banner Upload
- * Add logo and banner image upload to store taxonomy
- */
-
-if (!defined('ABSPATH')) exit;
-
-/**
- * Add store logo field to Add New form
- */
-add_action('store_add_form_fields', 'dealsindia_add_store_logo_field');
-function dealsindia_add_store_logo_field() {
-    ?>
-    <div class="form-field">
-        <label><?php _e('Store Logo', 'dealsindia'); ?></label>
-        <div class="store-logo-upload-wrapper">
-            <img id="store-logo-preview" src="" style="max-width: 100px; max-height: 100px; display: none; margin-bottom: 10px; border: 1px solid #ddd; padding: 5px;">
-            <br>
-            <input type="hidden" id="store_logo_id" name="store_logo_id" value="">
-            <button type="button" class="button store-logo-upload-btn"><?php _e('Upload Logo', 'dealsindia'); ?></button>
-            <button type="button" class="button store-logo-remove-btn" style="display: none;"><?php _e('Remove', 'dealsindia'); ?></button>
-        </div>
-        <p class="description"><?php _e('Upload store logo (recommended: 200x200px PNG)', 'dealsindia'); ?></p>
-    </div>
-    
-    <div class="form-field">
-        <label><?php _e('Store Banner Image', 'dealsindia'); ?></label>
-        <div class="store-banner-upload-wrapper">
-            <img id="store-banner-preview" src="" style="max-width: 300px; max-height: 150px; display: none; margin-bottom: 10px; border: 1px solid #ddd; padding: 5px;">
-            <br>
-            <input type="hidden" id="store_banner_id" name="store_banner_id" value="">
-            <button type="button" class="button store-banner-upload-btn"><?php _e('Upload Banner', 'dealsindia'); ?></button>
-            <button type="button" class="button store-banner-remove-btn" style="display: none;"><?php _e('Remove', 'dealsindia'); ?></button>
-        </div>
-        <p class="description"><?php _e('Upload store hero banner (recommended: 1200x400px)', 'dealsindia'); ?></p>
-    </div>
-    
-    <script>
-    jQuery(document).ready(function($){
-        // Logo Upload
-        var logoFrame;
-        $('.store-logo-upload-btn').on('click', function(e){
-            e.preventDefault();
-            if(logoFrame){logoFrame.open();return;}
-            logoFrame = wp.media({title:'Select Store Logo',button:{text:'Use this logo'},multiple:false});
-            logoFrame.on('select',function(){
-                var attachment = logoFrame.state().get('selection').first().toJSON();
-                $('#store_logo_id').val(attachment.id);
-                $('#store-logo-preview').attr('src',attachment.url).show();
-                $('.store-logo-remove-btn').show();
-            });
-            logoFrame.open();
-        });
-        $('.store-logo-remove-btn').on('click',function(e){
-            e.preventDefault();
-            $('#store_logo_id').val('');
-            $('#store-logo-preview').hide();
-            $(this).hide();
-        });
-        
-        // Banner Upload
-        var bannerFrame;
-        $('.store-banner-upload-btn').on('click', function(e){
-            e.preventDefault();
-            if(bannerFrame){bannerFrame.open();return;}
-            bannerFrame = wp.media({title:'Select Store Banner',button:{text:'Use this banner'},multiple:false});
-            bannerFrame.on('select',function(){
-                var attachment = bannerFrame.state().get('selection').first().toJSON();
-                $('#store_banner_id').val(attachment.id);
-                $('#store-banner-preview').attr('src',attachment.url).show();
-                $('.store-banner-remove-btn').show();
-            });
-            bannerFrame.open();
-        });
-        $('.store-banner-remove-btn').on('click',function(e){
-            e.preventDefault();
-            $('#store_banner_id').val('');
-            $('#store-banner-preview').hide();
-            $(this).hide();
-        });
-    });
-    </script>
-    <?php
-}
-
-/**
- * Add store logo and banner fields to Edit form
- */
-add_action('store_edit_form_fields', 'dealsindia_edit_store_logo_field');
-function dealsindia_edit_store_logo_field($term) {
-    $logo_id = get_term_meta($term->term_id, 'store_logo_id', true);
-    $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
-    
-    $banner_id = get_term_meta($term->term_id, 'store_banner_id', true);
-    $banner_url = $banner_id ? wp_get_attachment_url($banner_id) : '';
-    ?>
-    <tr class="form-field">
-        <th scope="row"><label><?php _e('Store Logo', 'dealsindia'); ?></label></th>
-        <td>
-            <img id="store-logo-preview" src="<?php echo esc_url($logo_url); ?>" style="max-width: 100px; max-height: 100px; display: <?php echo $logo_url ? 'block' : 'none'; ?>; margin-bottom: 10px; border: 1px solid #ddd; padding: 5px;">
-            <br>
-            <input type="hidden" id="store_logo_id" name="store_logo_id" value="<?php echo esc_attr($logo_id); ?>">
-            <button type="button" class="button store-logo-upload-btn"><?php _e('Upload Logo', 'dealsindia'); ?></button>
-            <button type="button" class="button store-logo-remove-btn" style="display: <?php echo $logo_url ? 'inline-block' : 'none'; ?>;"><?php _e('Remove', 'dealsindia'); ?></button>
-            <p class="description"><?php _e('Upload store logo (200x200px PNG)', 'dealsindia'); ?></p>
-        </td>
-    </tr>
-    
-    <tr class="form-field">
-        <th scope="row"><label><?php _e('Store Banner Image', 'dealsindia'); ?></label></th>
-        <td>
-            <img id="store-banner-preview" src="<?php echo esc_url($banner_url); ?>" style="max-width: 400px; max-height: 200px; display: <?php echo $banner_url ? 'block' : 'none'; ?>; margin-bottom: 10px; border: 1px solid #ddd; padding: 5px;">
-            <br>
-            <input type="hidden" id="store_banner_id" name="store_banner_id" value="<?php echo esc_attr($banner_id); ?>">
-            <button type="button" class="button store-banner-upload-btn"><?php _e('Upload Banner', 'dealsindia'); ?></button>
-            <button type="button" class="button store-banner-remove-btn" style="display: <?php echo $banner_url ? 'inline-block' : 'none'; ?>;"><?php _e('Remove', 'dealsindia'); ?></button>
-            <p class="description"><?php _e('Upload store hero banner (1200x400px recommended)', 'dealsindia'); ?></p>
-        </td>
-    </tr>
-    
-    <script>
-    jQuery(document).ready(function($){
-        // Logo Upload
-        var logoFrame;
-        $('.store-logo-upload-btn').on('click', function(e){
-            e.preventDefault();
-            if(logoFrame){logoFrame.open();return;}
-            logoFrame = wp.media({title:'Select Store Logo',button:{text:'Use this logo'},multiple:false});
-            logoFrame.on('select',function(){
-                var attachment = logoFrame.state().get('selection').first().toJSON();
-                $('#store_logo_id').val(attachment.id);
-                $('#store-logo-preview').attr('src',attachment.url).show();
-                $('.store-logo-remove-btn').show();
-            });
-            logoFrame.open();
-        });
-        $('.store-logo-remove-btn').on('click',function(e){
-            e.preventDefault();
-            $('#store_logo_id').val('');
-            $('#store-logo-preview').hide();
-            $(this).hide();
-        });
-        
-        // Banner Upload
-        var bannerFrame;
-        $('.store-banner-upload-btn').on('click', function(e){
-            e.preventDefault();
-            if(bannerFrame){bannerFrame.open();return;}
-            bannerFrame = wp.media({title:'Select Store Banner',button:{text:'Use this banner'},multiple:false});
-            bannerFrame.on('select',function(){
-                var attachment = bannerFrame.state().get('selection').first().toJSON();
-                $('#store_banner_id').val(attachment.id);
-                $('#store-banner-preview').attr('src',attachment.url).show();
-                $('.store-banner-remove-btn').show();
-            });
-            bannerFrame.open();
-        });
-        $('.store-banner-remove-btn').on('click',function(e){
-            e.preventDefault();
-            $('#store_banner_id').val('');
-            $('#store-banner-preview').hide();
-            $(this).hide();
-        });
-    });
-    </script>
-    <?php
-}
-
-/**
- * Save store logo and banner
- */
-add_action('created_store', 'dealsindia_save_store_logo');
-add_action('edited_store', 'dealsindia_save_store_logo');
-function dealsindia_save_store_logo($term_id) {
-    if (isset($_POST['store_logo_id'])) {
-        update_term_meta($term_id, 'store_logo_id', absint($_POST['store_logo_id']));
-    }
-    
-    if (isset($_POST['store_banner_id'])) {
-        update_term_meta($term_id, 'store_banner_id', absint($_POST['store_banner_id']));
-    }
-}
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\analytics-tracker.php === 
 <?php
 /**
@@ -9331,7 +9913,7 @@ function dealsindia_get_deal_ctr($deal_id) {
     
     return round(($clicks / $views) * 100, 2);
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\color-helpers.php === 
 <?php
 /**
@@ -9440,11 +10022,12 @@ function dealsindia_adjust_brightness($hex, $steps) {
     
     return '#' . $r . $g . $b;
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\expiry-helpers.php === 
 <?php
 /**
- * Deal Expiry Helper Functions
+ * Expiry Helper Functions
+ * Deal expiration checking
  * 
  * @package DealsIndia
  * @version 1.0
@@ -9453,81 +10036,96 @@ function dealsindia_adjust_brightness($hex, $steps) {
 if (!defined('ABSPATH')) exit;
 
 /**
- * Check if a deal is expired
+ * Check if deal is expired
+ * @param int $deal_id The deal post ID
+ * @return bool True if expired, false otherwise
  */
-function dealsindia_is_deal_expired($post_id) {
-    $expiry_date = get_post_meta($post_id, 'deal_expiry_date', true);
+function dealsindia_is_deal_expired($deal_id) {
+    // Get expiry date
+    $expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
     
-    if (empty($expiry_date)) {
-        return false; // No expiry date = never expires
-    }
-    
-    $expiry_timestamp = strtotime($expiry_date);
-    $current_timestamp = current_time('timestamp');
-    
-    return ($current_timestamp > $expiry_timestamp);
-}
-
-/**
- * Get time remaining until deal expires
- */
-function dealsindia_get_time_remaining($post_id) {
-    $expiry_date = get_post_meta($post_id, 'deal_expiry_date', true);
-    
+    // If no expiry date set, deal never expires
     if (empty($expiry_date)) {
         return false;
     }
     
+    // Convert expiry date to timestamp
     $expiry_timestamp = strtotime($expiry_date);
     $current_timestamp = current_time('timestamp');
-    $diff = $expiry_timestamp - $current_timestamp;
     
-    if ($diff <= 0) {
-        return array('expired' => true);
+    // Check if expired
+    if ($current_timestamp > $expiry_timestamp) {
+        return true;
     }
     
-    $days = floor($diff / (60 * 60 * 24));
-    $hours = floor(($diff % (60 * 60 * 24)) / (60 * 60));
-    $minutes = floor(($diff % (60 * 60)) / 60);
-    
-    return array(
-        'expired' => false,
-        'days' => $days,
-        'hours' => $hours,
-        'minutes' => $minutes,
-        'total_hours' => floor($diff / (60 * 60))
-    );
+    return false;
 }
 
 /**
- * Display countdown timer
+ * Get time remaining until deal expires
+ * @param int $deal_id The deal post ID
+ * @return string Human readable time remaining
  */
-function dealsindia_countdown_timer($post_id) {
-    $remaining = dealsindia_get_time_remaining($post_id);
+function dealsindia_get_time_remaining($deal_id) {
+    $expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
     
-    if (!$remaining || $remaining['expired']) {
-        return '<span class="expired-badge">EXPIRED</span>';
+    if (empty($expiry_date)) {
+        return __('No expiry', 'dealsindia');
     }
     
-    if ($remaining['days'] > 0) {
-        return sprintf(
-            '<span class="countdown-timer">⏰ Expires in %d days %d hours</span>',
-            $remaining['days'],
-            $remaining['hours']
-        );
-    } else if ($remaining['hours'] > 0) {
-        return sprintf(
-            '<span class="countdown-timer urgent">⏰ Expires in %d hours</span>',
-            $remaining['hours']
-        );
+    $expiry_timestamp = strtotime($expiry_date);
+    $current_timestamp = current_time('timestamp');
+    
+    if ($current_timestamp > $expiry_timestamp) {
+        return __('Expired', 'dealsindia');
+    }
+    
+    $difference = $expiry_timestamp - $current_timestamp;
+    
+    // Calculate days, hours, minutes
+    $days = floor($difference / 86400);
+    $hours = floor(($difference % 86400) / 3600);
+    $minutes = floor(($difference % 3600) / 60);
+    
+    if ($days > 0) {
+        return sprintf(__('%d days left', 'dealsindia'), $days);
+    } elseif ($hours > 0) {
+        return sprintf(__('%d hours left', 'dealsindia'), $hours);
     } else {
-        return sprintf(
-            '<span class="countdown-timer critical">⏰ Expires in %d minutes</span>',
-            $remaining['minutes']
-        );
+        return sprintf(__('%d minutes left', 'dealsindia'), $minutes);
     }
 }
-.sers
+
+/**
+ * Display expiry badge
+ * @param int $deal_id The deal post ID
+ * @return string HTML for expiry badge
+ */
+function dealsindia_expiry_badge($deal_id) {
+    if (dealsindia_is_deal_expired($deal_id)) {
+        return '<span class="deal-badge deal-expired-badge">Expired</span>';
+    }
+    
+    $expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
+    
+    if (empty($expiry_date)) {
+        return '';
+    }
+    
+    $time_remaining = dealsindia_get_time_remaining($deal_id);
+    return '<span class="deal-badge deal-expiry-badge">' . esc_html($time_remaining) . '</span>';
+}
+
+/**
+ * Check if deal should be shown when expired
+ * @param int $deal_id The deal post ID
+ * @return bool True if should show, false otherwise
+ */
+function dealsindia_show_when_expired($deal_id) {
+    $show_when_expired = get_post_meta($deal_id, 'show_when_expired', true);
+    return ($show_when_expired === '1');
+}
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\newsletter-handler.php === 
 <?php
 /**
@@ -9612,7 +10210,7 @@ function dealsindia_newsletter_subscribe_ajax() {
 }
 add_action('wp_ajax_dealsindia_newsletter_subscribe', 'dealsindia_newsletter_subscribe_ajax');
 add_action('wp_ajax_nopriv_dealsindia_newsletter_subscribe', 'dealsindia_newsletter_subscribe_ajax');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\performance-helpers.php === 
 <?php
 /**
@@ -9771,7 +10369,7 @@ add_action('init', 'dealsindia_disable_emojis');
 if (!defined('WP_POST_REVISIONS')) {
     define('WP_POST_REVISIONS', 3);
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\search-helpers.php === 
 <?php
 /**
@@ -9959,7 +10557,7 @@ function dealsindia_ajax_filter_deals() {
 }
 add_action('wp_ajax_filter_deals', 'dealsindia_ajax_filter_deals');
 add_action('wp_ajax_nopriv_filter_deals', 'dealsindia_ajax_filter_deals');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\social-share.php === 
 <?php
 /**
@@ -10065,7 +10663,7 @@ function dealsindia_track_social_share() {
 }
 add_action('wp_ajax_track_social_share', 'dealsindia_track_social_share');
 add_action('wp_ajax_nopriv_track_social_share', 'dealsindia_track_social_share');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\template-helpers.php === 
 <?php
 /**
@@ -10208,7 +10806,7 @@ function dealsindia_render_store_logo_with_icon($term_id, $store_name = '', $ico
     </div>
     <?php
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\helpers\text-helpers.php === 
 <?php
 /**
@@ -10273,7 +10871,7 @@ function dealsindia_get_show_more_text() {
 function dealsindia_get_footer_text() {
     return get_theme_mod('dealsindia_footer_text', '© 2024 DealsIndia. All Rights Reserved.');
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\meta-boxes\banner-meta.php === 
 <?php
 /**
@@ -10385,7 +10983,7 @@ function dealsindia_save_banner_meta($post_id) {
         }
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\meta-boxes\deal-meta.php === 
 <?php
 /**
@@ -10604,7 +11202,7 @@ function dealsindia_save_deal_meta($post_id) {
     update_post_meta($post_id, 'show_when_expired', isset($_POST['show_when_expired']) ? '1' : '0');
 }
 add_action('save_post', 'dealsindia_save_deal_meta');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\meta-boxes\giveaway-meta.php === 
 <?php
 /**
@@ -10707,7 +11305,7 @@ function dealsindia_save_giveaway_meta($post_id) {
     $is_active = isset($_POST['giveaway_is_active']) ? '1' : '0';
     update_post_meta($post_id, 'giveaway_is_active', $is_active);
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\meta-boxes\step-meta.php === 
 <?php
 /**
@@ -10788,7 +11386,7 @@ function dealsindia_save_step_meta($post_id) {
     }
 }
 add_action('save_post', 'dealsindia_save_step_meta');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\post-types\deals.php === 
 <?php
 /**
@@ -10838,7 +11436,7 @@ function dealsindia_register_deals_post_type() {
     register_post_type('deals', $args);
 }
 add_action('init', 'dealsindia_register_deals_post_type');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\post-types\giveaways.php === 
 <?php
 /**
@@ -10883,7 +11481,7 @@ function dealsindia_register_giveaway_post_type() {
     register_post_type('giveaway', $args);
 }
 add_action('init', 'dealsindia_register_giveaway_post_type');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\post-types\hero-banners.php === 
 <?php
 /**
@@ -10928,7 +11526,7 @@ function dealsindia_register_hero_banner_post_type() {
     register_post_type('hero_banner', $args);
 }
 add_action('init', 'dealsindia_register_hero_banner_post_type');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\post-types\work-steps.php === 
 <?php
 /**
@@ -10973,7 +11571,7 @@ function dealsindia_register_work_steps_post_type() {
     register_post_type('work_step', $args);
 }
 add_action('init', 'dealsindia_register_work_steps_post_type');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\queries\archive-sorting.php === 
 <?php
 /**
@@ -11025,7 +11623,7 @@ function dealsindia_store_archive_sorting($query) {
             $query->set('order', 'DESC');
     }
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\queries\deal-queries.php === 
 <?php
 /**
@@ -11033,53 +11631,73 @@ function dealsindia_store_archive_sorting($query) {
  * Custom queries for deals
  * 
  * @package DealsIndia
- * @version 3.0 - With Caching
+ * @version 4.0 - PERMANENT HOT PICKS FIX
  */
 
 if (!defined('ABSPATH')) exit;
 
 /**
- * Get hot picks (featured/hot deals) - WITH CACHING
+ * Get hot picks (featured/hot deals) - PERMANENT FIX WITH FALLBACK
  */
 function dealsindia_get_hot_picks($limit = 10) {
-    // Try cache first
     $cache_key = 'dealsindia_hot_picks_' . $limit;
     $cached = get_transient($cache_key);
-    
+
     if (false !== $cached) {
         return $cached;
     }
-    
+
+    // 1. Try to get featured/hot picks first
     $args = array(
         'post_type' => 'deals',
         'posts_per_page' => $limit,
         'post_status' => 'publish',
         'meta_query' => array(
-            'relation' => 'AND',
+            'relation' => 'OR',
             array(
-                'relation' => 'OR',
-                array(
-                    'key' => 'is_hot',
-                    'value' => '1',
-                    'compare' => '='
-                ),
-                array(
-                    'key' => 'is_featured',
-                    'value' => '1',
-                    'compare' => '='
-                )
+                'key' => 'is_hot',
+                'value' => '1',
+                'compare' => '='
+            ),
+            array(
+                'key' => 'is_featured',
+                'value' => '1',
+                'compare' => '='
             )
         )
     );
     
-    // Exclude expired deals
     $args = dealsindia_exclude_expired_deals($args);
-    
     $query = new WP_Query($args);
-    
+
+    // 2. If not enough results, fill with latest deals (no duplicates)
+    if ($query->post_count < $limit) {
+        $hot_ids = wp_list_pluck($query->posts, 'ID');
+        
+        $fill_args = array(
+            'post_type' => 'deals',
+            'posts_per_page' => $limit - $query->post_count,
+            'post_status' => 'publish',
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'post__not_in' => $hot_ids // Avoid duplicates
+        );
+        
+        $fill_args = dealsindia_exclude_expired_deals($fill_args);
+        $fill_query = new WP_Query($fill_args);
+
+        // Merge results
+        if ($fill_query->have_posts()) {
+            foreach ($fill_query->posts as $post) {
+                $query->posts[] = $post;
+            }
+            $query->post_count = count($query->posts);
+        }
+    }
+
     // Cache for 1 hour
     set_transient($cache_key, $query, 3600);
-    
+
     return $query;
 }
 
@@ -11189,6 +11807,26 @@ function dealsindia_get_expired_deal_ids() {
 }
 
 /**
+ * Get cached expired deal IDs with transient caching
+ */
+function dealsindia_get_cached_expired_ids() {
+    // Try to get from cache first
+    $cached = get_transient('dealsindia_expired_deal_ids');
+    
+    if (false !== $cached) {
+        return $cached;
+    }
+    
+    // If no cache, query database
+    $expired_ids = dealsindia_get_expired_deal_ids();
+    
+    // Cache for 30 minutes (1800 seconds)
+    set_transient('dealsindia_expired_deal_ids', $expired_ids, 1800);
+    
+    return $expired_ids;
+}
+
+/**
  * Modify main query to exclude expired deals
  */
 function dealsindia_exclude_expired_from_archives($query) {
@@ -11207,15 +11845,34 @@ function dealsindia_exclude_expired_from_archives($query) {
     }
 }
 add_action('pre_get_posts', 'dealsindia_exclude_expired_from_archives');
-.sers
+
+/**
+ * Clear hot picks cache when deal is saved/updated
+ */
+function dealsindia_clear_hot_picks_cache($post_id) {
+    // Only clear for deals post type
+    if (get_post_type($post_id) !== 'deals') {
+        return;
+    }
+    
+    // Clear all hot picks caches (different limits)
+    for ($i = 1; $i <= 20; $i++) {
+        delete_transient('dealsindia_hot_picks_' . $i);
+    }
+}
+add_action('save_post', 'dealsindia_clear_hot_picks_cache');
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\setup\customizer.php === 
 <?php
 /**
- * Theme Customizer Settings
+ * Theme Customizer Settings - COMPLETE
+ * All Homepage Sections with Full Control
  * 
  * @package DealsIndia
- * @version 3.0 - Fully Dynamic Homepage
+ * @version 5.0 - COMPLETE
  */
+
+if (!defined('ABSPATH')) exit;
 
 function dealsindia_customize_register($wp_customize) {
     
@@ -11238,11 +11895,11 @@ function dealsindia_customize_register($wp_customize) {
         'type' => 'checkbox',
     ));
 
-    $wp_customize->add_setting('dealsindia_welcome_banner_text', array(
-        'default' => 'Welcome to India\'s Trusted Coupons, Offers & Cashback Website',
+    $wp_customize->add_setting('welcome_text', array(
+        'default' => 'Welcome to ' . get_bloginfo('name') . ' - India\'s Trusted Coupons, Offers & Cashback Website',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_welcome_banner_text', array(
+    $wp_customize->add_control('welcome_text', array(
         'label' => __('Welcome Banner Text', 'dealsindia'),
         'section' => 'dealsindia_site_settings',
         'type' => 'text',
@@ -11256,22 +11913,12 @@ function dealsindia_customize_register($wp_customize) {
         'priority' => 35,
     ));
 
-    $wp_customize->add_setting('dealsindia_how_it_works_heading', array(
-        'default' => 'How It Works',
+    $wp_customize->add_setting('steps_section_title', array(
+        'default' => 'Three Steps To Save With ' . get_bloginfo('name'),
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_how_it_works_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
-        'section' => 'dealsindia_how_it_works',
-        'type' => 'text',
-    ));
-
-    $wp_customize->add_setting('dealsindia_how_it_works_subheading', array(
-        'default' => 'Start saving money in 3 simple steps',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    $wp_customize->add_control('dealsindia_how_it_works_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
+    $wp_customize->add_control('steps_section_title', array(
+        'label' => __('Section Title', 'dealsindia'),
         'section' => 'dealsindia_how_it_works',
         'type' => 'text',
     ));
@@ -11282,8 +11929,10 @@ function dealsindia_customize_register($wp_customize) {
     $wp_customize->add_section('dealsindia_hot_picks', array(
         'title' => __('Hot Picks Section', 'dealsindia'),
         'priority' => 40,
+        'description' => __('Customize the Hot Picks section on your homepage', 'dealsindia'),
     ));
 
+    // Show/Hide Hot Picks
     $wp_customize->add_setting('dealsindia_show_hot_picks', array(
         'default' => '1',
         'sanitize_callback' => 'absint',
@@ -11294,90 +11943,243 @@ function dealsindia_customize_register($wp_customize) {
         'type' => 'checkbox',
     ));
 
-    $wp_customize->add_setting('dealsindia_hot_picks_heading', array(
-        'default' => 'Hot Picks',
+    // Background Image
+    $wp_customize->add_setting('hot_picks_bg_image', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport' => 'refresh',
+    ));
+    
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'hot_picks_bg_image', array(
+        'label'    => __('Background Image', 'dealsindia'),
+        'section'  => 'dealsindia_hot_picks',
+        'settings' => 'hot_picks_bg_image',
+        'description' => __('Upload background image (1920x500px recommended). Leave empty for gradient.', 'dealsindia'),
+    )));
+
+    // Section Title
+    $wp_customize->add_setting('hot_picks_title', array(
+        'default' => 'Festival Hot Picks!',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_hot_picks_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
+    $wp_customize->add_control('hot_picks_title', array(
+        'label' => __('Section Title', 'dealsindia'),
         'section' => 'dealsindia_hot_picks',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_hot_picks_subheading', array(
-        'default' => 'Grab these exclusive deals before they expire!',
+    // Button Text
+    $wp_customize->add_setting('hot_picks_button_text', array(
+        'default' => 'See More',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_hot_picks_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
+    $wp_customize->add_control('hot_picks_button_text', array(
+        'label' => __('Button Text', 'dealsindia'),
+        'section' => 'dealsindia_hot_picks',
+        'type' => 'text',
+    ));
+
+    // Number of Deals
+    $wp_customize->add_setting('hot_picks_count', array(
+        'default' => 12,
+        'sanitize_callback' => 'absint',
+    ));
+    $wp_customize->add_control('hot_picks_count', array(
+        'label' => __('Number of Deals to Show', 'dealsindia'),
+        'section' => 'dealsindia_hot_picks',
+        'type' => 'number',
+        'input_attrs' => array(
+            'min' => 6,
+            'max' => 20,
+            'step' => 1,
+        ),
+    ));
+
+    // No Hot Picks Message
+    $wp_customize->add_setting('no_hot_picks_message', array(
+        'default' => 'No hot picks available right now. Check back soon for amazing deals!',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('no_hot_picks_message', array(
+        'label' => __('No Deals Message', 'dealsindia'),
         'section' => 'dealsindia_hot_picks',
         'type' => 'text',
     ));
 
     // ===================================================== 
-    // SECTION: Trending Categories
+    // SECTION: Latest Deals
     // ===================================================== 
-    $wp_customize->add_section('dealsindia_trending_categories', array(
-        'title' => __('Trending Categories Section', 'dealsindia'),
+    $wp_customize->add_section('dealsindia_latest_deals', array(
+        'title' => __('Latest Deals Section', 'dealsindia'),
         'priority' => 45,
     ));
 
-    $wp_customize->add_setting('dealsindia_show_trending_categories', array(
+    $wp_customize->add_setting('dealsindia_show_latest_deals', array(
         'default' => '1',
         'sanitize_callback' => 'absint',
     ));
-    $wp_customize->add_control('dealsindia_show_trending_categories', array(
-        'label' => __('Show Trending Categories', 'dealsindia'),
-        'section' => 'dealsindia_trending_categories',
+    $wp_customize->add_control('dealsindia_show_latest_deals', array(
+        'label' => __('Show Latest Deals Section', 'dealsindia'),
+        'section' => 'dealsindia_latest_deals',
         'type' => 'checkbox',
     ));
 
-    $wp_customize->add_setting('dealsindia_trending_categories_heading', array(
-        'default' => 'Trending Categories',
+    // Section Icon
+    $wp_customize->add_setting('latest_deals_icon', array(
+        'default' => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_trending_categories_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
-        'section' => 'dealsindia_trending_categories',
+    $wp_customize->add_control('latest_deals_icon', array(
+        'label' => __('Section Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_latest_deals',
+        'type' => 'text',
+        'description' => __('Leave empty for no icon. Example: ⚡', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('latest_deals_title', array(
+        'default' => 'Latest Deals',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('latest_deals_title', array(
+        'label' => __('Section Title', 'dealsindia'),
+        'section' => 'dealsindia_latest_deals',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_trending_categories_subheading', array(
-        'default' => 'Explore deals by your favorite categories',
+    $wp_customize->add_setting('latest_deals_subtitle', array(
+        'default' => 'Fresh deals added daily',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_trending_categories_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
-        'section' => 'dealsindia_trending_categories',
+    $wp_customize->add_control('latest_deals_subtitle', array(
+        'label' => __('Section Subtitle', 'dealsindia'),
+        'section' => 'dealsindia_latest_deals',
+        'type' => 'text',
+    ));
+
+    $wp_customize->add_setting('latest_deals_count', array(
+        'default' => 8,
+        'sanitize_callback' => 'absint',
+    ));
+    $wp_customize->add_control('latest_deals_count', array(
+        'label' => __('Number of Deals to Show', 'dealsindia'),
+        'section' => 'dealsindia_latest_deals',
+        'type' => 'number',
+        'input_attrs' => array(
+            'min' => 4,
+            'max' => 16,
+            'step' => 2,
+        ),
+    ));
+
+    $wp_customize->add_setting('view_all_btn_text', array(
+        'default' => 'View All Deals',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('view_all_btn_text', array(
+        'label' => __('View All Button Text', 'dealsindia'),
+        'section' => 'dealsindia_latest_deals',
         'type' => 'text',
     ));
 
     // ===================================================== 
-    // SECTION: Latest Offers
+    // SECTION: Top Offers
     // ===================================================== 
-    $wp_customize->add_section('dealsindia_latest_offers', array(
-        'title' => __('Latest Offers Section', 'dealsindia'),
+    $wp_customize->add_section('dealsindia_top_offers', array(
+        'title' => __('Top Offers Section', 'dealsindia'),
         'priority' => 50,
     ));
 
-    $wp_customize->add_setting('dealsindia_latest_offers_heading', array(
-        'default' => 'Latest Offers',
+    $wp_customize->add_setting('dealsindia_show_top_offers', array(
+        'default' => '1',
+        'sanitize_callback' => 'absint',
+    ));
+    $wp_customize->add_control('dealsindia_show_top_offers', array(
+        'label' => __('Show Top Offers Section', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
+        'type' => 'checkbox',
+    ));
+
+    // Section Icon
+    $wp_customize->add_setting('offers_section_icon', array(
+        'default' => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_latest_offers_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
-        'section' => 'dealsindia_latest_offers',
+    $wp_customize->add_control('offers_section_icon', array(
+        'label' => __('Section Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
+        'type' => 'text',
+        'description' => __('Leave empty for no icon. Example: 🔥', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('top_offers_title', array(
+        'default' => 'Offers',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('top_offers_title', array(
+        'label' => __('Section Title', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_latest_offers_subheading', array(
-        'default' => 'Fresh deals updated every hour',
+    $wp_customize->add_setting('top_offers_subtitle', array(
+        'default' => 'Grab the best deals across all categories',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_latest_offers_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
-        'section' => 'dealsindia_latest_offers',
+    $wp_customize->add_control('top_offers_subtitle', array(
+        'label' => __('Section Subtitle', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
         'type' => 'text',
+    ));
+
+    $wp_customize->add_setting('top_offers_count', array(
+        'default' => 9,
+        'sanitize_callback' => 'absint',
+    ));
+    $wp_customize->add_control('top_offers_count', array(
+        'label' => __('Number of Offers to Show', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
+        'type' => 'number',
+        'input_attrs' => array(
+            'min' => 3,
+            'max' => 12,
+            'step' => 3,
+        ),
+    ));
+
+    // Sidebar Settings
+    $wp_customize->add_setting('sidebar_title', array(
+        'default' => 'Trending Categories',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('sidebar_title', array(
+        'label' => __('Sidebar Title', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
+        'type' => 'text',
+    ));
+
+    $wp_customize->add_setting('sidebar_categories_count', array(
+        'default' => 8,
+        'sanitize_callback' => 'absint',
+    ));
+    $wp_customize->add_control('sidebar_categories_count', array(
+        'label' => __('Sidebar Categories Count', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
+        'type' => 'number',
+        'input_attrs' => array(
+            'min' => 5,
+            'max' => 15,
+        ),
+    ));
+
+    $wp_customize->add_setting('category_default_icon', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('category_default_icon', array(
+        'label' => __('Default Category Icon', 'dealsindia'),
+        'section' => 'dealsindia_top_offers',
+        'type' => 'text',
+        'description' => __('Default icon if category has no icon. Example: 📦', 'dealsindia'),
     ));
 
     // ===================================================== 
@@ -11398,28 +12200,76 @@ function dealsindia_customize_register($wp_customize) {
         'type' => 'checkbox',
     ));
 
-    $wp_customize->add_setting('dealsindia_top_stores_heading', array(
+    // Section Icon
+    $wp_customize->add_setting('stores_section_icon', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('stores_section_icon', array(
+        'label' => __('Section Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_top_stores',
+        'type' => 'text',
+        'description' => __('Leave empty for no icon. Example: 🏬', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('top_stores_title', array(
         'default' => 'Top Stores',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_top_stores_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
+    $wp_customize->add_control('top_stores_title', array(
+        'label' => __('Section Title', 'dealsindia'),
         'section' => 'dealsindia_top_stores',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_top_stores_subheading', array(
+    $wp_customize->add_setting('top_stores_subtitle', array(
         'default' => 'Shop from India\'s most trusted brands',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_top_stores_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
+    $wp_customize->add_control('top_stores_subtitle', array(
+        'label' => __('Section Subtitle', 'dealsindia'),
+        'section' => 'dealsindia_top_stores',
+        'type' => 'text',
+    ));
+
+    $wp_customize->add_setting('top_stores_count', array(
+        'default' => 5,
+        'sanitize_callback' => 'absint',
+    ));
+    $wp_customize->add_control('top_stores_count', array(
+        'label' => __('Number of Stores', 'dealsindia'),
+        'section' => 'dealsindia_top_stores',
+        'type' => 'number',
+        'input_attrs' => array(
+            'min' => 5,
+            'max' => 20,
+        ),
+        'description' => __('5 stores + 1 View All = 6 cards total', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('cashback_icon', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('cashback_icon', array(
+        'label' => __('Cashback Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_top_stores',
+        'type' => 'text',
+        'description' => __('Icon before cashback text. Example: 💰', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('view_all_stores_text', array(
+        'default' => 'View All Stores',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('view_all_stores_text', array(
+        'label' => __('View All Stores Text', 'dealsindia'),
         'section' => 'dealsindia_top_stores',
         'type' => 'text',
     ));
 
     // ===================================================== 
-    // SECTION: Newsletter CTA
+    // SECTION: Newsletter
     // ===================================================== 
     $wp_customize->add_section('dealsindia_newsletter', array(
         'title' => __('Newsletter Section', 'dealsindia'),
@@ -11436,142 +12286,109 @@ function dealsindia_customize_register($wp_customize) {
         'type' => 'checkbox',
     ));
 
-    $wp_customize->add_setting('dealsindia_newsletter_heading', array(
+    $wp_customize->add_setting('newsletter_icon', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('newsletter_icon', array(
+        'label' => __('Newsletter Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_newsletter',
+        'type' => 'text',
+        'description' => __('Example: 📧', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('newsletter_title', array(
         'default' => 'Never Miss a Deal!',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_newsletter_heading', array(
-        'label' => __('Newsletter Heading', 'dealsindia'),
+    $wp_customize->add_control('newsletter_title', array(
+        'label' => __('Newsletter Title', 'dealsindia'),
         'section' => 'dealsindia_newsletter',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_newsletter_subheading', array(
-        'default' => 'Subscribe to get exclusive deals, coupons & cashback offers directly in your inbox.',
+    $wp_customize->add_setting('newsletter_subtitle', array(
+        'default' => 'Subscribe to get the hottest deals delivered to your inbox',
         'sanitize_callback' => 'sanitize_textarea_field',
     ));
-    $wp_customize->add_control('dealsindia_newsletter_subheading', array(
-        'label' => __('Newsletter Subheading', 'dealsindia'),
+    $wp_customize->add_control('newsletter_subtitle', array(
+        'label' => __('Newsletter Subtitle', 'dealsindia'),
         'section' => 'dealsindia_newsletter',
         'type' => 'textarea',
     ));
 
-    // ===================================================== 
-    // SECTION: About Section
-    // ===================================================== 
-    $wp_customize->add_section('dealsindia_about', array(
-        'title' => __('About Section', 'dealsindia'),
-        'priority' => 65,
-    ));
-
-    $wp_customize->add_setting('dealsindia_show_about_section', array(
-        'default' => '1',
-        'sanitize_callback' => 'absint',
-    ));
-    $wp_customize->add_control('dealsindia_show_about_section', array(
-        'label' => __('Show About Section', 'dealsindia'),
-        'section' => 'dealsindia_about',
-        'type' => 'checkbox',
-    ));
-
-    $wp_customize->add_setting('dealsindia_about_heading', array(
-        'default' => 'Why Choose ARRZONE?',
+    $wp_customize->add_setting('newsletter_placeholder', array(
+        'default' => 'Enter your email address',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_about_heading', array(
-        'label' => __('About Heading', 'dealsindia'),
-        'section' => 'dealsindia_about',
+    $wp_customize->add_control('newsletter_placeholder', array(
+        'label' => __('Input Placeholder', 'dealsindia'),
+        'section' => 'dealsindia_newsletter',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_about_text', array(
-        'default' => 'ARRZONE is India\'s most trusted deals, coupons, and cashback platform. We help millions of users save money every day by providing verified deals from 3000+ top brands.',
-        'sanitize_callback' => 'wp_kses_post',
-    ));
-    $wp_customize->add_control('dealsindia_about_text', array(
-        'label' => __('About Text', 'dealsindia'),
-        'section' => 'dealsindia_about',
-        'type' => 'textarea',
-    ));
-
-    // ===================================================== 
-    // SECTION: Testimonials
-    // ===================================================== 
-    $wp_customize->add_section('dealsindia_testimonials', array(
-        'title' => __('Testimonials Section', 'dealsindia'),
-        'priority' => 70,
-    ));
-
-    $wp_customize->add_setting('dealsindia_show_testimonials', array(
-        'default' => '1',
-        'sanitize_callback' => 'absint',
-    ));
-    $wp_customize->add_control('dealsindia_show_testimonials', array(
-        'label' => __('Show Testimonials Section', 'dealsindia'),
-        'section' => 'dealsindia_testimonials',
-        'type' => 'checkbox',
-    ));
-
-    $wp_customize->add_setting('dealsindia_testimonials_heading', array(
-        'default' => 'What Our Users Say',
+    $wp_customize->add_setting('newsletter_btn_text', array(
+        'default' => 'Subscribe',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_testimonials_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
-        'section' => 'dealsindia_testimonials',
+    $wp_customize->add_control('newsletter_btn_text', array(
+        'label' => __('Button Text', 'dealsindia'),
+        'section' => 'dealsindia_newsletter',
         'type' => 'text',
     ));
 
-    $wp_customize->add_setting('dealsindia_testimonials_subheading', array(
-        'default' => 'Join millions of happy savers across India',
+    $wp_customize->add_setting('newsletter_privacy_icon', array(
+        'default' => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_testimonials_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
-        'section' => 'dealsindia_testimonials',
+    $wp_customize->add_control('newsletter_privacy_icon', array(
+        'label' => __('Privacy Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_newsletter',
+        'type' => 'text',
+        'description' => __('Example: 🔒', 'dealsindia'),
+    ));
+
+    $wp_customize->add_setting('newsletter_privacy', array(
+        'default' => 'We respect your privacy. Unsubscribe anytime.',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('newsletter_privacy', array(
+        'label' => __('Privacy Text', 'dealsindia'),
+        'section' => 'dealsindia_newsletter',
         'type' => 'text',
     ));
 
     // ===================================================== 
-    // SECTION: FAQ
+    // SECTION: Giveaway
     // ===================================================== 
-    $wp_customize->add_section('dealsindia_faq', array(
-        'title' => __('FAQ Section', 'dealsindia'),
-        'priority' => 75,
+    $wp_customize->add_section('dealsindia_giveaway', array(
+        'title' => __('Giveaway Section', 'dealsindia'),
+        'priority' => 58,
     ));
 
-    $wp_customize->add_setting('dealsindia_show_faq', array(
-        'default' => '1',
-        'sanitize_callback' => 'absint',
-    ));
-    $wp_customize->add_control('dealsindia_show_faq', array(
-        'label' => __('Show FAQ Section', 'dealsindia'),
-        'section' => 'dealsindia_faq',
-        'type' => 'checkbox',
-    ));
-
-    $wp_customize->add_setting('dealsindia_faq_heading', array(
-        'default' => 'Frequently Asked Questions',
+    $wp_customize->add_setting('giveaway_prize_icon', array(
+        'default' => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_faq_heading', array(
-        'label' => __('Section Heading', 'dealsindia'),
-        'section' => 'dealsindia_faq',
+    $wp_customize->add_control('giveaway_prize_icon', array(
+        'label' => __('Prize Icon (Emoji)', 'dealsindia'),
+        'section' => 'dealsindia_giveaway',
         'type' => 'text',
+        'description' => __('Example: 🎁', 'dealsindia'),
     ));
 
-    $wp_customize->add_setting('dealsindia_faq_subheading', array(
-        'default' => 'Got questions? We\'ve got answers!',
+    $wp_customize->add_setting('giveaway_button_text', array(
+        'default' => 'Enter Giveaway Now!',
         'sanitize_callback' => 'sanitize_text_field',
     ));
-    $wp_customize->add_control('dealsindia_faq_subheading', array(
-        'label' => __('Section Subheading', 'dealsindia'),
-        'section' => 'dealsindia_faq',
+    $wp_customize->add_control('giveaway_button_text', array(
+        'label' => __('Button Text', 'dealsindia'),
+        'section' => 'dealsindia_giveaway',
         'type' => 'text',
     ));
 
     // ===================================================== 
-    // SECTION: Footer Settings
+    // SECTION: Footer
     // ===================================================== 
     $wp_customize->add_section('dealsindia_footer', array(
         'title' => __('Footer Settings', 'dealsindia'),
@@ -11579,7 +12396,7 @@ function dealsindia_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_setting('dealsindia_footer_about', array(
-        'default' => 'ARRZONE is India\'s leading deals and cashback platform, helping millions save money every day.',
+        'default' => get_bloginfo('name') . ' is India\'s leading deals and cashback platform, helping millions save money every day.',
         'sanitize_callback' => 'wp_kses_post',
     ));
     $wp_customize->add_control('dealsindia_footer_about', array(
@@ -11589,7 +12406,7 @@ function dealsindia_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_setting('dealsindia_copyright_text', array(
-        'default' => '© 2025 ARRZONE. All Rights Reserved.',
+        'default' => '© ' . date('Y') . ' ' . get_bloginfo('name') . '. All Rights Reserved.',
         'sanitize_callback' => 'sanitize_text_field',
     ));
     $wp_customize->add_control('dealsindia_copyright_text', array(
@@ -11606,56 +12423,37 @@ function dealsindia_customize_register($wp_customize) {
         'priority' => 85,
     ));
 
-    $wp_customize->add_setting('dealsindia_social_facebook', array(
-        'default' => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ));
-    $wp_customize->add_control('dealsindia_social_facebook', array(
-        'label' => __('Facebook URL', 'dealsindia'),
-        'section' => 'dealsindia_social',
-        'type' => 'url',
-    ));
+    $social_networks = array(
+        'facebook' => 'Facebook',
+        'twitter' => 'Twitter',
+        'instagram' => 'Instagram',
+        'youtube' => 'YouTube',
+        'linkedin' => 'LinkedIn',
+        'telegram' => 'Telegram',
+    );
 
-    $wp_customize->add_setting('dealsindia_social_twitter', array(
-        'default' => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ));
-    $wp_customize->add_control('dealsindia_social_twitter', array(
-        'label' => __('Twitter URL', 'dealsindia'),
-        'section' => 'dealsindia_social',
-        'type' => 'url',
-    ));
-
-    $wp_customize->add_setting('dealsindia_social_instagram', array(
-        'default' => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ));
-    $wp_customize->add_control('dealsindia_social_instagram', array(
-        'label' => __('Instagram URL', 'dealsindia'),
-        'section' => 'dealsindia_social',
-        'type' => 'url',
-    ));
-
-    $wp_customize->add_setting('dealsindia_social_youtube', array(
-        'default' => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ));
-    $wp_customize->add_control('dealsindia_social_youtube', array(
-        'label' => __('YouTube URL', 'dealsindia'),
-        'section' => 'dealsindia_social',
-        'type' => 'url',
-    ));
+    foreach ($social_networks as $network => $label) {
+        $wp_customize->add_setting('dealsindia_social_' . $network, array(
+            'default' => '',
+            'sanitize_callback' => 'esc_url_raw',
+        ));
+        $wp_customize->add_control('dealsindia_social_' . $network, array(
+            'label' => sprintf(__('%s URL', 'dealsindia'), $label),
+            'section' => 'dealsindia_social',
+            'type' => 'url',
+        ));
+    }
 }
 add_action('customize_register', 'dealsindia_customize_register');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\setup\enqueue-assets.php === 
 <?php
 /**
  * Enqueue Styles & Scripts
- * Loads all CSS and JavaScript files
+ * FIXED: Inline style override for stores grid
  * 
  * @package DealsIndia
- * @version 3.2 - Added Click Tracker
+ * @version 3.5 - Final Fix
  */
 
 if (!defined('ABSPATH')) exit;
@@ -11675,37 +12473,66 @@ function dealsindia_enqueue_styles() {
         null
     );
     
-    // Base CSS (Always load first)
+    // 1. Base CSS (Load first)
     wp_enqueue_style('dealsindia-base', $uri . '/assets/css/base.css', array(), $version);
     
-    // Global Components (Load on all pages)
+    // 2. Global Components
     wp_enqueue_style('dealsindia-header', $uri . '/assets/css/header.css', array('dealsindia-base'), $version);
     wp_enqueue_style('dealsindia-footer', $uri . '/assets/css/footer.css', array('dealsindia-base'), $version);
     wp_enqueue_style('dealsindia-deal-card', $uri . '/assets/css/deal-card.css', array('dealsindia-base'), $version);
     
-    // Page-specific CSS
+    // 3. Responsive CSS (Load before page-specific CSS)
+    wp_enqueue_style('dealsindia-responsive', $uri . '/assets/css/responsive.css', array('dealsindia-base'), $version);
+    
+    // 4. Page-specific CSS (Load LAST to override everything)
     if (is_front_page() || is_home()) {
-        // Homepage
-        wp_enqueue_style('dealsindia-homepage', $uri . '/assets/css/homepage.css', array('dealsindia-base'), $version);
+        // Homepage CSS loads AFTER responsive.css
+        wp_enqueue_style('dealsindia-homepage', $uri . '/assets/css/homepage.css', array('dealsindia-base', 'dealsindia-responsive'), $version . '-' . time());
+        
+        // ✅ INLINE STYLE FIX - This CANNOT be overridden!
+        $inline_css = '
+            .top-stores-section-premium .stores-grid-cd {
+                display: grid !important;
+                grid-template-columns: repeat(6, 1fr) !important;
+                gap: 16px !important;
+                max-width: 1200px !important;
+                margin: 0 auto !important;
+            }
+            @media (max-width: 1199px) {
+                .top-stores-section-premium .stores-grid-cd {
+                    grid-template-columns: repeat(6, 1fr) !important;
+                }
+            }
+            @media (max-width: 967px) {
+                .top-stores-section-premium .stores-grid-cd {
+                    grid-template-columns: repeat(4, 1fr) !important;
+                }
+            }
+            @media (max-width: 767px) {
+                .top-stores-section-premium .stores-grid-cd {
+                    grid-template-columns: repeat(3, 1fr) !important;
+                }
+            }
+            @media (max-width: 639px) {
+                .top-stores-section-premium .stores-grid-cd {
+                    grid-template-columns: repeat(2, 1fr) !important;
+                }
+            }
+        ';
+        wp_add_inline_style('dealsindia-homepage', $inline_css);
     }
     
     if (is_singular('deals')) {
-        // Single Deal Page
-        wp_enqueue_style('dealsindia-single-deal', $uri . '/assets/css/single-deal.css', array('dealsindia-base'), $version);
+        wp_enqueue_style('dealsindia-single-deal', $uri . '/assets/css/single-deal.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
     }
     
     if (is_post_type_archive('deals')) {
-        // Deals Archive
-        wp_enqueue_style('dealsindia-archive', $uri . '/assets/css/archive.css', array('dealsindia-base'), $version);
+        wp_enqueue_style('dealsindia-archive', $uri . '/assets/css/archive.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
     }
     
     if (is_tax('deal_category') || is_tax('store')) {
-        // Category & Store Archive Pages
-        wp_enqueue_style('dealsindia-category', $uri . '/assets/css/category-page.css', array('dealsindia-base'), $version);
+        wp_enqueue_style('dealsindia-category', $uri . '/assets/css/category-page.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
     }
-    
-    // Responsive CSS (Always load last)
-    wp_enqueue_style('dealsindia-responsive', $uri . '/assets/css/responsive.css', array('dealsindia-base'), $version);
 }
 add_action('wp_enqueue_scripts', 'dealsindia_enqueue_styles');
 
@@ -11725,7 +12552,18 @@ function dealsindia_enqueue_scripts() {
         true
     );
     
-    // Click Tracker (Global - track all deal clicks)
+    // Banner Slider (Homepage only)
+    if (is_front_page() || is_home()) {
+        wp_enqueue_script(
+            'dealsindia-banner-slider',
+            $uri . '/assets/js/banner-slider.js',
+            array(),
+            $version,
+            true
+        );
+    }
+    
+    // Click Tracker
     wp_enqueue_script(
         'dealsindia-click-tracker',
         $uri . '/assets/js/click-tracker.js',
@@ -11734,7 +12572,7 @@ function dealsindia_enqueue_scripts() {
         true
     );
     
-    // Filter JavaScript (for archives with filters)
+    // Filter JavaScript
     if (is_post_type_archive('deals') || is_tax('deal_category') || is_tax('store')) {
         wp_enqueue_script(
             'dealsindia-filters',
@@ -11745,7 +12583,7 @@ function dealsindia_enqueue_scripts() {
         );
     }
     
-    // Localize script for AJAX (Newsletter, Filters, Click Tracking, etc.)
+    // Localize script for AJAX
     wp_localize_script('dealsindia-main', 'dealsindia_ajax', array(
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('dealsindia_nonce')
@@ -11757,7 +12595,6 @@ add_action('wp_enqueue_scripts', 'dealsindia_enqueue_scripts');
  * Enqueue admin scripts
  */
 function dealsindia_admin_scripts($hook) {
-    // Load only on post edit screens and taxonomy edit screens
     $valid_hooks = array('post.php', 'post-new.php', 'edit-tags.php', 'term.php');
     
     if (!in_array($hook, $valid_hooks)) {
@@ -11769,7 +12606,7 @@ function dealsindia_admin_scripts($hook) {
     wp_enqueue_script('wp-color-picker');
 }
 add_action('admin_enqueue_scripts', 'dealsindia_admin_scripts');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\setup\menus.php === 
 <?php
 /**
@@ -11818,7 +12655,7 @@ function dealsindia_footer_fallback_menu() {
     echo '<li><a href="' . esc_url(home_url('/terms-of-service')) . '">' . __('Terms of Service', 'dealsindia') . '</a></li>';
     echo '</ul>';
 }
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\setup\theme-support.php === 
 <?php
 /**
@@ -11872,7 +12709,7 @@ function dealsindia_theme_setup() {
     }
 }
 add_action('after_setup_theme', 'dealsindia_theme_setup');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\taxonomies\deal-categories.php === 
 <?php
 /**
@@ -11914,7 +12751,7 @@ function dealsindia_register_deal_category_taxonomy() {
     register_taxonomy('deal_category', array('deals'), $args);
 }
 add_action('init', 'dealsindia_register_deal_category_taxonomy');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\taxonomies\stores.php === 
 <?php
 /**
@@ -11956,7 +12793,7 @@ function dealsindia_register_store_taxonomy() {
     register_taxonomy('store', array('deals'), $args);
 }
 add_action('init', 'dealsindia_register_store_taxonomy');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\inc\taxonomies\term-meta.php === 
 <?php
 /**
@@ -12229,7 +13066,7 @@ function dealsindia_enqueue_term_meta_scripts($hook) {
     );
 }
 add_action('admin_enqueue_scripts', 'dealsindia_enqueue_term_meta_scripts');
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\template-parts\deal-card-compact.php === 
 <?php
 /**
@@ -12291,7 +13128,7 @@ $deal_link = $affiliate_link ? $affiliate_link : get_the_permalink();
         </a>
     </div>
 </div>
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\template-parts\deal-card-large.php === 
 <?php
 /**
@@ -12366,7 +13203,7 @@ $deal_link = $affiliate_link ? $affiliate_link : get_the_permalink();
     </a>
     
 </div>
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\template-parts\deal-card.php === 
 <?php
 /**
@@ -12516,7 +13353,7 @@ $deal_link = $affiliate_link ? $affiliate_link : get_the_permalink();
         
     </div>
 </div>
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\template-parts\filter-sidebar.php === 
 <?php
 /**
@@ -12598,76 +13435,154 @@ $stores = get_terms(array(
     </div>
     
 </aside>
-.sers
+echo .sers
 === FILE: \Users\adell\Local Sites\dealsindia-local\app\public\wp-content\themes\dealsindia\template-parts\hero-slider-section.php === 
 <?php
 /**
- * Hero Section - Image-Only Banners
- * Shows 2 full banner images side-by-side
+ * Hero Banner Section Template
+ * FIXED - Shows 2 banners per slide with auto-carousel
+ * 
+ * @package DealsIndia
  */
 
-$banners = dealsindia_get_hero_banners();
+// Get hero banners
+$banners_query = new WP_Query(array(
+    'post_type' => 'hero_banner',
+    'posts_per_page' => 10, // Get up to 10 banners
+    'post_status' => 'publish',
+    'orderby' => 'menu_order date',
+    'order' => 'ASC',
+    'meta_query' => array(
+        array(
+            'key' => 'banner_active',
+            'value' => '1',
+            'compare' => '=',
+        )
+    )
+));
 
-if (empty($banners)) : 
-    // Fallback if no banners
+// If no active banners, get all published banners
+if (!$banners_query->have_posts()) {
+    $banners_query = new WP_Query(array(
+        'post_type' => 'hero_banner',
+        'posts_per_page' => 10,
+        'post_status' => 'publish',
+        'orderby' => 'date',
+        'order' => 'DESC'
+    ));
+}
+
+// Check if we have banners
+if ($banners_query->have_posts()) :
+    $banner_count = $banners_query->post_count;
     ?>
-    <section class="hero-slider-cd">
-        <div class="container">
-            <div class="hero-banners-grid">
-                <div class="hero-banner-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <a href="<?php echo get_post_type_archive_link('deals'); ?>">
-                        <div class="banner-placeholder">
-                            <span style="font-size: 48px;">🛍️</span>
-                            <p style="color: white; margin-top: 10px;">Add Banner Image</p>
-                        </div>
-                    </a>
-                </div>
-                <div class="hero-banner-item" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <a href="<?php echo get_post_type_archive_link('deals'); ?>">
-                        <div class="banner-placeholder">
-                            <span style="font-size: 48px;">🎁</span>
-                            <p style="color: white; margin-top: 10px;">Add Banner Image</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-    <?php
-    return;
-endif;
-
-// Get first 2 banners
-$banner1 = $banners[0];
-$banner2 = isset($banners[1]) ? $banners[1] : $banners[0];
-?>
-
-<section class="hero-slider-cd">
-    <div class="container">
-        <div class="hero-banners-grid">
-            
+    <div class="hero-banners-carousel" data-carousel="hero" data-banner-count="<?php echo esc_attr($banner_count); ?>">
+        <div class="hero-banners-wrapper">
             <?php 
-            foreach (array($banner1, $banner2) as $banner) :
-                $featured_image = get_the_post_thumbnail_url($banner->ID, 'large');
-                $button_link = get_post_meta($banner->ID, 'banner_button_link', true);
-                $link = $button_link ? $button_link : get_post_type_archive_link('deals');
+            $slide_index = 0;
+            $banners_in_slide = 0;
+            
+            while ($banners_query->have_posts()) : $banners_query->the_post();
+                // Start new slide every 2 banners
+                if ($banners_in_slide === 0) {
+                    echo '<div class="hero-banners-slide" data-slide="' . $slide_index . '">';
+                }
+                
+                $banner_url = get_post_meta(get_the_ID(), 'banner_url', true);
+                $banner_image = get_the_post_thumbnail_url(get_the_ID(), 'large');
+                
+                if (!$banner_url || $banner_url === '') {
+                    $banner_url = get_post_type_archive_link('deals');
+                }
+                ?>
+                <div class="hero-banner-item">
+                    <a href="<?php echo esc_url($banner_url); ?>" class="hero-banner-link">
+                        <?php if ($banner_image) : ?>
+                            <img src="<?php echo esc_url($banner_image); ?>" alt="<?php echo esc_attr(get_the_title()); ?>" class="hero-banner-image" loading="lazy">
+                        <?php else : ?>
+                            <div class="hero-banner-placeholder" style="background: linear-gradient(135deg, #e53935, #ff5252); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700; min-height: 260px; text-align: center; padding: 20px;">
+                                <?php the_title(); ?>
+                            </div>
+                        <?php endif; ?>
+                    </a>
+                </div>
+                <?php
+                
+                $banners_in_slide++;
+                
+                // Close slide after 2 banners
+                if ($banners_in_slide === 2) {
+                    echo '</div>'; // Close hero-banners-slide
+                    $slide_index++;
+                    $banners_in_slide = 0;
+                }
+            endwhile; 
+            
+            // Close last slide if it has only 1 banner
+            if ($banners_in_slide > 0) {
+                echo '</div>';
+            }
+            
+            wp_reset_postdata();
             ?>
-            
-            <div class="hero-banner-item">
-                <a href="<?php echo esc_url($link); ?>" class="hero-banner-link">
-                    <?php if ($featured_image) : ?>
-                        <img src="<?php echo esc_url($featured_image); ?>" alt="<?php echo esc_attr($banner->post_title); ?>" class="hero-banner-image">
-                    <?php else : ?>
-                        <div class="banner-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <span style="font-size: 48px; color: white;">📦</span>
+        </div>
+
+        <!-- Carousel Controls (only show if more than 2 banners) -->
+        <?php if ($banner_count > 2) : ?>
+            <div class="carousel-dots"></div>
+            <button class="carousel-arrow carousel-arrow-prev" aria-label="Previous">‹</button>
+            <button class="carousel-arrow carousel-arrow-next" aria-label="Next">›</button>
+        <?php endif; ?>
+    </div>
+    <?php
+else :
+    // No banners found - show default placeholders
+    ?>
+    <div class="hero-banners-carousel">
+        <div class="hero-banners-wrapper">
+            <div class="hero-banners-slide" data-slide="0">
+                <!-- Placeholder Banner 1 -->
+                <div class="hero-banner-item">
+                    <a href="<?php echo esc_url(get_post_type_archive_link('deals')); ?>" class="hero-banner-link">
+                        <div class="hero-banner-placeholder" style="background: linear-gradient(135deg, #e53935 0%, #ff5252 100%); display: flex; align-items: center; justify-content: center; color: white; text-align: center; min-height: 260px; padding: 40px;">
+                            <div>
+                                <h3 style="font-size: 28px; margin-bottom: 12px; font-weight: 700;">Welcome to <?php bloginfo('name'); ?></h3>
+                                <p style="font-size: 16px; opacity: 0.95;">India's #1 Deals & Cashback Platform</p>
+                                <div style="margin-top: 20px; background: white; color: #e53935; padding: 10px 24px; border-radius: 24px; display: inline-block; font-weight: 700;">
+                                    🎁 Start Saving Today!
+                                </div>
+                            </div>
                         </div>
-                    <?php endif; ?>
-                </a>
+                    </a>
+                </div>
+
+                <!-- Placeholder Banner 2 -->
+                <div class="hero-banner-item">
+                    <a href="<?php echo esc_url(get_post_type_archive_link('deals')); ?>" class="hero-banner-link">
+                        <div class="hero-banner-placeholder" style="background: linear-gradient(135deg, #ff6f00 0%, #ff8a50 100%); display: flex; align-items: center; justify-content: center; color: white; text-align: center; min-height: 260px; padding: 40px;">
+                            <div>
+                                <h3 style="font-size: 28px; margin-bottom: 12px; font-weight: 700;">🔥 Hot Deals Live!</h3>
+                                <p style="font-size: 16px; opacity: 0.95;">Save Big with Exclusive Cashback Offers</p>
+                                <div style="margin-top: 20px; background: white; color: #ff6f00; padding: 10px 24px; border-radius: 24px; display: inline-block; font-weight: 700;">
+                                    Browse Deals →
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
-            
-            <?php endforeach; ?>
-            
         </div>
     </div>
-</section>
-.sers
+    
+    <?php if (current_user_can('manage_options')) : ?>
+        <div style="text-align: center; margin-top: 16px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+            <p style="margin: 0; color: #856404; font-size: 14px;">
+                <strong>⚠️ Admin Notice:</strong> No hero banners found. 
+                <a href="<?php echo admin_url('edit.php?post_type=hero_banner'); ?>" style="color: #e53935; font-weight: 700;">Click here to add banners</a>
+            </p>
+        </div>
+    <?php endif; ?>
+    <?php
+endif;
+?>
+echo .sers

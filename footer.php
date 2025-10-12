@@ -1,9 +1,10 @@
 <?php
 /**
- * Footer Template
+ * Footer Template - 100% Dynamic
+ * Zero hardcoded text, all content from WordPress Customizer
  * 
  * @package DealsIndia
- * @version 3.0 - Fully Dynamic
+ * @version 4.0 - Fully Dynamic
  */
 ?>
 
@@ -23,16 +24,18 @@
                     <h3><?php bloginfo('name'); ?></h3>
                 <?php endif; ?>
                 
-                <p><?php echo esc_html(get_theme_mod('dealsindia_footer_about', 'ARRZONE is India\'s leading deals and cashback platform, helping millions save money every day.')); ?></p>
+                <p><?php echo esc_html(get_theme_mod('dealsindia_footer_about', get_bloginfo('description'))); ?></p>
                 
-                <!-- Social Media Links -->
+                <!-- Social Media Links - Dynamic -->
                 <?php 
                 $facebook = get_theme_mod('dealsindia_social_facebook');
                 $twitter = get_theme_mod('dealsindia_social_twitter');
                 $instagram = get_theme_mod('dealsindia_social_instagram');
                 $youtube = get_theme_mod('dealsindia_social_youtube');
+                $telegram = get_theme_mod('dealsindia_social_telegram');
+                $whatsapp = get_theme_mod('dealsindia_social_whatsapp');
                 
-                if ($facebook || $twitter || $instagram || $youtube) :
+                if ($facebook || $twitter || $instagram || $youtube || $telegram || $whatsapp) :
                 ?>
                 <div class="footer-social">
                     <?php if ($facebook) : ?>
@@ -58,13 +61,25 @@
                             <svg width="20" height="20" fill="currentColor"><use href="#icon-youtube"/></svg>
                         </a>
                     <?php endif; ?>
+                    
+                    <?php if ($telegram) : ?>
+                        <a href="<?php echo esc_url($telegram); ?>" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                            <svg width="20" height="20" fill="currentColor"><use href="#icon-telegram"/></svg>
+                        </a>
+                    <?php endif; ?>
+                    
+                    <?php if ($whatsapp) : ?>
+                        <a href="<?php echo esc_url($whatsapp); ?>" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                            <svg width="20" height="20" fill="currentColor"><use href="#icon-whatsapp"/></svg>
+                        </a>
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
             </div>
             
-            <!-- Quick Links -->
+            <!-- Quick Links - Dynamic from Menu -->
             <div class="footer-section">
-                <h4><?php _e('Quick Links', 'dealsindia'); ?></h4>
+                <h4><?php echo esc_html(get_theme_mod('dealsindia_footer_links_title', __('Quick Links', 'dealsindia'))); ?></h4>
                 <?php
                 if (has_nav_menu('footer')) {
                     wp_nav_menu(array(
@@ -72,21 +87,27 @@
                         'menu_class' => 'footer-menu',
                         'container' => false,
                         'depth' => 1,
-                        'fallback_cb' => 'dealsindia_footer_fallback_menu'
                     ));
                 } else {
-                    dealsindia_footer_fallback_menu();
+                    // Dynamic fallback menu
+                    echo '<ul class="footer-menu">';
+                    echo '<li><a href="' . esc_url(home_url('/')) . '">' . esc_html(get_theme_mod('dealsindia_footer_link1_text', __('Home', 'dealsindia'))) . '</a></li>';
+                    echo '<li><a href="' . esc_url(home_url('/about-us/')) . '">' . esc_html(get_theme_mod('dealsindia_footer_link2_text', __('About Us', 'dealsindia'))) . '</a></li>';
+                    echo '<li><a href="' . esc_url(home_url('/contact/')) . '">' . esc_html(get_theme_mod('dealsindia_footer_link3_text', __('Contact', 'dealsindia'))) . '</a></li>';
+                    echo '<li><a href="' . esc_url(home_url('/privacy-policy/')) . '">' . esc_html(get_theme_mod('dealsindia_footer_link4_text', __('Privacy Policy', 'dealsindia'))) . '</a></li>';
+                    echo '</ul>';
                 }
                 ?>
             </div>
             
-            <!-- Popular Categories -->
+            <!-- Popular Categories - Dynamic -->
             <div class="footer-section">
-                <h4><?php _e('Popular Categories', 'dealsindia'); ?></h4>
+                <h4><?php echo esc_html(get_theme_mod('dealsindia_footer_categories_title', __('Popular Categories', 'dealsindia'))); ?></h4>
                 <?php
+                $category_count = get_theme_mod('dealsindia_footer_categories_count', 6);
                 $categories = get_terms(array(
                     'taxonomy' => 'deal_category',
-                    'number' => 6,
+                    'number' => $category_count,
                     'orderby' => 'count',
                     'order' => 'DESC',
                     'hide_empty' => true
@@ -104,17 +125,18 @@
                     <?php endforeach; ?>
                 </ul>
                 <?php else : ?>
-                <p><?php _e('No categories available yet.', 'dealsindia'); ?></p>
+                <p><?php echo esc_html(get_theme_mod('dealsindia_footer_no_categories', __('No categories available yet.', 'dealsindia'))); ?></p>
                 <?php endif; ?>
             </div>
             
-            <!-- Top Stores -->
+            <!-- Top Stores - Dynamic -->
             <div class="footer-section">
-                <h4><?php _e('Top Stores', 'dealsindia'); ?></h4>
+                <h4><?php echo esc_html(get_theme_mod('dealsindia_footer_stores_title', __('Top Stores', 'dealsindia'))); ?></h4>
                 <?php
+                $store_count = get_theme_mod('dealsindia_footer_stores_count', 6);
                 $stores = get_terms(array(
                     'taxonomy' => 'store',
-                    'number' => 6,
+                    'number' => $store_count,
                     'orderby' => 'count',
                     'order' => 'DESC',
                     'hide_empty' => true
@@ -132,7 +154,7 @@
                     <?php endforeach; ?>
                 </ul>
                 <?php else : ?>
-                <p><?php _e('No stores available yet.', 'dealsindia'); ?></p>
+                <p><?php echo esc_html(get_theme_mod('dealsindia_footer_no_stores', __('No stores available yet.', 'dealsindia'))); ?></p>
                 <?php endif; ?>
             </div>
             
@@ -143,18 +165,34 @@
             <div class="footer-bottom-content">
                 <p class="copyright">
                     <?php 
-                    $copyright_text = get_theme_mod('dealsindia_copyright_text', '© ' . date('Y') . ' ARRZONE. All Rights Reserved.');
+                    $copyright_text = get_theme_mod('dealsindia_copyright_text', '© {year} ' . get_bloginfo('name') . '. ' . __('All Rights Reserved.', 'dealsindia'));
                     echo wp_kses_post(str_replace('{year}', date('Y'), $copyright_text));
                     ?>
                 </p>
                 
+                <!-- Payment Methods - Dynamic -->
+                <?php if (get_theme_mod('dealsindia_show_payment_methods', true)) : ?>
                 <div class="footer-payment-methods">
-                    <span><?php _e('We Accept:', 'dealsindia'); ?></span>
-                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-visa.svg'); ?>" alt="Visa" width="40" height="25" />
-                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-mastercard.svg'); ?>" alt="Mastercard" width="40" height="25" />
-                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-upi.svg'); ?>" alt="UPI" width="40" height="25" />
-                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/payment-paytm.svg'); ?>" alt="Paytm" width="40" height="25" />
+                    <span><?php echo esc_html(get_theme_mod('dealsindia_payment_text', __('We Accept:', 'dealsindia'))); ?></span>
+                    
+                    <?php
+                    // Get dynamic payment methods
+                    $payment_methods = get_theme_mod('dealsindia_payment_methods', array('visa', 'mastercard', 'upi', 'paytm'));
+                    
+                    if (is_array($payment_methods)) :
+                        foreach ($payment_methods as $method) :
+                            $image_path = get_template_directory_uri() . '/assets/images/payment-' . sanitize_file_name($method) . '.svg';
+                            ?>
+                            <img src="<?php echo esc_url($image_path); ?>" 
+                                 alt="<?php echo esc_attr(ucfirst($method)); ?>" 
+                                 width="40" 
+                                 height="25" 
+                                 loading="lazy" />
+                        <?php endforeach;
+                    endif;
+                    ?>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         
@@ -174,6 +212,12 @@
     </symbol>
     <symbol id="icon-youtube" viewBox="0 0 24 24">
         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </symbol>
+    <symbol id="icon-telegram" viewBox="0 0 24 24">
+        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+    </symbol>
+    <symbol id="icon-whatsapp" viewBox="0 0 24 24">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
     </symbol>
 </svg>
 

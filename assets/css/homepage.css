@@ -793,133 +793,232 @@
 .latest-deals-section-premium .cd-get-deal:hover {
     background: #c62828;
 }
-
 /* =====================================================
-   8. GIVEAWAY SECTION
+   FINAL FIXES - Giveaway & Newsletter ONLY
 ===================================================== */
+
+/* Fix Giveaway Section - White Card Style */
 .giveaway-section {
-    padding: 48px 0;
-    color: white;
-    background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%);
+    padding: 40px 0 !important;
+    margin: 0 !important;
+    background: #f5f5f5 !important;
 }
 
 .giveaway-content-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
+    display: flex;
     align-items: center;
+    gap: 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: white;
+    padding: 48px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0e0e0;
+}
+
+.giveaway-left {
+    flex: 1;
 }
 
 .giveaway-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: white;
+    font-size: 38px !important;
+    font-weight: 900 !important;
+    color: #2d3748 !important;
+    margin: 0 0 16px 0 !important;
+    text-shadow: none !important;
 }
 
 .giveaway-description {
-    font-size: 16px;
-    line-height: 1.6;
-    margin-bottom: 16px;
+    font-size: 16px !important;
+    color: #718096 !important;
+    margin: 0 0 24px 0 !important;
+    line-height: 1.7 !important;
 }
 
 .giveaway-prize {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 24px;
+    background: #00897B !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 16px 24px !important;
+    display: inline-block !important;
+    margin-bottom: 24px !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    backdrop-filter: none !important;
 }
 
 .giveaway-btn {
-    display: inline-block;
-    background: white;
-    color: #5e35b1;
-    padding: 14px 32px;
-    border-radius: 24px;
-    font-size: 16px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: inline-block !important;
+    background: #00897B !important;
+    color: white !important;
+    padding: 16px 40px !important;
+    border-radius: 10px !important;
+    text-decoration: none !important;
+    font-weight: 800 !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3) !important;
 }
 
 .giveaway-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    color: #5e35b1;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(0, 137, 123, 0.4) !important;
+    background: #00695C !important;
+    color: white !important;
+}
+
+.giveaway-image {
+    flex: 1;
+    max-width: 450px;
 }
 
 .giveaway-image img {
-    max-width: 100%;
-    border-radius: 16px;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* =====================================================
-   9. NEWSLETTER SECTION
-===================================================== */
+/* Fix Newsletter Section - White Card Style */
 .newsletter-section {
-    padding: 48px 0;
-    background: linear-gradient(135deg, #00897b 0%, #00695c 100%);
-    color: white;
+    background: white !important;
+    padding: 40px 20px !important;
+    margin: 0 !important;
 }
 
 .newsletter-wrapper {
     max-width: 700px;
     margin: 0 auto;
     text-align: center;
+    background: #f8f9fa;
+    padding: 48px 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0e0e0;
 }
 
 .newsletter-icon {
-    font-size: 56px;
-    margin-bottom: 16px;
+    font-size: 48px;
+    margin-bottom: 20px;
 }
 
 .newsletter-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: white;
+    font-size: 32px !important;
+    font-weight: 900 !important;
+    color: #2d3748 !important;
+    margin: 0 0 12px 0 !important;
 }
 
 .newsletter-description {
-    font-size: 16px;
-    margin-bottom: 28px;
+    font-size: 16px !important;
+    color: #718096 !important;
+    margin: 0 0 32px 0 !important;
+    line-height: 1.6 !important;
 }
 
 .newsletter-form {
     display: flex;
     gap: 12px;
-    margin-bottom: 16px;
-    max-width: 550px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 500px;
+    margin: 0 auto 16px auto;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .newsletter-input {
-    flex: 1;
-    padding: 14px 24px;
-    border: none;
-    border-radius: 24px;
-    font-size: 14px;
+    flex: 1 !important;
+    min-width: 250px !important;
+    padding: 16px 24px !important;
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+    background: white !important;
+    color: #2d3748 !important;
+    transition: all 0.3s ease !important;
+}
+
+.newsletter-input::placeholder {
+    color: #a0aec0 !important;
+}
+
+.newsletter-input:focus {
+    outline: none !important;
+    border-color: #00897B !important;
+    box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.1) !important;
 }
 
 .newsletter-btn {
-    background: white;
-    color: #00897b;
-    padding: 14px 32px;
-    border: none;
-    border-radius: 24px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    padding: 16px 32px !important;
+    background: #00897B !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3) !important;
 }
 
 .newsletter-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(0, 137, 123, 0.4) !important;
+    background: #00695C !important;
 }
 
 .newsletter-privacy {
-    font-size: 12px;
-    opacity: 0.85;
+    font-size: 13px !important;
+    color: #a0aec0 !important;
+    margin: 0 !important;
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+    .giveaway-content-wrapper {
+        flex-direction: column;
+        padding: 32px 24px;
+    }
+    
+    .giveaway-title {
+        font-size: 28px !important;
+    }
+    
+    .newsletter-wrapper {
+        padding: 32px 24px;
+    }
+    
+    .newsletter-title {
+        font-size: 24px !important;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+    }
+    
+    .newsletter-input {
+        min-width: 100% !important;
+    }
+}
+
+.category-icon-left {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.category-icon-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Emoji fallback styling */
+.category-emoji {
+    font-size: 24px;
+    line-height: 1;
 }

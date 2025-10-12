@@ -27,14 +27,18 @@ function dealsindia_register_giveaway_post_type() {
     
     $args = array(
         'labels'              => $labels,
-        'public'              => false,
+        'public'              => true,  // ✅ CHANGED TO TRUE
+        'publicly_queryable'  => true,  // ✅ ADDED
         'show_ui'             => true,
         'show_in_menu'        => true,
+        'query_var'           => true,  // ✅ ADDED
+        'rewrite'             => array('slug' => 'giveaway'),  // ✅ ADDED
         'capability_type'     => 'post',
+        'has_archive'         => true,  // ✅ ADDED
         'hierarchical'        => false,
         'menu_position'       => 22,
         'menu_icon'           => 'dashicons-awards',
-        'supports'            => array('title', 'editor', 'thumbnail'),
+        'supports'            => array('title', 'editor', 'thumbnail', 'excerpt'),
         'show_in_rest'        => true,
     );
     

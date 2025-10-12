@@ -229,28 +229,33 @@ get_header();
                     ));
                     
                     if (!empty($categories) && !is_wp_error($categories)) :
-                        foreach ($categories as $category) :
-                            $icon = get_term_meta($category->term_id, 'category_icon', true);
-                            ?>
-                            <a href="<?php echo esc_url(get_term_link($category)); ?>" class="category-item-horizontal">
-                                <div class="category-icon-left">
-                                    <?php if ($icon) : ?>
-                                        <img src="<?php echo esc_url($icon); ?>" 
-                                             alt="<?php echo esc_attr($category->name); ?>" 
-                                             class="category-icon-image" 
-                                             loading="lazy">
-                                    <?php else : 
-                                        $default_cat_icon = get_theme_mod('category_default_icon', '');
-                                        if ($default_cat_icon) : 
-                                        ?>
-                                            <span><?php echo esc_html($default_cat_icon); ?></span>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-                                </div>
-                                <span class="category-name-right"><?php echo esc_html($category->name); ?></span>
-                            </a>
-                            <?php
-                        endforeach;
+          foreach ($categories as $category) :
+    // Get icon image ID first, fallback to emoji
+    $icon_image_id = get_term_meta($category->term_id, 'category_icon_image_id', true);
+    $icon_url = $icon_image_id ? wp_get_attachment_url($icon_image_id) : '';
+    $icon_emoji = get_term_meta($category->term_id, 'category_icon', true);
+    ?>
+    <a href="<?php echo esc_url(get_term_link($category)); ?>" class="category-item-horizontal">
+        <div class="category-icon-left">
+            <?php if ($icon_url) : ?>
+                <!-- Show uploaded image if exists -->
+                <img src="<?php echo esc_url($icon_url); ?>" 
+                     alt="<?php echo esc_attr($category->name); ?>" 
+                     class="category-icon-image" 
+                     loading="lazy">
+            <?php elseif ($icon_emoji) : ?>
+                <!-- Show emoji if no image -->
+                <span class="category-emoji"><?php echo esc_html($icon_emoji); ?></span>
+            <?php else : ?>
+                <!-- Fallback icon -->
+                <span class="category-emoji">📦</span>
+            <?php endif; ?>
+        </div>
+        <span class="category-name-right"><?php echo esc_html($category->name); ?></span>
+    </a>
+    <?php
+endforeach;
+
                     else :
                         ?>
                         <p class="no-categories-message">
