@@ -4,7 +4,7 @@
  * Custom fields for deals post type
  * 
  * @package DealsIndia
- * @version 2.0 - Added Expiry Date
+ * @version 3.0 - Removed Old Deal Type Dropdown
  */
 
 if (!defined('ABSPATH')) exit;
@@ -32,7 +32,6 @@ function dealsindia_deal_meta_box_callback($post) {
     $deal_discount_percentage = get_post_meta($post->ID, 'deal_discount_percentage', true);
     $deal_url = get_post_meta($post->ID, 'deal_url', true);
     $coupon_code = get_post_meta($post->ID, 'coupon_code', true);
-    $deal_type = get_post_meta($post->ID, 'deal_type', true);
     $is_featured = get_post_meta($post->ID, 'is_featured', true);
     $is_hot = get_post_meta($post->ID, 'is_hot', true);
     $deal_expiry_date = get_post_meta($post->ID, 'deal_expiry_date', true);
@@ -41,17 +40,8 @@ function dealsindia_deal_meta_box_callback($post) {
     
     <table class="form-table">
         
-        <!-- Deal Type -->
-        <tr>
-            <th><label for="deal_type"><?php _e('Deal Type', 'dealsindia'); ?></label></th>
-            <td>
-                <select name="deal_type" id="deal_type" class="regular-text">
-                    <option value="deal" <?php selected($deal_type, 'deal'); ?>><?php _e('Deal', 'dealsindia'); ?></option>
-                    <option value="coupon" <?php selected($deal_type, 'coupon'); ?>><?php _e('Coupon Code', 'dealsindia'); ?></option>
-                    <option value="offer" <?php selected($deal_type, 'offer'); ?>><?php _e('Offer', 'dealsindia'); ?></option>
-                </select>
-            </td>
-        </tr>
+        <!-- ❌ REMOVED OLD DEAL TYPE DROPDOWN -->
+        <!-- Use Deal Types checkboxes on the right side panel instead -->
         
         <!-- Deal URL -->
         <tr>
@@ -116,7 +106,7 @@ function dealsindia_deal_meta_box_callback($post) {
             </td>
         </tr>
         
-        <!-- Expiry Date (NEW) -->
+        <!-- Expiry Date -->
         <tr>
             <th><label for="deal_expiry_date"><?php _e('Expiry Date', 'dealsindia'); ?></label></th>
             <td>
@@ -127,7 +117,7 @@ function dealsindia_deal_meta_box_callback($post) {
             </td>
         </tr>
         
-        <!-- Show When Expired (NEW) -->
+        <!-- Show When Expired -->
         <tr>
             <th><label for="show_when_expired"><?php _e('Show When Expired', 'dealsindia'); ?></label></th>
             <td>
@@ -199,7 +189,6 @@ function dealsindia_save_deal_meta($post_id) {
         'deal_discount_percentage',
         'deal_url',
         'coupon_code',
-        'deal_type',
         'deal_expiry_date'
     );
 
@@ -213,5 +202,7 @@ function dealsindia_save_deal_meta($post_id) {
     update_post_meta($post_id, 'is_featured', isset($_POST['is_featured']) ? '1' : '0');
     update_post_meta($post_id, 'is_hot', isset($_POST['is_hot']) ? '1' : '0');
     update_post_meta($post_id, 'show_when_expired', isset($_POST['show_when_expired']) ? '1' : '0');
+    
+    // ❌ REMOVED: deal_type field (now using taxonomy)
 }
 add_action('save_post', 'dealsindia_save_deal_meta');

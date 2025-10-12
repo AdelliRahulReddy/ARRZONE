@@ -4,13 +4,13 @@
  * Custom queries for deals
  * 
  * @package DealsIndia
- * @version 4.0 - PERMANENT HOT PICKS FIX
+ * @version 5.0 - CLEAN (NO DUPLICATES)
  */
 
 if (!defined('ABSPATH')) exit;
 
 /**
- * Get hot picks (featured/hot deals) - PERMANENT FIX WITH FALLBACK
+ * Get hot picks (featured/hot deals)
  */
 function dealsindia_get_hot_picks($limit = 10) {
     $cache_key = 'dealsindia_hot_picks_' . $limit;
@@ -43,7 +43,7 @@ function dealsindia_get_hot_picks($limit = 10) {
     $args = dealsindia_exclude_expired_deals($args);
     $query = new WP_Query($args);
 
-    // 2. If not enough results, fill with latest deals (no duplicates)
+    // 2. If not enough results, fill with latest deals
     if ($query->post_count < $limit) {
         $hot_ids = wp_list_pluck($query->posts, 'ID');
         
@@ -53,13 +53,12 @@ function dealsindia_get_hot_picks($limit = 10) {
             'post_status' => 'publish',
             'orderby' => 'date',
             'order' => 'DESC',
-            'post__not_in' => $hot_ids // Avoid duplicates
+            'post__not_in' => $hot_ids
         );
         
         $fill_args = dealsindia_exclude_expired_deals($fill_args);
         $fill_query = new WP_Query($fill_args);
 
-        // Merge results
         if ($fill_query->have_posts()) {
             foreach ($fill_query->posts as $post) {
                 $query->posts[] = $post;
@@ -68,9 +67,7 @@ function dealsindia_get_hot_picks($limit = 10) {
         }
     }
 
-    // Cache for 1 hour
     set_transient($cache_key, $query, 3600);
-
     return $query;
 }
 
@@ -96,8 +93,7 @@ function dealsindia_get_work_steps() {
     $query = new WP_Query($args);
     $posts = $query->posts;
     
-    set_transient($cache_key, $posts, 86400); // 24 hours
-    
+    set_transient($cache_key, $posts, 86400);
     return $posts;
 }
 
@@ -130,20 +126,20 @@ function dealsindia_get_hero_banners($limit = 5) {
     $query = new WP_Query($args);
     $posts = $query->posts;
     
-    set_transient($cache_key, $posts, 3600); // 1 hour
-    
+    set_transient($cache_key, $posts, 3600);
     return $posts;
 }
 
 /**
  * Exclude expired deals from query args
+ * Uses function from performance-helpers.php
  */
 function dealsindia_exclude_expired_deals($args) {
     if (!isset($args['meta_query'])) {
         $args['meta_query'] = array();
     }
     
-    // Get cached expired IDs
+    // Get cached expired IDs (from performance-helpers.php)
     $expired_ids = dealsindia_get_cached_expired_ids();
     
     if (!empty($expired_ids)) {
@@ -156,7 +152,7 @@ function dealsindia_exclude_expired_deals($args) {
 }
 
 /**
- * Get IDs of expired deals (that shouldn't be shown)
+ * Get IDs of expired deals
  */
 function dealsindia_get_expired_deal_ids() {
     global $wpdb;
@@ -175,29 +171,11 @@ function dealsindia_get_expired_deal_ids() {
     ";
     
     $expired_ids = $wpdb->get_col($wpdb->prepare($query, $current_time));
-    
     return $expired_ids;
 }
 
-/**
- * Get cached expired deal IDs with transient caching
- */
-function dealsindia_get_cached_expired_ids() {
-    // Try to get from cache first
-    $cached = get_transient('dealsindia_expired_deal_ids');
-    
-    if (false !== $cached) {
-        return $cached;
-    }
-    
-    // If no cache, query database
-    $expired_ids = dealsindia_get_expired_deal_ids();
-    
-    // Cache for 30 minutes (1800 seconds)
-    set_transient('dealsindia_expired_deal_ids', $expired_ids, 1800);
-    
-    return $expired_ids;
-}
+// ❌ REMOVED: dealsindia_get_cached_expired_ids() 
+// This function already exists in performance-helpers.php
 
 /**
  * Modify main query to exclude expired deals
@@ -220,15 +198,14 @@ function dealsindia_exclude_expired_from_archives($query) {
 add_action('pre_get_posts', 'dealsindia_exclude_expired_from_archives');
 
 /**
- * Clear hot picks cache when deal is saved/updated
+ * Clear hot picks cache when deal is saved
  */
 function dealsindia_clear_hot_picks_cache($post_id) {
-    // Only clear for deals post type
     if (get_post_type($post_id) !== 'deals') {
         return;
     }
     
-    // Clear all hot picks caches (different limits)
+    // Clear all hot picks caches
     for ($i = 1; $i <= 20; $i++) {
         delete_transient('dealsindia_hot_picks_' . $i);
     }

@@ -1,7 +1,10 @@
 <?php
 /**
  * Deals Custom Post Type
- * Registers the Deals CPT
+ * Spider-Verse Permalink System Compatible
+ * 
+ * @package DealsIndia
+ * @version 3.1 - Spider-Verse Compatible
  */
 
 if (!defined('ABSPATH')) exit;
@@ -28,14 +31,17 @@ function dealsindia_register_deals_post_type() {
     $args = array(
         'labels'              => $labels,
         'public'              => true,
-        'has_archive'         => true,
+        'has_archive'         => 'deals',
         'publicly_queryable'  => true,
         'show_ui'             => true,
         'show_in_menu'        => true,
         'query_var'           => true,
-        'rewrite'             => array('slug' => 'deals'),
+        'rewrite'             => array(
+            'slug'         => 'deals/%deal_type%',
+            'with_front'   => false,
+            'hierarchical' => false,
+        ),
         'capability_type'     => 'post',
-        'has_archive'         => true,
         'hierarchical'        => false,
         'menu_position'       => 5,
         'menu_icon'           => 'dashicons-tag',
@@ -45,4 +51,4 @@ function dealsindia_register_deals_post_type() {
     
     register_post_type('deals', $args);
 }
-add_action('init', 'dealsindia_register_deals_post_type');
+add_action('init', 'dealsindia_register_deals_post_type', 0);

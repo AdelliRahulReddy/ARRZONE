@@ -1,12 +1,15 @@
 <?php
 /**
  * Search & Filter Helper Functions
+ * Enhanced for Spider-Verse Archive System
  * 
  * @package DealsIndia
- * @version 1.0
+ * @version 2.0 - Removed duplicate AJAX handler (moved to filter-handler.php)
  */
 
+
 if (!defined('ABSPATH')) exit;
+
 
 /**
  * Modify search query to include custom fields
@@ -40,6 +43,7 @@ function dealsindia_extend_search($query) {
 }
 add_action('pre_get_posts', 'dealsindia_extend_search');
 
+
 /**
  * Custom WHERE clause for search
  */
@@ -60,6 +64,7 @@ function dealsindia_custom_search_where($where, $query) {
     return $where;
 }
 
+
 /**
  * Custom JOIN for search
  */
@@ -72,6 +77,7 @@ function dealsindia_custom_search_join($join, $query) {
     
     return $join;
 }
+
 
 /**
  * Custom GROUP BY for search
@@ -86,101 +92,15 @@ function dealsindia_custom_search_groupby($groupby, $query) {
     return $groupby;
 }
 
+
 /**
- * Handle AJAX filter requests
+ * REMOVED: dealsindia_ajax_filter_deals()
+ * This function has been moved to inc/ajax/filter-handler.php
+ * for better organization and enhanced functionality.
+ * 
+ * The new handler includes:
+ * - Enhanced filtering options (deal types, discount, expiry)
+ * - Context-aware filtering (store/category archives)
+ * - Cached filter counts
+ * - Better security and performance
  */
-function dealsindia_ajax_filter_deals() {
-    check_ajax_referer('dealsindia_nonce', 'nonce');
-    
-    $category = isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '';
-    $store = isset($_POST['store']) ? sanitize_text_field($_POST['store']) : '';
-    $sort = isset($_POST['sort']) ? sanitize_text_field($_POST['sort']) : 'latest';
-    $min_price = isset($_POST['min_price']) ? intval($_POST['min_price']) : 0;
-    $max_price = isset($_POST['max_price']) ? intval($_POST['max_price']) : 999999;
-    
-    $args = array(
-        'post_type' => 'deals',
-        'posts_per_page' => 20,
-        'post_status' => 'publish'
-    );
-    
-    // Category filter
-    if (!empty($category)) {
-        $args['tax_query'][] = array(
-            'taxonomy' => 'deal_category',
-            'field' => 'slug',
-            'terms' => $category
-        );
-    }
-    
-    // Store filter
-    if (!empty($store)) {
-        $args['tax_query'][] = array(
-            'taxonomy' => 'store',
-            'field' => 'slug',
-            'terms' => $store
-        );
-    }
-    
-    // Price range filter
-    if ($min_price > 0 || $max_price < 999999) {
-        $args['meta_query'][] = array(
-            'key' => 'deal_price',
-            'value' => array($min_price, $max_price),
-            'type' => 'NUMERIC',
-            'compare' => 'BETWEEN'
-        );
-    }
-    
-    // Sorting
-    switch ($sort) {
-        case 'price_low':
-            $args['meta_key'] = 'deal_price';
-            $args['orderby'] = 'meta_value_num';
-            $args['order'] = 'ASC';
-            break;
-        case 'price_high':
-            $args['meta_key'] = 'deal_price';
-            $args['orderby'] = 'meta_value_num';
-            $args['order'] = 'DESC';
-            break;
-        case 'discount':
-            $args['meta_key'] = 'deal_discount_percentage';
-            $args['orderby'] = 'meta_value_num';
-            $args['order'] = 'DESC';
-            break;
-        case 'expiring':
-            $args['meta_key'] = 'deal_expiry_date';
-            $args['orderby'] = 'meta_value';
-            $args['order'] = 'ASC';
-            break;
-        default: // latest
-            $args['orderby'] = 'date';
-            $args['order'] = 'DESC';
-    }
-    
-    // Exclude expired deals
-    $args = dealsindia_exclude_expired_deals($args);
-    
-    $query = new WP_Query($args);
-    
-    ob_start();
-    if ($query->have_posts()) {
-        while ($query->have_posts()) {
-            $query->the_post();
-            get_template_part('template-parts/deal-card');
-        }
-    } else {
-        echo '<p class="no-deals-found">No deals found matching your criteria.</p>';
-    }
-    wp_reset_postdata();
-    
-    $html = ob_get_clean();
-    
-    wp_send_json_success(array(
-        'html' => $html,
-        'count' => $query->found_posts
-    ));
-}
-add_action('wp_ajax_filter_deals', 'dealsindia_ajax_filter_deals');
-add_action('wp_ajax_nopriv_filter_deals', 'dealsindia_ajax_filter_deals');

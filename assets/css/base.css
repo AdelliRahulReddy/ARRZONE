@@ -1,144 +1,18 @@
 /**
- * ARRZONE Base Styles
- * Exact CouponDunia Design System
- * Premium, Modern, Production-Ready
+ * Base Styles - Foundation
+ * Uses Master Variables from variables.css
  * 
- * @package ARRZONE
- * @version 5.0 - CouponDunia Clone
+ * @package DealsIndia
+ * @version 2.0 - Variable System
  */
 
-
 /* =====================================================
-   CSS VARIABLES - COUPONDUNIA DESIGN SYSTEM
+   RESET & NORMALIZE
 ===================================================== */
 
-:root {
-    /* Primary Colors - CouponDunia Red Theme */
-    --color-primary: #e53935;          /* Main Red */
-    --color-primary-dark: #d32f2f;     /* Darker Red */
-    --color-primary-light: #ff5252;    /* Lighter Red */
-    
-    /* Secondary - Dark Theme for Header */
-    --color-dark: #2d2d2d;             /* Header/Footer Dark */
-    --color-dark-light: #424242;       /* Hover states */
-    
-    /* Accent Colors */
-    --color-orange: #f57c00;           /* Orange Accents */
-    --color-teal: #00897b;             /* Teal for Hot Picks */
-    --color-teal-dark: #00695c;
-    --color-purple: #5e35b1;           /* Purple for special sections */
-    
-    /* Success & Status */
-    --color-success: #388e3c;          /* Green for cashback */
-    --color-warning: #ff9800;
-    --color-danger: #f44336;
-    --color-info: #0288d1;             /* Blue for links */
-    
-    /* Neutrals - Clean & Modern */
-    --color-white: #ffffff;
-    --color-gray-50: #fafafa;
-    --color-gray-100: #f5f5f5;         /* Page background */
-    --color-gray-200: #eeeeee;
-    --color-gray-300: #e0e0e0;         /* Borders */
-    --color-gray-400: #bdbdbd;
-    --color-gray-500: #9e9e9e;         /* Secondary text */
-    --color-gray-600: #757575;
-    --color-gray-700: #616161;         /* Body text */
-    --color-gray-800: #424242;
-    --color-gray-900: #212121;         /* Headings */
-    
-    /* Gradients - CouponDunia Style */
-    --gradient-primary: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
-    --gradient-teal: linear-gradient(135deg, #00897b 0%, #00695c 100%);
-    --gradient-purple: linear-gradient(135deg, #7e57c2 0%, #5e35b1 100%);
-    --gradient-orange: linear-gradient(135deg, #ff6f00 0%, #ff5722 100%);
-    --gradient-green: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-    
-    /* Typography - Roboto (CouponDunia Font) */
-    --font-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-    --font-secondary: 'Roboto', sans-serif;
-    
-    /* Font Sizes - CouponDunia Scale */
-    --text-xs: 11px;
-    --text-sm: 12px;
-    --text-base: 14px;
-    --text-md: 16px;
-    --text-lg: 18px;
-    --text-xl: 20px;
-    --text-2xl: 24px;
-    --text-3xl: 28px;
-    --text-4xl: 32px;
-    
-    /* Font Weights */
-    --font-light: 300;
-    --font-normal: 400;
-    --font-medium: 500;
-    --font-semibold: 600;
-    --font-bold: 700;
-    
-    /* Line Heights */
-    --leading-tight: 1.2;
-    --leading-snug: 1.375;
-    --leading-normal: 1.5;
-    --leading-relaxed: 1.625;
-    --leading-loose: 1.75;
-    
-    /* Spacing - CouponDunia Scale */
-    --space-1: 4px;
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 20px;
-    --space-6: 24px;
-    --space-8: 32px;
-    --space-10: 40px;
-    --space-12: 48px;
-    --space-16: 64px;
-    
-    /* Border Radius - Soft & Modern */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-2xl: 20px;
-    --radius-full: 9999px;
-    
-    /* Shadows - Subtle & Professional */
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
-    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.18);
-    --shadow-2xl: 0 16px 32px rgba(0, 0, 0, 0.20);
-    
-    /* Transitions */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Container Widths */
-    --container-sm: 640px;
-    --container-md: 768px;
-    --container-lg: 1024px;
-    --container-xl: 1200px;     /* CouponDunia max width */
-    --container-2xl: 1280px;
-    
-    /* Z-index layers */
-    --z-dropdown: 1000;
-    --z-sticky: 1020;
-    --z-fixed: 1030;
-    --z-modal-backdrop: 1040;
-    --z-modal: 1050;
-    --z-popover: 1060;
-    --z-tooltip: 1070;
-}
-
-
-/* =====================================================
-   RESET & BASE - PRODUCTION READY
-===================================================== */
-
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -148,104 +22,53 @@ html {
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    scroll-behavior: smooth;  /* ✅ Smooth scrolling */
+    scroll-behavior: smooth;
 }
 
 body {
     font-family: var(--font-primary);
-    font-size: var(--text-base);
-    font-weight: var(--font-normal);
-    line-height: var(--leading-normal);
-    color: var(--color-gray-700);
-    background-color: var(--color-gray-100);
-    overflow-x: hidden;
+    font-size: var(--font-body);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-relaxed);
+    color: var(--text-primary);
+    background: var(--bg-saffron-gradient);
+    background-attachment: fixed;
     min-height: 100vh;
 }
 
-/* Remove focus outline for mouse users, keep for keyboard */
-:focus:not(:focus-visible) {
-    outline: none;
-}
-
-:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-/* Selection color */
-::selection {
-    background: var(--color-primary);
-    color: var(--color-white);
-}
-
-::-moz-selection {
-    background: var(--color-primary);
-    color: var(--color-white);
-}
-
-
 /* =====================================================
-   TYPOGRAPHY - COUPONDUNIA STYLE
+   TYPOGRAPHY BASICS
 ===================================================== */
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-primary);
-    font-weight: var(--font-bold);
-    line-height: var(--leading-tight);
-    color: var(--color-gray-900);
-    margin-bottom: var(--space-4);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
 }
 
-h1 { 
-    font-size: var(--text-4xl); 
-    margin-bottom: var(--space-6);
-}
-
-h2 { 
-    font-size: var(--text-3xl); 
-    margin-bottom: var(--space-5);
-}
-
-h3 { 
-    font-size: var(--text-2xl); 
-}
-
-h4 { 
-    font-size: var(--text-xl); 
-}
-
-h5 { 
-    font-size: var(--text-lg); 
-}
-
-h6 { 
-    font-size: var(--text-md); 
-    font-weight: var(--font-semibold);
-}
+h1 { font-size: var(--font-h1); }
+h2 { font-size: var(--font-h2); }
+h3 { font-size: var(--font-h3); }
+h4 { font-size: var(--font-h4); }
+h5 { font-size: var(--font-h5); }
 
 p {
-    margin-bottom: var(--space-4);
-    line-height: var(--leading-relaxed);
-    color: var(--color-gray-700);
+    margin-bottom: var(--space-3);
 }
 
 a {
-    color: var(--color-info);
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color var(--transition-fast);
+    transition: var(--transition-colors);
 }
 
 a:hover {
-    color: var(--color-primary);
-}
-
-a:active {
     color: var(--color-primary-dark);
 }
 
 strong, b {
-    font-weight: var(--font-bold);
+    font-weight: var(--font-weight-bold);
 }
 
 em, i {
@@ -253,342 +76,208 @@ em, i {
 }
 
 small {
-    font-size: var(--text-sm);
-    color: var(--color-gray-500);
+    font-size: var(--font-body-small);
 }
-
-mark {
-    background: #fff59d;
-    padding: 2px 4px;
-    border-radius: var(--radius-sm);
-}
-
 
 /* =====================================================
-   CONTAINER & LAYOUT
+   LISTS
 ===================================================== */
 
-.container {
-    width: 100%;
-    max-width: var(--container-xl);
-    margin: 0 auto;
-    padding: 0 var(--space-4);
+ul, ol {
+    margin: 0 0 var(--space-3) var(--space-5);
 }
 
-.container-sm { max-width: var(--container-sm); }
-.container-md { max-width: var(--container-md); }
-.container-lg { max-width: var(--container-lg); }
-.container-xl { max-width: var(--container-xl); }
-.container-2xl { max-width: var(--container-2xl); }
-
-.container-fluid {
-    width: 100%;
-    padding: 0 var(--space-4);
+li {
+    margin-bottom: var(--space-1);
 }
-
-/* Section Spacing */
-.section {
-    padding: var(--space-10) 0;
-}
-
-.section-sm {
-    padding: var(--space-6) 0;
-}
-
-.section-lg {
-    padding: var(--space-16) 0;
-}
-
-/* Row & Column */
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 calc(var(--space-4) * -0.5);
-}
-
-.col {
-    flex: 1;
-    padding: 0 calc(var(--space-4) * 0.5);
-}
-
 
 /* =====================================================
-   BUTTONS - EXACT COUPONDUNIA STYLE
+   IMAGES & MEDIA
 ===================================================== */
 
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    padding: 10px 20px;
-    font-family: var(--font-primary);
-    font-size: var(--text-base);
-    font-weight: var(--font-medium);
-    line-height: 1;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-base);
-    white-space: nowrap;
-    user-select: none;
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+svg {
+    display: inline-block;
     vertical-align: middle;
 }
 
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: var(--container-padding-desktop);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--container-padding-mobile);
+    }
+}
+
+/* =====================================================
+   BUTTONS (Base Styles)
+===================================================== */
+
+button,
+.btn {
+    font-family: var(--font-primary);
+    font-size: var(--font-body);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-all);
+    display: inline-block;
+    text-align: center;
+    white-space: nowrap;
+}
+
+button:disabled,
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    pointer-events: none;
 }
 
-/* Primary Button - Red CTA */
+/* Primary Button */
 .btn-primary {
-    background: var(--color-primary);
-    color: var(--color-white);
-    box-shadow: var(--shadow-sm);
+    background: var(--gradient-primary);
+    color: var(--text-white);
+    padding: var(--btn-padding-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-btn-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--color-primary-dark);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
+    transform: var(--transform-lift-sm);
+    box-shadow: var(--shadow-btn-primary-hover);
+    color: var(--text-white);
 }
 
-.btn-primary:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Secondary Button - Outline */
+/* Secondary Button */
 .btn-secondary {
-    background: var(--color-white);
-    color: var(--color-primary);
-    border: 2px solid var(--color-primary);
-    box-shadow: var(--shadow-xs);
+    background: var(--gradient-secondary);
+    color: var(--text-white);
+    padding: var(--btn-padding-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-btn-secondary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: var(--color-primary);
-    color: var(--color-white);
+    transform: var(--transform-lift-sm);
+    box-shadow: var(--shadow-btn-secondary-hover);
+    color: var(--text-white);
 }
 
-/* Success Button - Green */
-.btn-success {
-    background: var(--color-success);
-    color: var(--color-white);
-}
-
-.btn-success:hover:not(:disabled) {
-    background: #2e7d32;
-    transform: translateY(-1px);
-}
-
-/* Warning Button - Orange */
-.btn-warning {
-    background: var(--color-warning);
-    color: var(--color-white);
-}
-
-.btn-warning:hover:not(:disabled) {
-    background: #f57c00;
-}
-
-/* Danger Button */
-.btn-danger {
-    background: var(--color-danger);
-    color: var(--color-white);
-}
-
-.btn-danger:hover:not(:disabled) {
-    background: #d32f2f;
-}
-
-/* Ghost Button */
-.btn-ghost {
+/* Outline Button */
+.btn-outline {
     background: transparent;
-    color: var(--color-gray-700);
-    border: 1px solid var(--color-gray-300);
+    color: var(--color-primary);
+    border: var(--border-width-medium) solid var(--color-primary);
+    padding: var(--btn-padding-md);
+    border-radius: var(--radius-md);
 }
 
-.btn-ghost:hover:not(:disabled) {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-400);
+.btn-outline:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: var(--text-white);
 }
 
 /* Button Sizes */
-.btn-xs {
-    padding: 4px 8px;
-    font-size: var(--text-xs);
-}
-
 .btn-sm {
-    padding: 6px 12px;
-    font-size: var(--text-sm);
-}
-
-.btn-md {
-    padding: 10px 20px;
-    font-size: var(--text-base);
+    padding: var(--btn-padding-sm);
+    font-size: var(--font-body-small);
 }
 
 .btn-lg {
-    padding: 12px 28px;
-    font-size: var(--text-lg);
+    padding: var(--btn-padding-lg);
+    font-size: var(--font-body-large);
 }
-
-.btn-xl {
-    padding: 16px 32px;
-    font-size: var(--text-xl);
-}
-
-.btn-block {
-    width: 100%;
-    display: flex;
-}
-
-/* Button with icon */
-.btn .icon {
-    width: 16px;
-    height: 16px;
-}
-
 
 /* =====================================================
-   BADGES - COUPONDUNIA STYLE
+   FORM ELEMENTS
+===================================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+    width: 100%;
+    padding: var(--input-padding);
+    font-family: var(--font-primary);
+    font-size: var(--font-body);
+    line-height: var(--line-height-normal);
+    color: var(--text-primary);
+    background: var(--bg-white);
+    border: var(--border-width-medium) solid var(--border-medium);
+    border-radius: var(--radius-md);
+    transition: var(--transition-all);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* =====================================================
+   BADGES
 ===================================================== */
 
 .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: 4px 10px;
-    font-size: var(--text-xs);
-    font-weight: var(--font-bold);
+    display: inline-block;
+    padding: var(--badge-padding-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-caption);
+    font-weight: var(--font-weight-bold);
     line-height: 1;
-    border-radius: var(--radius-md);
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.badge-primary {
-    background: var(--color-primary);
-    color: var(--color-white);
 }
 
 .badge-success {
     background: var(--color-success);
-    color: var(--color-white);
+    color: var(--text-white);
 }
 
 .badge-warning {
     background: var(--color-warning);
-    color: var(--color-white);
+    color: var(--text-primary);
 }
 
-.badge-danger {
-    background: var(--color-danger);
-    color: var(--color-white);
+.badge-error {
+    background: var(--color-error);
+    color: var(--text-white);
 }
 
-.badge-info {
-    background: var(--color-info);
-    color: var(--color-white);
+.badge-primary {
+    background: var(--color-primary);
+    color: var(--text-white);
 }
-
-.badge-hot {
-    background: var(--gradient-purple);
-    color: var(--color-white);
-}
-
-.badge-cashback {
-    background: var(--gradient-green);
-    color: var(--color-white);
-}
-
-.badge-exclusive {
-    background: var(--gradient-orange);
-    color: var(--color-white);
-}
-
 
 /* =====================================================
-   CARDS - MODERN & CLEAN
-===================================================== */
-
-.card {
-    background: var(--color-white);
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    transition: all var(--transition-base);
-    box-shadow: var(--shadow-xs);
-}
-
-.card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.card-body {
-    padding: var(--space-4);
-}
-
-.card-header {
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--color-gray-200);
-    font-weight: var(--font-semibold);
-}
-
-.card-footer {
-    padding: var(--space-4);
-    border-top: 1px solid var(--color-gray-200);
-    background: var(--color-gray-50);
-}
-
-.card-compact .card-body {
-    padding: var(--space-3);
-}
-
-
-/* =====================================================
-   GRID SYSTEM
-===================================================== */
-
-.grid {
-    display: grid;
-    gap: var(--space-4);
-}
-
-.grid-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-4 { grid-template-columns: repeat(4, 1fr); }
-.grid-5 { grid-template-columns: repeat(5, 1fr); }
-.grid-6 { grid-template-columns: repeat(6, 1fr); }
-
-/* Responsive Grid */
-.grid-auto {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-}
-
-.grid-auto-sm {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-}
-
-/* Gap Utilities */
-.gap-1 { gap: var(--space-1); }
-.gap-2 { gap: var(--space-2); }
-.gap-3 { gap: var(--space-3); }
-.gap-4 { gap: var(--space-4); }
-.gap-5 { gap: var(--space-5); }
-.gap-6 { gap: var(--space-6); }
-.gap-8 { gap: var(--space-8); }
-
-
-/* =====================================================
-   UTILITIES
+   UTILITY CLASSES
 ===================================================== */
 
 /* Text Alignment */
@@ -596,50 +285,17 @@ mark {
 .text-center { text-align: center; }
 .text-right { text-align: right; }
 
-/* Font Sizes */
-.text-xs { font-size: var(--text-xs); }
-.text-sm { font-size: var(--text-sm); }
-.text-base { font-size: var(--text-base); }
-.text-md { font-size: var(--text-md); }
-.text-lg { font-size: var(--text-lg); }
-.text-xl { font-size: var(--text-xl); }
-.text-2xl { font-size: var(--text-2xl); }
-
-/* Font Weights */
-.font-light { font-weight: var(--font-light); }
-.font-normal { font-weight: var(--font-normal); }
-.font-medium { font-weight: var(--font-medium); }
-.font-semibold { font-weight: var(--font-semibold); }
-.font-bold { font-weight: var(--font-bold); }
-
 /* Text Colors */
-.text-primary { color: var(--color-primary); }
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--color-warning); }
-.text-danger { color: var(--color-danger); }
-.text-info { color: var(--color-info); }
-.text-muted { color: var(--color-gray-500); }
-.text-white { color: var(--color-white); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-light { color: var(--text-light); }
+.text-white { color: var(--text-white); }
 
-/* Background Colors */
-.bg-white { background: var(--color-white); }
-.bg-gray-50 { background: var(--color-gray-50); }
-.bg-gray-100 { background: var(--color-gray-100); }
-.bg-primary { background: var(--color-primary); }
-
-/* Spacing Utilities */
-.m-0 { margin: 0; }
-.mt-2 { margin-top: var(--space-2); }
-.mt-3 { margin-top: var(--space-3); }
-.mt-4 { margin-top: var(--space-4); }
-.mt-6 { margin-top: var(--space-6); }
-.mb-2 { margin-bottom: var(--space-2); }
-.mb-3 { margin-bottom: var(--space-3); }
-.mb-4 { margin-bottom: var(--space-4); }
-.mb-6 { margin-bottom: var(--space-6); }
-.p-4 { padding: var(--space-4); }
-.py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
-.px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+/* Backgrounds */
+.bg-white { background: var(--bg-white); }
+.bg-cream { background: var(--bg-cream); }
+.bg-peach { background: var(--bg-peach); }
+.bg-saffron { background: var(--bg-saffron-gradient); }
 
 /* Display */
 .d-none { display: none; }
@@ -647,47 +303,58 @@ mark {
 .d-inline { display: inline; }
 .d-inline-block { display: inline-block; }
 .d-flex { display: flex; }
-.d-inline-flex { display: inline-flex; }
 .d-grid { display: grid; }
 
-/* Flexbox */
-.flex-row { flex-direction: row; }
-.flex-col { flex-direction: column; }
-.flex-wrap { flex-wrap: wrap; }
-.items-start { align-items: flex-start; }
-.items-center { align-items: center; }
-.items-end { align-items: flex-end; }
-.justify-start { justify-content: flex-start; }
-.justify-center { justify-content: center; }
-.justify-end { justify-content: flex-end; }
-.justify-between { justify-content: space-between; }
+/* Margins */
+.m-0 { margin: 0; }
+.mt-1 { margin-top: var(--space-1); }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mb-1 { margin-bottom: var(--space-1); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-3); }
 
-/* Border Radius */
-.rounded { border-radius: var(--radius-md); }
-.rounded-sm { border-radius: var(--radius-sm); }
-.rounded-lg { border-radius: var(--radius-lg); }
-.rounded-xl { border-radius: var(--radius-xl); }
-.rounded-full { border-radius: var(--radius-full); }
+/* Paddings */
+.p-0 { padding: 0; }
+.pt-1 { padding-top: var(--space-1); }
+.pt-2 { padding-top: var(--space-2); }
+.pt-3 { padding-top: var(--space-3); }
+.pb-1 { padding-bottom: var(--space-1); }
+.pb-2 { padding-bottom: var(--space-2); }
+.pb-3 { padding-bottom: var(--space-3); }
 
-/* Shadows */
-.shadow-none { box-shadow: none; }
-.shadow-xs { box-shadow: var(--shadow-xs); }
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
+/* =====================================================
+   SELECTION
+===================================================== */
 
-/* Overflow */
-.overflow-hidden { overflow: hidden; }
-.overflow-auto { overflow: auto; }
+::selection {
+    background: var(--color-primary-light);
+    color: var(--text-white);
+}
 
-/* Position */
-.relative { position: relative; }
-.absolute { position: absolute; }
-.fixed { position: fixed; }
-.sticky { position: sticky; }
+::-moz-selection {
+    background: var(--color-primary-light);
+    color: var(--text-white);
+}
 
-/* Misc */
-.w-full { width: 100%; }
-.h-full { height: 100%; }
-.cursor-pointer { cursor: pointer; }
-.pointer-events-none { pointer-events: none; }
+/* =====================================================
+   SCROLLBAR (Webkit)
+===================================================== */
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary-light);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+}

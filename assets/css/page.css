@@ -1,0 +1,205 @@
+/**
+ * Standard Page Template CSS
+ * For: Contact, Privacy Policy, About Us, etc.
+ * 
+ * @package DealsIndia
+ * @version 1.0 - Basic Page Styling
+ */
+
+
+/* =====================================================
+   PAGE CONTAINER
+===================================================== */
+
+.page-wrapper {
+    padding: var(--section-padding-desktop);
+    background: var(--bg-saffron-gradient);
+    min-height: 70vh;
+}
+
+.page-content-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--bg-white);
+    padding: var(--space-8);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: var(--border-width-thin) solid var(--border-light);
+}
+
+
+/* =====================================================
+   PAGE HEADER
+===================================================== */
+
+.page-header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-width-medium) solid var(--border-light);
+}
+
+.page-title {
+    font-size: var(--font-h1);
+    font-weight: var(--font-weight-black);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.page-meta {
+    font-size: var(--font-body-small);
+    color: var(--text-light);
+}
+
+
+/* =====================================================
+   PAGE CONTENT
+===================================================== */
+
+.page-content {
+    font-size: var(--font-body);
+    color: var(--text-secondary);
+    line-height: var(--line-height-relaxed);
+}
+
+.page-content h2 {
+    font-size: var(--font-h2);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: var(--space-6) 0 var(--space-3) 0;
+}
+
+.page-content h3 {
+    font-size: var(--font-h3);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: var(--space-4) 0 var(--space-2) 0;
+}
+
+.page-content p {
+    margin-bottom: var(--space-3);
+}
+
+.page-content ul,
+.page-content ol {
+    margin: var(--space-3) 0;
+    padding-left: var(--space-5);
+}
+
+.page-content li {
+    margin-bottom: var(--space-2);
+}
+
+.page-content a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    transition: var(--transition-colors);
+}
+
+.page-content a:hover {
+    color: var(--color-primary-dark);
+}
+
+.page-content strong {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+
+.page-content blockquote {
+    padding: var(--space-4);
+    margin: var(--space-4) 0;
+    background: var(--bg-cream);
+    border-left: var(--border-width-thick) solid var(--color-primary);
+    border-radius: var(--radius-md);
+}
+
+
+/* =====================================================
+   CONTACT FORM (if using Contact Form 7 or similar)
+===================================================== */
+
+.wpcf7-form {
+    margin-top: var(--space-6);
+}
+
+.wpcf7-form p {
+    margin-bottom: var(--space-4);
+}
+
+.wpcf7-form label {
+    display: block;
+    font-size: var(--font-body-small);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+}
+
+.wpcf7-form input[type="text"],
+.wpcf7-form input[type="email"],
+.wpcf7-form input[type="tel"],
+.wpcf7-form textarea {
+    width: 100%;
+    padding: var(--input-padding);
+    border: var(--border-width-thin) solid var(--border-medium);
+    border-radius: var(--radius-md);
+    font-size: var(--font-body);
+    background: var(--bg-white);
+    transition: var(--transition-all);
+}
+
+.wpcf7-form input:focus,
+.wpcf7-form textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+
+.wpcf7-form textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.wpcf7-form input[type="submit"] {
+    padding: var(--btn-padding-md);
+    background: var(--gradient-primary);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-body);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-btn-primary);
+}
+
+.wpcf7-form input[type="submit"]:hover {
+    transform: var(--transform-lift-sm);
+    box-shadow: var(--shadow-btn-primary-hover);
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+    .page-content-wrapper {
+        padding: var(--space-5);
+    }
+    
+    .page-title {
+        font-size: var(--font-h2);
+    }
+}
+
+@media (max-width: 480px) {
+    .page-content-wrapper {
+        padding: var(--space-4);
+    }
+    
+    .page-title {
+        font-size: var(--font-h3);
+    }
+}

@@ -1,9 +1,10 @@
 /**
- * Footer Styles - Modern & Clean
- * Matches dynamic footer template
+ * Footer Styles - Variable System Integration
+ * Uses Master Variables from variables.css
+ * Preserves: All functionality, dynamic footer
  * 
  * @package DealsIndia
- * @version 4.0
+ * @version 5.0 - Variable System
  */
 
 /* =====================================================
@@ -12,7 +13,7 @@
 .site-footer {
     background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
     color: #e2e8f0;
-    padding: 60px 0 0 0;
+    padding: var(--space-10) 0 0 0;
     margin-top: 0;
 }
 
@@ -22,8 +23,8 @@
 .footer-content {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    gap: 40px;
-    margin-bottom: 40px;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
 }
 
 /* =====================================================
@@ -35,29 +36,29 @@
 }
 
 .footer-section h4 {
-    font-size: 18px;
-    font-weight: 800;
-    color: white;
-    margin: 0 0 20px 0;
+    font-size: var(--font-h5);
+    font-weight: var(--font-weight-black);
+    color: var(--text-white);
+    margin: 0 0 var(--space-4) 0;
     letter-spacing: 0.5px;
 }
 
 .footer-section p {
-    font-size: 14px;
-    line-height: 1.8;
+    font-size: var(--font-body-small);
+    line-height: var(--line-height-relaxed);
     color: #cbd5e0;
-    margin: 0 0 20px 0;
+    margin: 0 0 var(--space-4) 0;
 }
 
 /* =====================================================
    FOOTER ABOUT SECTION
 ===================================================== */
 .footer-about {
-    padding-right: 20px;
+    padding-right: var(--space-4);
 }
 
 .footer-logo {
-    margin-bottom: 20px;
+    margin-bottom: var(--space-4);
 }
 
 .footer-logo img {
@@ -70,10 +71,10 @@
 }
 
 .footer-about h3 {
-    font-size: 28px;
-    font-weight: 900;
-    color: white;
-    margin: 0 0 16px 0;
+    font-size: var(--font-h2);
+    font-weight: var(--font-weight-black);
+    color: var(--text-white);
+    margin: 0 0 var(--space-3) 0;
 }
 
 /* =====================================================
@@ -81,8 +82,8 @@
 ===================================================== */
 .footer-social {
     display: flex;
-    gap: 12px;
-    margin-top: 24px;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
 }
 
 .footer-social a {
@@ -93,15 +94,15 @@
     height: 40px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
-    color: white;
-    transition: all 0.3s ease;
+    color: var(--text-white);
+    transition: var(--transition-all);
     text-decoration: none;
 }
 
 .footer-social a:hover {
-    background: #00897B;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.4);
+    background: var(--color-primary);
+    transform: var(--transform-lift-sm);
+    box-shadow: var(--shadow-btn-primary);
 }
 
 .footer-social svg {
@@ -118,7 +119,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-2);
 }
 
 .footer-menu li {
@@ -128,10 +129,10 @@
 
 .footer-menu a {
     display: inline-block;
-    font-size: 14px;
+    font-size: var(--font-body-small);
     color: #cbd5e0;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: var(--transition-all);
     position: relative;
     padding-left: 0;
 }
@@ -141,13 +142,13 @@
     position: absolute;
     left: -20px;
     opacity: 0;
-    transition: all 0.3s ease;
-    color: #00897B;
+    transition: var(--transition-all);
+    color: var(--color-primary);
 }
 
 .footer-menu a:hover {
-    color: white;
-    padding-left: 20px;
+    color: var(--text-white);
+    padding-left: var(--space-4);
 }
 
 .footer-menu a:hover::before {
@@ -160,32 +161,32 @@
 ===================================================== */
 .footer-bottom {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 24px 0;
-    margin-top: 40px;
+    padding: var(--space-5) 0;
+    margin-top: var(--space-8);
 }
 
 .footer-bottom-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-4);
     flex-wrap: wrap;
 }
 
 .copyright {
-    font-size: 14px;
+    font-size: var(--font-body-small);
     color: #a0aec0;
     margin: 0;
 }
 
 .copyright a {
-    color: #00897B;
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: var(--transition-colors);
 }
 
 .copyright a:hover {
-    color: white;
+    color: var(--text-white);
 }
 
 /* =====================================================
@@ -194,25 +195,25 @@
 .footer-payment-methods {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-2);
     flex-wrap: wrap;
 }
 
 .footer-payment-methods span {
-    font-size: 13px;
+    font-size: var(--font-caption);
     color: #a0aec0;
-    font-weight: 600;
-    margin-right: 4px;
+    font-weight: var(--font-weight-semibold);
+    margin-right: var(--space-1);
 }
 
 .footer-payment-methods img {
     height: 25px;
     width: auto;
-    background: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    background: var(--bg-white);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-transform);
 }
 
 .footer-payment-methods img:hover {
@@ -226,13 +227,13 @@
 /* Tablet - 968px and below */
 @media (max-width: 968px) {
     .site-footer {
-        padding: 40px 0 0 0;
+        padding: var(--space-8) 0 0 0;
     }
     
     .footer-content {
         grid-template-columns: 1fr 1fr;
-        gap: 32px;
-        margin-bottom: 32px;
+        gap: var(--space-6);
+        margin-bottom: var(--space-6);
     }
     
     .footer-about {
@@ -251,24 +252,24 @@
     }
     
     .footer-section h4 {
-        font-size: 16px;
+        font-size: var(--font-body-large);
     }
 }
 
 /* Mobile - 640px and below */
 @media (max-width: 640px) {
     .site-footer {
-        padding: 32px 0 0 0;
+        padding: var(--space-6) 0 0 0;
     }
     
     .footer-content {
         grid-template-columns: 1fr;
-        gap: 28px;
-        margin-bottom: 28px;
+        gap: var(--space-5);
+        margin-bottom: var(--space-5);
     }
     
     .footer-about h3 {
-        font-size: 24px;
+        font-size: var(--font-h3);
     }
     
     .footer-section {
@@ -285,13 +286,13 @@
     
     .footer-menu a:hover {
         padding-left: 0;
-        color: #00897B;
+        color: var(--color-primary);
     }
     
     .footer-bottom-content {
         flex-direction: column;
         text-align: center;
-        gap: 16px;
+        gap: var(--space-3);
     }
     
     .footer-payment-methods {
@@ -308,44 +309,15 @@
 @media (max-width: 480px) {
     .footer-payment-methods {
         flex-direction: column;
-        gap: 8px;
+        gap: var(--space-1);
     }
     
     .footer-payment-methods span {
-        margin-bottom: 4px;
+        margin-bottom: var(--space-1);
     }
     
     .footer-social {
-        gap: 8px;
-    }
-}
-
-/* =====================================================
-   PRINT STYLES
-===================================================== */
-@media print {
-    .site-footer {
-        background: white;
-        color: black;
-        padding: 20px 0;
-    }
-    
-    .footer-social,
-    .footer-payment-methods {
-        display: none;
-    }
-    
-    .footer-menu a {
-        color: black;
-    }
-}
-
-/* =====================================================
-   DARK MODE ADJUSTMENTS (if needed)
-===================================================== */
-@media (prefers-color-scheme: dark) {
-    .footer-payment-methods img {
-        opacity: 0.9;
+        gap: var(--space-1);
     }
 }
 
@@ -356,7 +328,7 @@
 /* Focus states for keyboard navigation */
 .footer-menu a:focus,
 .footer-social a:focus {
-    outline: 2px solid #00897B;
+    outline: 2px solid var(--color-primary);
     outline-offset: 4px;
 }
 
@@ -382,21 +354,4 @@
     .footer-menu a::before {
         transition: none;
     }
-}
-
-/* =====================================================
-   ADDITIONAL UTILITY CLASSES
-===================================================== */
-
-/* No results message styling */
-.footer-section p {
-    opacity: 0.8;
-}
-
-/* Empty state */
-.footer-menu:empty::after {
-    content: 'No items to display';
-    color: #718096;
-    font-size: 13px;
-    font-style: italic;
 }

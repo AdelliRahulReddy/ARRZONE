@@ -493,3 +493,74 @@ function copyCoupon() {
         });
     }
 }
+
+/**
+ * Coupon Code Copy Functionality
+ * Click on coupon box to copy code
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const couponBoxes = document.querySelectorAll('.cd-coupon-box');
+    
+    couponBoxes.forEach(function(box) {
+        box.style.cursor = 'pointer';
+        box.title = 'Click to copy coupon code';
+        
+        box.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const couponCode = this.querySelector('.cd-coupon-code');
+            const couponText = couponCode.textContent.trim();
+            
+            // Modern clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(couponText).then(function() {
+                    showCopySuccess(couponCode);
+                }).catch(function(err) {
+                    console.error('Copy failed:', err);
+                    fallbackCopy(couponText, couponCode);
+                });
+            } else {
+                fallbackCopy(couponText, couponCode);
+            }
+        });
+    });
+    
+    function showCopySuccess(element) {
+        const originalHTML = element.innerHTML;
+        const originalColor = element.style.color;
+        
+        element.innerHTML = '✓ Copied!';
+        element.style.color = '#4caf50';
+        element.style.transition = 'all 0.3s ease';
+        
+        setTimeout(function() {
+            element.innerHTML = originalHTML;
+            element.style.color = originalColor;
+        }, 2000);
+    }
+    
+    function fallbackCopy(text, element) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        textArea.style.pointerEvents = 'none';
+        document.body.appendChild(textArea);
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showCopySuccess(element);
+            }
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            element.innerHTML = '❌ Copy Failed';
+            setTimeout(function() {
+                element.innerHTML = text;
+            }, 2000);
+        }
+        
+        document.body.removeChild(textArea);
+    }
+});

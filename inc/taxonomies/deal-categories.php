@@ -1,14 +1,11 @@
 <?php
 /**
  * Deal Categories Taxonomy
- * Registers deal categories (Electronics, Fashion, etc.)
+ * Clean URLs: /deals-category/electronics/
  */
 
 if (!defined('ABSPATH')) exit;
 
-/**
- * Register Deal Categories Taxonomy
- */
 function dealsindia_register_deal_category_taxonomy() {
     
     $labels = array(
@@ -31,10 +28,14 @@ function dealsindia_register_deal_category_taxonomy() {
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
-        'rewrite'           => array('slug' => 'deal_category'),
+        'rewrite'           => array(
+            'slug' => 'deals-category',
+            'with_front' => false,
+            'hierarchical' => true
+        ),
         'show_in_rest'      => true,
     );
     
     register_taxonomy('deal_category', array('deals'), $args);
 }
-add_action('init', 'dealsindia_register_deal_category_taxonomy');
+add_action('init', 'dealsindia_register_deal_category_taxonomy', 0);

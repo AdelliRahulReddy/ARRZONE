@@ -177,14 +177,15 @@ get_header();
                         </a>
                         <?php
                         $store_index++;
-                    endforeach;
+                                        endforeach;
                     ?>
-                    <a href="<?php echo esc_url(get_post_type_archive_link('deals')); ?>" 
+                    <a href="<?php echo esc_url(home_url('/deals-store/')); ?>" 
                        class="store-item-cd store-view-all">
                         <div class="view-all-text">
                             <?php echo esc_html(get_theme_mod('view_all_stores_text', __('View All Stores', 'dealsindia'))); ?> →
                         </div>
                     </a>
+
                     <?php
                 else :
                     ?>
@@ -192,6 +193,7 @@ get_header();
                         <?php echo esc_html__('No stores found. Add stores from admin panel.', 'dealsindia'); ?>
                     </p>
                     <?php
+
                 endif;
                 ?>
             </div>
@@ -374,73 +376,83 @@ endforeach;
     </div>
 </section>
 
-<!-- 8. GIVEAWAY SECTION (If Active) -->
+<!-- 10. GIVEAWAYS SECTION -->
 <?php
-$active_giveaway = new WP_Query(array(
+$giveaways = new WP_Query(array(
     'post_type' => 'giveaway',
-    'posts_per_page' => 1,
+    'posts_per_page' => 2,
     'post_status' => 'publish',
-    'meta_query' => array(
-        array(
-            'key' => 'giveaway_active',
-            'value' => '1',
-            'compare' => '='
-        )
-    )
+    'orderby' => 'date',
+    'order' => 'DESC'
 ));
 
-if ($active_giveaway->have_posts()) :
-    while ($active_giveaway->have_posts()) : $active_giveaway->the_post();
-        $prize = get_post_meta(get_the_ID(), 'giveaway_prize', true);
-        $bg_color = get_post_meta(get_the_ID(), 'giveaway_bg_color', true);
-        if (!$bg_color) $bg_color = '#5e35b1';
-        
-        $bg_dark = '#4527a0';
-        if (function_exists('dealsindia_adjust_brightness')) {
-            $bg_dark = dealsindia_adjust_brightness($bg_color, -20);
-        }
-        ?>
-        <section class="giveaway-section" style="background: linear-gradient(135deg, <?php echo esc_attr($bg_color); ?>, <?php echo esc_attr($bg_dark); ?>);">
-            <div class="container">
-                <div class="giveaway-content-wrapper">
-                    <div class="giveaway-left">
-                        <h2 class="giveaway-title"><?php the_title(); ?></h2>
-                        <div class="giveaway-description"><?php the_excerpt(); ?></div>
-                        <?php if ($prize) : ?>
+if ($giveaways->have_posts()) :
+?>
+<section class="giveaways-section-premium">
+    <div class="container">
+        <div class="section-header-premium">
+            <?php 
+            $giveaway_icon = get_theme_mod('giveaway_section_icon', '🎁');
+            if ($giveaway_icon) : 
+            ?>
+                <span class="section-icon"><?php echo esc_html($giveaway_icon); ?></span>
+            <?php endif; ?>
+            
+            <h2><?php echo esc_html(get_theme_mod('giveaway_section_title', __('Active Giveaways', 'dealsindia'))); ?></h2>
+            <p><?php echo esc_html(get_theme_mod('giveaway_section_subtitle', __('Win amazing prizes!', 'dealsindia'))); ?></p>
+        </div>
+
+        <div class="giveaways-grid">
+            <?php
+            while ($giveaways->have_posts()) : $giveaways->the_post();
+                $prize = get_post_meta(get_the_ID(), 'giveaway_prize', true);
+                $end_date = get_post_meta(get_the_ID(), 'giveaway_end_date', true);
+                $bg_color = get_post_meta(get_the_ID(), 'giveaway_bg_color', true);
+                if (!$bg_color) $bg_color = '#667eea';
+                ?>
+                <article class="giveaway-card" style="background: linear-gradient(135deg, <?php echo esc_attr($bg_color); ?> 0%, <?php echo esc_attr($bg_color); ?>dd 100%);">
+                    <div class="giveaway-card-content">
+                        <h3 class="giveaway-card-title"><?php the_title(); ?></h3>
+                        
+                        <?php if ($prize): ?>
                             <div class="giveaway-prize">
-                                <?php 
-                                $giveaway_icon = get_theme_mod('giveaway_prize_icon', '');
-                                if ($giveaway_icon) {
-                                    echo esc_html($giveaway_icon) . ' ';
-                                }
-                                ?>
-                                <?php echo esc_html(sprintf(__('Prize: %s', 'dealsindia'), $prize)); ?>
+                                🏆 <?php echo esc_html(sprintf(__('Prize: %s', 'dealsindia'), $prize)); ?>
                             </div>
                         <?php endif; ?>
-                        <a href="<?php the_permalink(); ?>" class="giveaway-btn">
-                            <?php echo esc_html(get_theme_mod('giveaway_button_text', __('Enter Giveaway Now!', 'dealsindia'))); ?>
+                        
+                        <?php if ($end_date): ?>
+                            <div class="giveaway-deadline">
+                                ⏰ <?php echo esc_html(sprintf(__('Ends: %s', 'dealsindia'), date('M d, Y', strtotime($end_date)))); ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <a href="<?php the_permalink(); ?>" class="giveaway-participate-btn">
+                            <?php echo esc_html(get_theme_mod('giveaway_btn_text', __('Participate Now', 'dealsindia'))); ?>
                         </a>
                     </div>
-                    <div class="giveaway-image">
-                        <?php if (has_post_thumbnail()) : ?>
-                            <?php the_post_thumbnail('large', array('alt' => get_the_title())); ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <?php
-    endwhile;
-    wp_reset_postdata();
-endif;
-?>
+                    
+                    <?php if (has_post_thumbnail()): ?>
+                        <div class="giveaway-card-image">
+                            <?php the_post_thumbnail('medium'); ?>
+                        </div>
+                    <?php endif; ?>
+                </article>
+                <?php
+            endwhile;
+            wp_reset_postdata();
+            ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
 
-<!-- 9. NEWSLETTER SECTION -->
+
+<!-- 11. NEWSLETTER SECTION -->
 <section class="newsletter-section">
     <div class="container">
         <div class="newsletter-wrapper">
             <?php 
-            $newsletter_icon = get_theme_mod('newsletter_icon', '');
+            $newsletter_icon = get_theme_mod('newsletter_icon', '📧');
             if ($newsletter_icon) : 
             ?>
                 <div class="newsletter-icon"><?php echo esc_html($newsletter_icon); ?></div>
@@ -448,6 +460,7 @@ endif;
             
             <h2 class="newsletter-title"><?php echo esc_html(get_theme_mod('newsletter_title', __('Never Miss a Deal!', 'dealsindia'))); ?></h2>
             <p class="newsletter-description"><?php echo esc_html(get_theme_mod('newsletter_subtitle', __('Subscribe to get the hottest deals delivered to your inbox', 'dealsindia'))); ?></p>
+            
             <form class="newsletter-form" method="post" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" id="newsletter-form">
                 <input type="email" 
                        name="newsletter_email" 
@@ -460,14 +473,15 @@ endif;
                     <?php echo esc_html(get_theme_mod('newsletter_btn_text', __('Subscribe', 'dealsindia'))); ?>
                 </button>
             </form>
+            
             <p class="newsletter-privacy">
                 <?php 
-                $privacy_icon = get_theme_mod('newsletter_privacy_icon', '');
+                $privacy_icon = get_theme_mod('newsletter_privacy_icon', '🔒');
                 if ($privacy_icon) {
                     echo esc_html($privacy_icon) . ' ';
                 }
+                echo esc_html(get_theme_mod('newsletter_privacy', __('We respect your privacy. Unsubscribe anytime.', 'dealsindia')));
                 ?>
-                <?php echo esc_html(get_theme_mod('newsletter_privacy', __('We respect your privacy. Unsubscribe anytime.', 'dealsindia'))); ?>
             </p>
         </div>
     </div>
@@ -475,5 +489,4 @@ endif;
 
 </main>
 
-<?php
-get_footer();
+<?php get_footer(); ?>

@@ -1,47 +1,51 @@
 <?php
 /**
  * Enqueue Styles & Scripts
- * FIXED: Inline style override for stores grid
- * Added: Store Page CSS support + Admin Media Upload
+ * UPDATED: Header & Footer CSS enabled (properly fixed versions)
+ * Added: Variables CSS (Master), Components CSS, Page CSS
  * 
  * @package DealsIndia
- * @version 3.7 - Admin Scripts Fixed
+ * @version 5.2 - Page Template Support
  */
 
+
 if (!defined('ABSPATH')) exit;
+
 
 /**
  * Enqueue frontend styles
  */
 function dealsindia_enqueue_styles() {
-    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '3.0';
+    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '5.2';
     $uri = defined('DEALSINDIA_URI') ? DEALSINDIA_URI : get_template_directory_uri();
+    
+    // ===================================================
+    // 0. MASTER VARIABLES CSS (Load FIRST!)
+    // ===================================================
+    wp_enqueue_style('dealsindia-variables', $uri . '/assets/css/variables.css', array(), '2.0');
     
     // Google Fonts
     wp_enqueue_style(
         'dealsindia-google-fonts',
-        'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap',
+        'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&display=swap',
         array(),
         null
     );
     
-    // 1. Base CSS (Load first)
-    wp_enqueue_style('dealsindia-base', $uri . '/assets/css/base.css', array(), $version);
+    // 1. Base CSS (Load after variables)
+    wp_enqueue_style('dealsindia-base', $uri . '/assets/css/base.css', array('dealsindia-variables'), $version);
     
-    // 2. Global Components
+    // 2. Global Components & Layout
+    wp_enqueue_style('dealsindia-components', $uri . '/assets/css/components.css', array('dealsindia-base'), $version);
     wp_enqueue_style('dealsindia-header', $uri . '/assets/css/header.css', array('dealsindia-base'), $version);
     wp_enqueue_style('dealsindia-footer', $uri . '/assets/css/footer.css', array('dealsindia-base'), $version);
-    wp_enqueue_style('dealsindia-deal-card', $uri . '/assets/css/deal-card.css', array('dealsindia-base'), $version);
+    wp_enqueue_style('dealsindia-breadcrumb', $uri . '/assets/css/breadcrumb.css', array('dealsindia-base'), $version);
     
-    // 3. Responsive CSS (Load before page-specific CSS)
-    wp_enqueue_style('dealsindia-responsive', $uri . '/assets/css/responsive.css', array('dealsindia-base'), $version);
-    
-    // 4. Page-specific CSS (Load LAST to override everything)
+    // 3. Page-specific CSS (Load LAST to override everything)
     if (is_front_page() || is_home()) {
-        // Homepage CSS loads AFTER responsive.css
-        wp_enqueue_style('dealsindia-homepage', $uri . '/assets/css/homepage.css', array('dealsindia-base', 'dealsindia-responsive'), $version . '-' . time());
+        wp_enqueue_style('dealsindia-homepage', $uri . '/assets/css/homepage.css', array('dealsindia-base', 'dealsindia-components'), $version . '-' . time());
         
-        // ✅ INLINE STYLE FIX - This CANNOT be overridden!
+        // Inline style fix for stores grid
         $inline_css = '
             .top-stores-section-premium .stores-grid-cd {
                 display: grid !important;
@@ -75,33 +79,43 @@ function dealsindia_enqueue_styles() {
     }
     
     if (is_singular('deals')) {
-        wp_enqueue_style('dealsindia-single-deal', $uri . '/assets/css/single-deal.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
+        wp_enqueue_style('dealsindia-single-deal', $uri . '/assets/css/single-deal.css', array('dealsindia-base', 'dealsindia-components'), $version);
     }
     
-    if (is_post_type_archive('deals')) {
-        wp_enqueue_style('dealsindia-archive', $uri . '/assets/css/archive.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
+    // Enhanced Archive System - Load on all archive pages
+    if (is_post_type_archive('deals') || is_tax('deal_category') || is_tax('store')) {
+        // Base archive styles
+        wp_enqueue_style('dealsindia-archive', $uri . '/assets/css/archive.css', array('dealsindia-base', 'dealsindia-components'), $version);
+        
+        // Enhanced archive styles (AJAX filtering, sidebar, grids)
+        wp_enqueue_style('dealsindia-archive-enhanced', $uri . '/assets/css/archive-enhanced.css', array('dealsindia-archive'), $version);
     }
     
-    // Category Archive CSS
+    // Category-specific styles
     if (is_tax('deal_category')) {
-        wp_enqueue_style('dealsindia-category', $uri . '/assets/css/category-page.css', array('dealsindia-base', 'dealsindia-responsive'), $version);
+        wp_enqueue_style('dealsindia-category', $uri . '/assets/css/category-page.css', array('dealsindia-base', 'dealsindia-components'), $version);
     }
     
-    // Store Archive CSS
+    // Store-specific styles
     if (is_tax('store')) {
-        wp_enqueue_style('dealsindia-store-page', $uri . '/assets/css/store-page.css', array('dealsindia-base', 'dealsindia-responsive'), $version . '-' . time());
+        wp_enqueue_style('dealsindia-store-page', $uri . '/assets/css/store-page.css', array('dealsindia-base', 'dealsindia-components'), $version . '-' . time());
+    }
+    
+    // ✅ WordPress Pages (Contact, Privacy, About, etc.)
+    if (is_page()) {
+        wp_enqueue_style('dealsindia-page', $uri . '/assets/css/page.css', array('dealsindia-base'), $version);
     }
 }
 add_action('wp_enqueue_scripts', 'dealsindia_enqueue_styles');
+
 
 /**
  * Enqueue frontend scripts
  */
 function dealsindia_enqueue_scripts() {
-    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '3.0';
+    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '5.2';
     $uri = defined('DEALSINDIA_URI') ? DEALSINDIA_URI : get_template_directory_uri();
     
-    // Main JavaScript
     wp_enqueue_script(
         'dealsindia-main',
         $uri . '/assets/js/main.js',
@@ -110,7 +124,6 @@ function dealsindia_enqueue_scripts() {
         true
     );
     
-    // Banner Slider (Homepage only)
     if (is_front_page() || is_home()) {
         wp_enqueue_script(
             'dealsindia-banner-slider',
@@ -121,7 +134,6 @@ function dealsindia_enqueue_scripts() {
         );
     }
     
-    // Click Tracker
     wp_enqueue_script(
         'dealsindia-click-tracker',
         $uri . '/assets/js/click-tracker.js',
@@ -130,8 +142,9 @@ function dealsindia_enqueue_scripts() {
         true
     );
     
-    // Filter JavaScript
+    // Enhanced Archive System - AJAX Filtering
     if (is_post_type_archive('deals') || is_tax('deal_category') || is_tax('store')) {
+        // Legacy filter script (keep for backward compatibility)
         wp_enqueue_script(
             'dealsindia-filters',
             $uri . '/assets/js/filter.js',
@@ -139,9 +152,18 @@ function dealsindia_enqueue_scripts() {
             $version,
             true
         );
+        
+        // New AJAX filter script (enhanced archive system)
+        wp_enqueue_script(
+            'dealsindia-filter-ajax',
+            $uri . '/assets/js/filter-ajax.js',
+            array('jquery'),
+            $version,
+            true
+        );
     }
     
-    // Localize script for AJAX
+    // Global AJAX object for backward compatibility
     wp_localize_script('dealsindia-main', 'dealsindia_ajax', array(
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('dealsindia_nonce')
@@ -149,8 +171,9 @@ function dealsindia_enqueue_scripts() {
 }
 add_action('wp_enqueue_scripts', 'dealsindia_enqueue_scripts');
 
+
 /**
- * Enqueue admin scripts - FIXED
+ * Enqueue admin scripts
  */
 function dealsindia_admin_scripts($hook) {
     $valid_hooks = array('post.php', 'post-new.php', 'edit-tags.php', 'term.php');
@@ -159,17 +182,13 @@ function dealsindia_admin_scripts($hook) {
         return;
     }
     
-    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '3.0';
+    $version = defined('DEALSINDIA_VERSION') ? DEALSINDIA_VERSION : '5.2';
     $uri = defined('DEALSINDIA_URI') ? DEALSINDIA_URI : get_template_directory_uri();
     
-    // WordPress Media Library
     wp_enqueue_media();
-    
-    // Color Picker
     wp_enqueue_style('wp-color-picker');
     wp_enqueue_script('wp-color-picker');
     
-    // ✅ Store Logo & Banner Upload Script
     wp_enqueue_script(
         'dealsindia-store-logo-upload',
         $uri . '/assets/js/store-logo-upload.js',
@@ -178,7 +197,6 @@ function dealsindia_admin_scripts($hook) {
         true
     );
     
-    // Category Icon Upload Script
     if (file_exists(get_template_directory() . '/assets/js/category-icon-upload.js')) {
         wp_enqueue_script(
             'dealsindia-category-icon-upload',

@@ -1,8 +1,10 @@
 /**
- * Header CSS - CouponDunia Style
- * Clean, Compact, Mobile-First
+ * Header CSS - Variable System Integration (PROPERLY FIXED)
+ * Preserves: ALL original colors, gradients, backgrounds
+ * Uses variables: Spacing, fonts, shadows, transitions only
  * 
  * @package DealsIndia
+ * @version 5.1 - Fixed Variable Integration
  */
 
 /* =====================================================
@@ -129,6 +131,7 @@
     font-size: 16px;
     transition: all 0.3s ease;
     box-shadow: 0 2px 6px rgba(0, 137, 123, 0.3);
+    color: white;
 }
 
 .search-btn:hover {

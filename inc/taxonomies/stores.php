@@ -4,7 +4,7 @@
  * Registers stores (Amazon, Flipkart, etc.) with Logo & Banner support
  * 
  * @package DealsIndia
- * @version 2.0 - Added Logo & Banner Meta Fields
+ * @version 3.0 - Fixed Rewrite Rules + Meta Fields
  */
 
 if (!defined('ABSPATH')) exit;
@@ -34,14 +34,17 @@ function dealsindia_register_store_taxonomy() {
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
-        'rewrite'           => array('slug' => 'store'),
+        'rewrite'           => array(
+            'slug' => 'deals-store',
+            'with_front' => false,
+            'hierarchical' => true
+        ),
         'show_in_rest'      => true,
     );
     
     register_taxonomy('store', array('deals'), $args);
 }
-add_action('init', 'dealsindia_register_store_taxonomy');
-
+add_action('init', 'dealsindia_register_store_taxonomy', 0);
 
 // =====================================================
 // STORE LOGO & BANNER META FIELDS
@@ -75,12 +78,10 @@ function dealsindia_add_store_meta_fields() {
 }
 add_action('store_add_form_fields', 'dealsindia_add_store_meta_fields');
 
-
 /**
  * Edit Store Meta Fields (Edit Store Form)
  */
 function dealsindia_edit_store_meta_fields($term) {
-    // Get existing values
     $logo_id = get_term_meta($term->term_id, 'store_logo_id', true);
     $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
     
@@ -90,7 +91,6 @@ function dealsindia_edit_store_meta_fields($term) {
     $cashback = get_term_meta($term->term_id, 'store_cashback', true);
     ?>
     
-    <!-- Store Logo Field -->
     <tr class="form-field term-logo-wrap">
         <th scope="row">
             <label for="store_logo_id"><?php _e('Store Logo', 'dealsindia'); ?></label>
@@ -114,7 +114,6 @@ function dealsindia_edit_store_meta_fields($term) {
         </td>
     </tr>
     
-    <!-- Store Banner Field -->
     <tr class="form-field term-banner-wrap">
         <th scope="row">
             <label for="store_banner_id"><?php _e('Store Banner', 'dealsindia'); ?></label>
@@ -138,7 +137,6 @@ function dealsindia_edit_store_meta_fields($term) {
         </td>
     </tr>
     
-    <!-- Cashback Rate Field -->
     <tr class="form-field term-cashback-wrap">
         <th scope="row">
             <label for="store_cashback"><?php _e('Cashback Rate', 'dealsindia'); ?></label>
@@ -154,22 +152,18 @@ function dealsindia_edit_store_meta_fields($term) {
 }
 add_action('store_edit_form_fields', 'dealsindia_edit_store_meta_fields');
 
-
 /**
  * Save Store Meta Fields
  */
 function dealsindia_save_store_meta_fields($term_id) {
-    // Save Store Logo
     if (isset($_POST['store_logo_id'])) {
         update_term_meta($term_id, 'store_logo_id', sanitize_text_field($_POST['store_logo_id']));
     }
     
-    // Save Store Banner
     if (isset($_POST['store_banner_id'])) {
         update_term_meta($term_id, 'store_banner_id', sanitize_text_field($_POST['store_banner_id']));
     }
     
-    // Save Cashback Rate
     if (isset($_POST['store_cashback'])) {
         update_term_meta($term_id, 'store_cashback', sanitize_text_field($_POST['store_cashback']));
     }
@@ -177,28 +171,20 @@ function dealsindia_save_store_meta_fields($term_id) {
 add_action('created_store', 'dealsindia_save_store_meta_fields');
 add_action('edited_store', 'dealsindia_save_store_meta_fields');
 
-
 /**
  * Add Custom Columns to Store List Table
  */
 function dealsindia_store_columns($columns) {
     $new_columns = array();
     
-    // Checkbox column
     if (isset($columns['cb'])) {
         $new_columns['cb'] = $columns['cb'];
     }
     
-    // Logo column
     $new_columns['logo'] = __('Logo', 'dealsindia');
-    
-    // Name column
     $new_columns['name'] = $columns['name'];
-    
-    // Cashback column
     $new_columns['cashback'] = __('Cashback', 'dealsindia');
     
-    // Other columns
     if (isset($columns['description'])) {
         $new_columns['description'] = $columns['description'];
     }
@@ -212,7 +198,6 @@ function dealsindia_store_columns($columns) {
     return $new_columns;
 }
 add_filter('manage_edit-store_columns', 'dealsindia_store_columns');
-
 
 /**
  * Display Custom Column Content
