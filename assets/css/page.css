@@ -2369,105 +2369,310 @@ body.filter-sidebar-open .mobile-filter-toggle-btn {
 }
 
 /* =====================================================
-   📱 MOBILE RESPONSIVE - PRODUCTION READY
+   📱 SINGLE DEAL - MOBILE RESPONSIVE (COMPLETE FIX)
+   Mobile Order: Image → Sidebar (Deal Info) → Description → Terms → Share
 ===================================================== */
 
 @media (max-width: 768px) {
+    /* Hide breadcrumb on mobile */
+    .deal-hero-section,
+    .deal-breadcrumb-simple {
+        display: none !important;
+    }
+    
     .single-deal-page {
         padding: 0 0 var(--space-6);
     }
     
+    /* Main grid - Use CSS Grid with proper areas */
     .single-deal-grid {
-        display: flex !important;
-        flex-direction: column !important;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "image"
+            "sidebar"
+            "content";
         gap: 0;
     }
     
+    /* ⭐ GRID AREAS - Controls display order */
     .deal-featured-image {
-        order: 1;
-        border-radius: 0;
-        margin-bottom: var(--space-5);
-        margin-left: calc(-1 * var(--container-padding));
-        margin-right: calc(-1 * var(--container-padding));
-        width: calc(100% + 2 * var(--container-padding));
-    }
-    
-    .deal-left-column {
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    
-    .deal-description-section {
-        order: 2;
-        padding: var(--space-4);
-        margin-bottom: var(--space-4);
+        grid-area: image;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        margin-left: calc(50% - 50vw) !important;
+        margin-right: calc(50% - 50vw) !important;
+        position: relative;
     }
     
     .deal-right-sidebar {
-        order: 3;
-        position: static;
-        padding: 0 var(--space-4);
-        gap: var(--space-4);
-        margin-bottom: var(--space-4);
+        grid-area: sidebar;
+        position: static !important;
+        padding: var(--space-5) var(--space-4);
+        margin-bottom: 0;
+        background: white;
+        top: auto !important;
+    }
+    
+    .deal-left-column {
+        grid-area: content;
+    }
+    
+    /* Style sections in left column */
+    .deal-description-section {
+        padding: var(--space-5) var(--space-4);
+        margin-bottom: 0;
+        background: transparent;
+        border-top: 8px solid #f5f5f5;
+        box-shadow: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
     }
     
     .deal-terms-section {
-        order: 4;
-        padding: var(--space-4);
-        margin-bottom: var(--space-4);
+        padding: var(--space-5) var(--space-4);
+        margin-bottom: 0;
+        background: transparent;
+        box-shadow: none;
+        border: none;
     }
     
     .deal-social-share {
-        order: 5;
-        padding: var(--space-4);
+        padding: var(--space-5) var(--space-4);
+        margin-bottom: 0;
+        border-top: 1px solid #e5e5e5;
+        background: transparent;
+        box-shadow: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }
+    
+    /* Typography adjustments */
+    .section-title {
+        font-size: var(--font-size-lg);
+        margin-bottom: var(--space-3);
+    }
+    
+    .deal-title {
+        font-size: 1.25rem;
+        line-height: 1.4;
         margin-bottom: var(--space-4);
     }
     
-    .section-title {
-        font-size: var(--font-size-lg);
-    }
-    
+    /* Share buttons horizontal */
     .deal-social-share > *:not(.share-title) {
         display: flex !important;
         flex-direction: row !important;
         gap: 10px !important;
+        flex-wrap: wrap;
     }
     
     .deal-social-share a {
         width: 44px !important;
         height: 44px !important;
+        min-width: 44px !important;
     }
     
+    /* Sidebar elements responsive sizing */
+    .deal-store-badge {
+        padding: var(--space-3);
+        margin-bottom: var(--space-4);
+    }
+    
+    .store-logo {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .store-name {
+        font-size: 16px;
+    }
+    
+    .store-label {
+        font-size: 11px;
+    }
+    
+    .store-cashback {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+    
+    .deal-price-section {
+        padding: var(--space-4);
+        margin-bottom: var(--space-4);
+    }
+    
+    .price-main {
+        font-size: 32px;
+    }
+    
+    .price-main .currency {
+        font-size: 20px;
+    }
+    
+    .price-old {
+        font-size: 16px;
+    }
+    
+    .price-save {
+        font-size: 13px;
+        padding: 5px 12px;
+    }
+    
+    /* Timer responsiveness */
+    .deal-countdown {
+        padding: var(--space-3);
+        margin-bottom: var(--space-4);
+    }
+    
+    .countdown-label {
+        font-size: 12px;
+        margin-bottom: var(--space-2);
+    }
+    
+    .countdown-timer {
+        gap: 6px;
+    }
+    
+    .countdown-item {
+        min-width: 50px;
+        padding: var(--space-2);
+    }
+    
+    .countdown-value {
+        font-size: 20px;
+    }
+    
+    .countdown-unit {
+        font-size: 9px;
+    }
+    
+    .countdown-separator {
+        font-size: 16px;
+    }
+    
+    /* Coupon box */
+    .deal-coupon-box {
+        padding: var(--space-4);
+        margin-bottom: var(--space-4);
+    }
+    
+    .coupon-label {
+        font-size: 12px;
+        margin-bottom: var(--space-2);
+    }
+    
+    .coupon-code-wrapper {
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+    
+    .coupon-code-text {
+        font-size: 22px;
+        letter-spacing: 2px;
+        padding: 12px 16px;
+    }
+    
+    .copy-coupon-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+    
+    /* CTA button */
+    .btn-deal-cta {
+        padding: 16px;
+        font-size: 16px;
+        min-height: 52px;
+        margin-bottom: var(--space-4);
+    }
+    
+    /* Meta info */
+    .deal-meta-info {
+        padding: var(--space-3);
+        gap: var(--space-2);
+    }
+    
+    .meta-item {
+        padding: var(--space-2);
+        font-size: 13px;
+    }
+    
+    .meta-label {
+        font-size: 11px;
+    }
+    
+    .meta-value {
+        font-size: 13px;
+    }
+    
+    .meta-value a {
+        font-size: 13px;
+    }
+    
+    /* Related sections */
     .related-deals-section,
     .store-deals-section {
         margin-top: var(--space-10);
         padding-top: var(--space-8);
     }
     
+    .section-title-main {
+        font-size: 1.25rem;
+        padding: 0 var(--space-4);
+    }
+    
     .related-deals-grid,
     .store-deals-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
+        padding: 0 var(--space-4);
     }
 }
 
+/* Extra small devices */
 @media (max-width: 480px) {
-    .deal-description-section,
-    .deal-terms-section,
-    .deal-social-share {
-        padding: var(--space-3);
+    .countdown-timer {
+        gap: 4px;
     }
     
-    .deal-right-sidebar {
-        padding: 0 var(--space-3);
+    .countdown-item {
+        min-width: 45px;
+        padding: 6px;
     }
     
-    .deal-social-share a {
-        width: 40px !important;
-        height: 40px !important;
+    .countdown-value {
+        font-size: 18px;
+    }
+    
+    .countdown-unit {
+        font-size: 8px;
+    }
+    
+    .coupon-code-wrapper {
+        flex-direction: column;
+    }
+    
+    .coupon-code-text {
+        font-size: 20px;
+        text-align: center;
+    }
+    
+    .copy-coupon-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .deal-title {
+        font-size: 1.1rem;
+    }
+    
+    .price-main {
+        font-size: 28px;
     }
 }
-
 
 
 /* =====================================================

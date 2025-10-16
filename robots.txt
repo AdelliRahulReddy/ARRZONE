@@ -8,4 +8,4 @@ Disallow: /wp-includes/
 Disallow: /wp-content/plugins/
 Disallow: /wp-content/cache/
 
-Sitemap: http://localhost:10012/wp-sitemap.xml
+Sitemap: https://arrzone.in/wp-sitemap.xml

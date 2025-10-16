@@ -1,20 +1,20 @@
 <?php
 if (!defined('ABSPATH')) exit; 
 /**
- * Single Deal Template - Enhanced & Dynamic
+ * Single Deal Template - MOBILE OPTIMIZED
  * 
  * Features:
+ * - Perfect mobile order: Image → Deal Info → Description → Terms → Share
  * - Hero section with deal info
  * - Store details sidebar
  * - Related deals from same category
  * - More deals from same store
- * - Trending deals section
  * - Social share
  * - Countdown timer
- * - Mobile-optimized
+ * - Mobile-first responsive
  * 
  * @package ARRZONE
- * @version 5.0 - Enhanced Dynamic
+ * @version 6.0 - MOBILE FIXED
  */
 
 get_header();
@@ -72,7 +72,7 @@ if (have_posts()) :
     
     <?php
     // =====================================================
-    // HERO SECTION (Store Banner Background)
+    // HERO SECTION (Store Banner Background) - Desktop Only
     // =====================================================
     if ($store_banner_url) :
     ?>
@@ -97,83 +97,41 @@ if (have_posts()) :
         <!-- Main Deal Layout -->
         <div class="single-deal-grid">
             
-            <!-- Left Column: Deal Image & Description -->
-            <div class="deal-left-column">
-                
-                <!-- Featured Image -->
-                <div class="deal-featured-image">
-                    <?php if (has_post_thumbnail()) : ?>
-                        <?php the_post_thumbnail('large', array('class' => 'deal-main-image')); ?>
-                    <?php else : ?>
-                        <div class="deal-no-image">
-                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21 15 16 10 5 21"/>
-                            </svg>
-                            <p><?php esc_html_e('No image available', 'dealsindia'); ?></p>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($discount > 0 && !$is_expired) : ?>
-                        <div class="deal-discount-badge">
-                            <span class="discount-value"><?php echo esc_html($discount); ?>%</span>
-                            <span class="discount-label"><?php esc_html_e('OFF', 'dealsindia'); ?></span>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($is_expired) : ?>
-                        <div class="deal-expired-badge">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                                <line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/>
-                                <line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/>
-                            </svg>
-                            <p><?php esc_html_e('Deal Expired', 'dealsindia'); ?></p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                
-                <!-- Deal Description -->
-                <div class="deal-description-section">
-                    <h2 class="section-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M12 20h9" stroke-width="2"/>
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke-width="2"/>
+            <!-- ⭐ FEATURED IMAGE - Will show FIRST on mobile -->
+            <div class="deal-featured-image">
+                <?php if (has_post_thumbnail()) : ?>
+                    <?php the_post_thumbnail('large', array('class' => 'deal-main-image')); ?>
+                <?php else : ?>
+                    <div class="deal-no-image">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
                         </svg>
-                        <?php esc_html_e('Deal Description', 'dealsindia'); ?>
-                    </h2>
-                    <div class="deal-content">
-                        <?php the_content(); ?>
-                    </div>
-                </div>
-                
-                <!-- Terms & Conditions -->
-                <?php if ($terms) : ?>
-                    <div class="deal-terms-section">
-                        <h3 class="section-title">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                                <line x1="12" y1="16" x2="12" y2="12" stroke-width="2"/>
-                                <line x1="12" y1="8" x2="12.01" y2="8" stroke-width="2"/>
-                            </svg>
-                            <?php esc_html_e('Terms & Conditions', 'dealsindia'); ?>
-                        </h3>
-                        <div class="terms-content">
-                            <?php echo wp_kses_post($terms); ?>
-                        </div>
+                        <p><?php esc_html_e('No image available', 'dealsindia'); ?></p>
                     </div>
                 <?php endif; ?>
                 
-                <!-- Social Share -->
-                <div class="deal-social-share">
-                    <h4 class="share-title"><?php esc_html_e('Share this deal:', 'dealsindia'); ?></h4>
-                    <?php dealsindia_social_share_buttons(); ?>
-                </div>
+                <?php if ($discount > 0 && !$is_expired) : ?>
+                    <div class="deal-discount-badge">
+                        <span class="discount-value"><?php echo esc_html($discount); ?>%</span>
+                        <span class="discount-label"><?php esc_html_e('OFF', 'dealsindia'); ?></span>
+                    </div>
+                <?php endif; ?>
                 
-            </div><!-- .deal-left-column -->
+                <?php if ($is_expired) : ?>
+                    <div class="deal-expired-badge">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/>
+                            <line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/>
+                        </svg>
+                        <p><?php esc_html_e('Deal Expired', 'dealsindia'); ?></p>
+                    </div>
+                <?php endif; ?>
+            </div>
             
-            <!-- Right Sidebar: Store Info & CTA -->
+            <!-- ⭐ RIGHT SIDEBAR - Will show SECOND on mobile (after image) -->
             <aside class="deal-right-sidebar">
                 
                 <!-- Store Badge -->
@@ -335,6 +293,48 @@ if (have_posts()) :
                 </div>
                 
             </aside><!-- .deal-right-sidebar -->
+            
+            <!-- ⭐ LEFT COLUMN - Will show THIRD on mobile (Description, Terms, Share) -->
+            <div class="deal-left-column">
+                
+                <!-- Deal Description -->
+                <div class="deal-description-section">
+                    <h2 class="section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 20h9" stroke-width="2"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke-width="2"/>
+                        </svg>
+                        <?php esc_html_e('Deal Description', 'dealsindia'); ?>
+                    </h2>
+                    <div class="deal-content">
+                        <?php the_content(); ?>
+                    </div>
+                </div>
+                
+                <!-- Terms & Conditions -->
+                <?php if ($terms) : ?>
+                    <div class="deal-terms-section">
+                        <h3 class="section-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                <line x1="12" y1="16" x2="12" y2="12" stroke-width="2"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8" stroke-width="2"/>
+                            </svg>
+                            <?php esc_html_e('Terms & Conditions', 'dealsindia'); ?>
+                        </h3>
+                        <div class="terms-content">
+                            <?php echo wp_kses_post($terms); ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Social Share -->
+                <div class="deal-social-share">
+                    <h4 class="share-title"><?php esc_html_e('Share this deal:', 'dealsindia'); ?></h4>
+                    <?php dealsindia_social_share_buttons(); ?>
+                </div>
+                
+            </div><!-- .deal-left-column -->
             
         </div><!-- .single-deal-grid -->
         
