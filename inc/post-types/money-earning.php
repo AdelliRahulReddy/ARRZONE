@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Money Earning Tricks Custom Post Type
  * Register CPT for money earning tips and tricks

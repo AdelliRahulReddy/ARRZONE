@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Work Steps Custom Post Type
  * Registers "How It Works" steps CPT

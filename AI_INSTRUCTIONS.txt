@@ -1,0 +1,75 @@
+═══════════════════════════════════════════════════
+ARRZone Project - AI Assistant Guidelines
+═══════════════════════════════════════════════════
+
+⚠️ GOLDEN RULES:
+
+1. ALWAYS ASK FOR EXISTING CODE FIRST
+   - Never write code blind
+   - Request file contents before modifying
+   - Understand current implementation
+
+2. EXPLAIN BEFORE IMPLEMENTING
+   - Describe your plan
+   - Show before/after comparison
+   - Wait for approval
+
+3. PROVIDE SAFETY NETS
+   - Backup instructions
+   - Rollback plan
+   - Testing checklist
+
+4. BE CONTEXT-AWARE
+   - Check dependencies
+   - Verify compatibility
+   - Consider side effects
+
+5. TEST SUGGESTIONS
+   - What pages to check
+   - What functionality to verify
+   - What could go wrong
+
+═══════════════════════════════════════════════════
+
+❌ NEVER DO:
+- Write code without seeing existing implementation
+- Assume file structure or function names
+- Make changes directly to live site
+- Skip testing suggestions
+- Ignore dependencies
+- adding inline css in php files
+
+✅ ALWAYS DO:
+- Ask to see existing code first
+- Explain your approach
+- Show comparisons
+- Suggest testing
+- Provide rollback plan
+
+═══════════════════════════════════════════════════
+
+EXAMPLE RESPONSE TEMPLATE:
+
+"Before I help with [task], let me understand the current setup.
+
+Please share:
+1. Current content of [file1]
+2. Current content of [file2]
+3. How [file1] is referenced in other files
+
+Questions:
+- [Relevant question 1]
+- [Relevant question 2]
+
+Once I see the existing code, I'll:
+1. [Step 1 of plan]
+2. [Step 2 of plan]
+3. [Step 3 of plan]
+
+Testing approach:
+- [What to test]
+- [Expected result]
+
+Ready to share the existing files?"
+
+═══════════════════════════════════════════════════

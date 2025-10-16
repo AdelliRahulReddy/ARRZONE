@@ -1,10 +1,9 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Giveaway Meta Box
  * Custom fields for Giveaway post type
  */
-
-if (!defined('ABSPATH')) exit;
 
 /**
  * Add Giveaway Meta Box

@@ -1,341 +1,229 @@
 <?php
 /**
- * Deal Card Component - Ultra Premium Design
- * Works everywhere: Homepage, Archives, Category, Store pages
+ * Deal Card Component - Production Ready
  * 
- * @package DealsIndia
- * @version 3.5 - Data-Rich Cards
+ * Reusable deal card used in:
+ * - Archive pages (stores, categories, deal types)
+ * - Homepage sections
+ * - Single deal page (related deals)
+ * - Search results
+ * 
+ * Features:
+ * - Clean markup (no inline CSS)
+ * - Image with discount badge
+ * - Store logo overlay
+ * - Price comparison
+ * - Expiry status
+ * - Coupon code indicator
+ * - Click tracking ready
+ * - Responsive design
+ * 
+ * @package ARRZONE
+ * @version 5.0 - Production Ready
  */
 
-// Get ALL deal data
+// Get deal ID and data
 $deal_id = get_the_ID();
 $deal_title = get_the_title();
-$deal_url = get_post_meta($deal_id, 'deal_url', true);
-$deal_price = get_post_meta($deal_id, 'deal_price', true);
-$old_price = get_post_meta($deal_id, 'old_price', true);
-$discount = get_post_meta($deal_id, 'discount_percentage', true);
-$cashback = get_post_meta($deal_id, 'cashback_amount', true);
-$coupon_code = get_post_meta($deal_id, 'coupon_code', true);
-$deal_excerpt = get_the_excerpt();
+$deal_url = get_permalink();
 
-// Store info
-$store_terms = wp_get_post_terms($deal_id, 'store');
-$store_name = !empty($store_terms) ? $store_terms[0]->name : 'Unknown Store';
-$store_logo = !empty($store_terms) ? get_term_meta($store_terms[0]->term_id, 'store_logo', true) : '';
+// Get deal meta
+$coupon_code = get_post_meta($deal_id, 'deal_coupon_code', true);
+$affiliate_link = get_post_meta($deal_id, 'deal_affiliate_link', true);
+$original_price = get_post_meta($deal_id, 'deal_original_price', true);
+$sale_price = get_post_meta($deal_id, 'deal_sale_price', true);
+$expiry_date = get_post_meta($deal_id, 'deal_expiry_date', true);
 
-// Category info
-$category_terms = wp_get_post_terms($deal_id, 'deal_category');
-$category_name = !empty($category_terms) ? $category_terms[0]->name : '';
-
-// Deal type
-$type_terms = wp_get_post_terms($deal_id, 'deal_type');
-$deal_type = !empty($type_terms) ? $type_terms[0]->name : '';
-
-// Featured image
-$featured_image = get_the_post_thumbnail_url($deal_id, 'medium');
-
-// Badges
-$is_featured = get_post_meta($deal_id, 'is_featured', true);
-$is_trending = get_post_meta($deal_id, 'is_trending', true);
-$is_hot = get_post_meta($deal_id, 'is_hot_deal', true);
-
-// Expiry
-$end_date = get_post_meta($deal_id, 'deal_end_date', true);
-$is_expired = false;
-if ($end_date && strtotime($end_date) < time()) {
-    $is_expired = true;
+// Calculate discount
+$discount = 0;
+if ($original_price && $sale_price && $original_price > $sale_price) {
+    $discount = round((($original_price - $sale_price) / $original_price) * 100);
 }
 
-// Calculate savings
-$savings_amount = '';
-$savings_percent = $discount;
-if ($old_price && $deal_price) {
-    $save_amount = $old_price - $deal_price;
-    $savings_amount = '₹' . number_format($save_amount, 0);
-    if (!$savings_percent) {
-        $savings_percent = round(($save_amount / $old_price) * 100);
+// Check if expired
+$is_expired = false;
+$time_remaining = '';
+if ($expiry_date) {
+    $expiry_timestamp = strtotime($expiry_date);
+    $current_timestamp = current_time('timestamp');
+    $is_expired = ($current_timestamp > $expiry_timestamp);
+    
+    if (!$is_expired) {
+        $difference = $expiry_timestamp - $current_timestamp;
+        $days = floor($difference / 86400);
+        $hours = floor(($difference % 86400) / 3600);
+        
+        if ($days > 0) {
+            $time_remaining = sprintf(__('%d days left', 'dealsindia'), $days);
+        } elseif ($hours > 0) {
+            $time_remaining = sprintf(__('%d hours left', 'dealsindia'), $hours);
+        } else {
+            $time_remaining = __('Ending soon', 'dealsindia');
+        }
     }
 }
 
-// Quick steps for regular deals (no coupon)
-$quick_steps = array(
-    '1' => 'Click "Shop Now" button',
-    '2' => 'Visit ' . $store_name,
-    '3' => 'Add to cart & checkout'
-);
+// Get taxonomies
+$stores = get_the_terms($deal_id, 'store');
+$categories = get_the_terms($deal_id, 'deal-category');
+$deal_types = get_the_terms($deal_id, 'deal-type');
+
+// Get store info
+$store_name = '';
+$store_logo_url = '';
+$store_cashback = '';
+
+if ($stores && !is_wp_error($stores)) {
+    $first_store = reset($stores);
+    $store_name = $first_store->name;
+    $store_logo_id = get_term_meta($first_store->term_id, 'store_logo_id', true);
+    $store_logo_url = $store_logo_id ? wp_get_attachment_url($store_logo_id) : '';
+    $store_cashback = get_term_meta($first_store->term_id, 'store_cashback', true);
+}
+
+// Get featured image
+$featured_image = get_the_post_thumbnail_url($deal_id, 'medium');
 ?>
 
-<article class="cd-deal-card <?php echo $is_expired ? 'expired' : ''; ?>">
-    <div class="cd-deal-inner">
+<article class="deal-card <?php echo $is_expired ? 'deal-expired' : ''; ?>" data-deal-id="<?php echo esc_attr($deal_id); ?>">
+    
+    <a href="<?php echo esc_url($deal_url); ?>" class="deal-card-link">
         
-        <!-- ===== FRONT SIDE ===== -->
-        <div class="cd-deal-front">
-            
-            <!-- Product Image -->
-            <a href="<?php the_permalink(); ?>" class="cd-product-image">
-                <?php if ($featured_image) : ?>
-                    <img src="<?php echo esc_url($featured_image); ?>" 
-                         alt="<?php echo esc_attr($deal_title); ?>" 
-                         loading="lazy">
-                <?php else : ?>
-                    <div class="cd-no-image">
-                        <?php 
-                        // Show category emoji or generic icon
-                        if ($category_name) {
-                            echo '🏷️';
-                        } else {
-                            echo '📦';
-                        }
-                        ?>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- Top Badges -->
-                <?php if ($savings_percent && $savings_percent > 0) : ?>
-                    <span class="cd-discount-badge"><?php echo esc_html($savings_percent); ?>% OFF</span>
-                <?php endif; ?>
-                
-                <?php if ($is_trending) : ?>
-                    <span class="cd-trending-badge">🔥 Trending</span>
-                <?php elseif ($is_hot) : ?>
-                    <span class="cd-trending-badge">🔥 Hot Deal</span>
-                <?php elseif ($is_featured) : ?>
-                    <span class="cd-trending-badge">⭐ Featured</span>
-                <?php endif; ?>
-                
-                <!-- Store Badge on Image -->
-                <?php if ($store_logo) : ?>
-                    <div class="cd-store-logo-badge">
-                        <img src="<?php echo esc_url($store_logo); ?>" alt="<?php echo esc_attr($store_name); ?>">
-                    </div>
-                <?php else : ?>
-                    <div class="cd-store-text"><?php echo esc_html($store_name); ?></div>
-                <?php endif; ?>
-            </a>
-            
-            <!-- Content Area -->
-            <div class="cd-deal-content">
-                
-                <!-- Deal Title -->
-                <h3 class="cd-deal-title">
-                    <a href="<?php the_permalink(); ?>">
-                        <?php echo esc_html(wp_trim_words($deal_title, 10)); ?>
-                    </a>
-                </h3>
-                
-                <!-- Price Section -->
-                <?php if ($deal_price) : ?>
-                <div class="cd-price-row">
-                    <span class="cd-price-main">₹<?php echo esc_html(number_format($deal_price, 0)); ?></span>
-                    <?php if ($old_price && $old_price > $deal_price) : ?>
-                        <span class="cd-price-old">₹<?php echo esc_html(number_format($old_price, 0)); ?></span>
-                    <?php endif; ?>
+        <!-- Deal Image -->
+        <div class="deal-card-image">
+            <?php if ($featured_image) : ?>
+                <img src="<?php echo esc_url($featured_image); ?>" alt="<?php echo esc_attr($deal_title); ?>" loading="lazy">
+            <?php else : ?>
+                <div class="deal-no-image">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
                 </div>
-                <?php endif; ?>
-                
-                <!-- Extra Info -->
-                <div class="cd-extra-info">
-                    <?php if ($category_name) : ?>
-                        <span class="cd-category-tag"><?php echo esc_html($category_name); ?></span>
-                    <?php endif; ?>
-                    
-                    <?php if ($cashback) : ?>
-                        <span class="cd-cashback-mini">💰 <?php echo esc_html($cashback); ?></span>
-                    <?php endif; ?>
+            <?php endif; ?>
+            
+            <!-- Store Logo Badge -->
+            <?php if ($store_logo_url) : ?>
+                <div class="deal-store-badge">
+                    <img src="<?php echo esc_url($store_logo_url); ?>" alt="<?php echo esc_attr($store_name); ?>">
                 </div>
-                
-                <!-- Get Deal Button -->
-                <a href="<?php echo esc_url($deal_url ? $deal_url : get_permalink()); ?>" 
-                   class="cd-get-deal" 
-                   <?php echo $deal_url ? 'target="_blank" rel="nofollow noopener"' : ''; ?>>
-                    <?php echo $is_expired ? '❌ Expired' : 'Get Deal →'; ?>
-                </a>
-            </div>
+            <?php endif; ?>
+            
+            <!-- Discount Badge -->
+            <?php if ($discount > 0 && !$is_expired) : ?>
+                <div class="deal-discount-badge">
+                    <span class="discount-value"><?php echo esc_html($discount); ?>%</span>
+                    <span class="discount-label"><?php esc_html_e('OFF', 'dealsindia'); ?></span>
+                </div>
+            <?php endif; ?>
+            
+            <!-- Expired Overlay -->
+            <?php if ($is_expired) : ?>
+                <div class="deal-expired-overlay">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/>
+                        <line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/>
+                    </svg>
+                    <p><?php esc_html_e('Expired', 'dealsindia'); ?></p>
+                </div>
+            <?php endif; ?>
         </div>
         
-        <!-- ===== BACK SIDE ===== -->
-        <div class="cd-deal-back">
+        <!-- Deal Content -->
+        <div class="deal-card-content">
             
-            <!-- Back Header with Store -->
-            <div class="cd-back-header">
-                <?php if ($store_logo) : ?>
-                    <div class="cd-back-store-logo">
-                        <img src="<?php echo esc_url($store_logo); ?>" alt="<?php echo esc_attr($store_name); ?>">
-                    </div>
-                <?php else : ?>
-                    <span class="cd-store-badge"><?php echo esc_html($store_name); ?></span>
-                <?php endif; ?>
-                
-                <?php if ($is_featured) : ?>
-                    <span class="cd-featured-star">⭐</span>
-                <?php endif; ?>
-            </div>
+            <!-- Store Name -->
+            <?php if ($store_name) : ?>
+                <div class="deal-store-name">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-width="2"/>
+                        <polyline points="9 22 9 12 15 12 15 22" stroke-width="2"/>
+                    </svg>
+                    <?php echo esc_html($store_name); ?>
+                </div>
+            <?php endif; ?>
             
             <!-- Deal Title -->
-            <h4 class="cd-back-title">
-                <?php echo esc_html(wp_trim_words($deal_title, 8)); ?>
-            </h4>
+            <h3 class="deal-card-title"><?php echo esc_html(wp_trim_words($deal_title, 12)); ?></h3>
             
-            <!-- Info Grid - 2x2 -->
-            <div class="cd-info-grid">
-                
-                <?php if ($deal_price) : ?>
-                <div class="cd-info-item">
-                    <div class="cd-info-icon">💳</div>
-                    <div class="cd-info-text">
-                        <span class="cd-info-label">Deal Price</span>
-                        <span class="cd-info-value">₹<?php echo esc_html(number_format($deal_price, 0)); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ($savings_amount) : ?>
-                <div class="cd-info-item">
-                    <div class="cd-info-icon">💰</div>
-                    <div class="cd-info-text">
-                        <span class="cd-info-label">You Save</span>
-                        <span class="cd-info-value green"><?php echo esc_html($savings_amount); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ($savings_percent) : ?>
-                <div class="cd-info-item">
-                    <div class="cd-info-icon">🏷️</div>
-                    <div class="cd-info-text">
-                        <span class="cd-info-label">Discount</span>
-                        <span class="cd-info-value"><?php echo esc_html($savings_percent); ?>% OFF</span>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ($cashback) : ?>
-                <div class="cd-info-item">
-                    <div class="cd-info-icon">🎁</div>
-                    <div class="cd-info-text">
-                        <span class="cd-info-label">Cashback</span>
-                        <span class="cd-info-value"><?php echo esc_html($cashback); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ($deal_type) : ?>
-                <div class="cd-info-item">
-                    <div class="cd-info-icon">📌</div>
-                    <div class="cd-info-text">
-                        <span class="cd-info-label">Type</span>
-                        <span class="cd-info-value"><?php echo esc_html($deal_type); ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-            </div>
-            
-            <!-- Coupon Code OR Quick Steps -->
-            <?php if ($coupon_code) : ?>
-                <div class="cd-coupon-box">
-                    <div class="cd-coupon-label">💎 Coupon Code</div>
-                    <div class="cd-coupon-code"><?php echo esc_html($coupon_code); ?></div>
-                    <div class="cd-coupon-hint">Click to copy & use at checkout</div>
-                </div>
-            <?php else : ?>
-                <div class="cd-quick-steps">
-                    <div class="cd-steps-label">📋 How to Get This Deal</div>
-                    <div class="cd-steps-list">
-                        <?php foreach ($quick_steps as $num => $step) : ?>
-                        <div class="cd-step-item">
-                            <span class="cd-step-num"><?php echo $num; ?></span>
-                            <span class="cd-step-text"><?php echo esc_html($step); ?></span>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
+            <!-- Price Section -->
+            <?php if ($sale_price) : ?>
+                <div class="deal-card-prices">
+                    <span class="deal-price-sale">₹<?php echo number_format($sale_price); ?></span>
+                    <?php if ($original_price && $original_price > $sale_price) : ?>
+                        <span class="deal-price-original">₹<?php echo number_format($original_price); ?></span>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
             
-            <!-- Expiry Info -->
-            <?php if ($end_date && !$is_expired) : ?>
-            <div class="cd-expiry-info">
-                ⏰ Valid until: <?php echo date('M j, Y', strtotime($end_date)); ?>
+            <!-- Deal Meta (Bottom) -->
+            <div class="deal-card-meta">
+                
+                <!-- Coupon Indicator -->
+                <?php if ($coupon_code && !$is_expired) : ?>
+                    <span class="deal-meta-coupon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="1" y="5" width="22" height="14" rx="2" ry="2" stroke-width="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10" stroke-width="2"/>
+                        </svg>
+                        <?php esc_html_e('Code', 'dealsindia'); ?>
+                    </span>
+                <?php endif; ?>
+                
+                <!-- Cashback Badge -->
+                <?php if ($store_cashback && !$is_expired) : ?>
+                    <span class="deal-meta-cashback">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="12" y1="1" x2="12" y2="23" stroke-width="2"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-width="2"/>
+                        </svg>
+                        <?php echo esc_html($store_cashback); ?>
+                    </span>
+                <?php endif; ?>
+                
+                <!-- Expiry Timer -->
+                <?php if ($time_remaining && !$is_expired) : ?>
+                    <span class="deal-meta-expiry">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                        </svg>
+                        <?php echo esc_html($time_remaining); ?>
+                    </span>
+                <?php endif; ?>
+                
             </div>
-            <?php elseif ($is_expired) : ?>
-            <div class="cd-expiry-info expired">
-                ❌ Deal Expired
-            </div>
-            <?php endif; ?>
             
-            <!-- Action Buttons -->
-            <div class="cd-back-actions">
-                <a href="<?php the_permalink(); ?>" class="cd-details-btn">
-                    📄 Details
-                </a>
-                <a href="<?php echo esc_url($deal_url ? $deal_url : get_permalink()); ?>" 
-                   class="cd-shop-btn" 
-                   <?php echo $deal_url ? 'target="_blank" rel="nofollow noopener"' : ''; ?>>
-                    <?php echo $is_expired ? '❌ Expired' : '🛒 Shop Now'; ?>
-                </a>
-            </div>
         </div>
         
-    </div>
-</article>
-
-</article>
-
-<!-- Coupon Copy Script (Inline for Performance) -->
-<script>
-(function() {
-    const couponBoxes = document.querySelectorAll('.cd-coupon-box');
+    </a>
     
-    couponBoxes.forEach(function(box) {
-        box.style.cursor = 'pointer';
-        
-        box.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const couponCode = this.querySelector('.cd-coupon-code');
-            const couponText = couponCode.textContent.trim();
-            
-            // Copy to clipboard
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(couponText).then(function() {
-                    // Show success feedback
-                    const originalHTML = couponCode.innerHTML;
-                    couponCode.innerHTML = '✓ Copied!';
-                    couponCode.style.color = '#4caf50';
-                    
-                    setTimeout(function() {
-                        couponCode.innerHTML = originalHTML;
-                        couponCode.style.color = '';
-                    }, 2000);
-                }).catch(function(err) {
-                    console.error('Copy failed:', err);
-                });
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = couponText;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
-                
-                try {
-                    document.execCommand('copy');
-                    const originalHTML = couponCode.innerHTML;
-                    couponCode.innerHTML = '✓ Copied!';
-                    couponCode.style.color = '#4caf50';
-                    
-                    setTimeout(function() {
-                        couponCode.innerHTML = originalHTML;
-                        couponCode.style.color = '';
-                    }, 2000);
-                } catch (err) {
-                    console.error('Fallback copy failed:', err);
-                }
-                
-                document.body.removeChild(textArea);
-            }
-        });
-    });
-})();
-</script>
+    <!-- Quick Action Button -->
+    <?php if (!$is_expired) : ?>
+        <div class="deal-card-actions">
+            <a href="<?php echo esc_url($affiliate_link ? $affiliate_link : $deal_url); ?>" 
+               class="deal-btn-action" 
+               <?php echo $affiliate_link ? 'target="_blank" rel="nofollow noopener"' : ''; ?>
+               data-deal-id="<?php echo esc_attr($deal_id); ?>"
+               onclick="event.stopPropagation();">
+                <?php if ($coupon_code) : ?>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="1" y="5" width="22" height="14" rx="2" ry="2" stroke-width="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10" stroke-width="2"/>
+                    </svg>
+                    <?php esc_html_e('Get Code', 'dealsindia'); ?>
+                <?php else : ?>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke-width="2"/>
+                        <polyline points="10 17 15 12 10 7" stroke-width="2"/>
+                        <line x1="15" y1="12" x2="3" y2="12" stroke-width="2"/>
+                    </svg>
+                    <?php esc_html_e('Get Deal', 'dealsindia'); ?>
+                <?php endif; ?>
+            </a>
+        </div>
+    <?php endif; ?>
+    
+</article>

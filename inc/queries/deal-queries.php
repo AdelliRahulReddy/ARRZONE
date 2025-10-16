@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Deal Queries
  * Custom queries for deals
@@ -211,3 +212,20 @@ function dealsindia_clear_hot_picks_cache($post_id) {
     }
 }
 add_action('save_post', 'dealsindia_clear_hot_picks_cache');
+
+/**
+ * Limit search to Deals post type only
+ * Prevents pages and other post types from showing in search results
+ * 
+ * @param WP_Query $query The WordPress Query object
+ * @return WP_Query Modified query
+ */
+function dealsindia_search_filter($query) {
+    // Only modify search queries on frontend (not admin)
+    if (!is_admin() && $query->is_search() && $query->is_main_query()) {
+        // Limit search to 'deals' post type only
+        $query->set('post_type', 'deals');
+    }
+    return $query;
+}
+add_action('pre_get_posts', 'dealsindia_search_filter');

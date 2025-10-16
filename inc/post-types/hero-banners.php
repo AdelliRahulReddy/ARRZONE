@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Hero Banners Custom Post Type
  * Registers Hero Banner CPT for homepage slider
@@ -34,10 +35,18 @@ function dealsindia_register_hero_banner_post_type() {
         'hierarchical'        => false,
         'menu_position'       => 20,
         'menu_icon'           => 'dashicons-images-alt2',
-        'supports'            => array('title', 'thumbnail'),
+        'supports'            => array('title', 'thumbnail'), // ← THIS LINE ENABLES FEATURED IMAGE!
         'show_in_rest'        => true,
     );
     
     register_post_type('hero_banner', $args);
 }
 add_action('init', 'dealsindia_register_hero_banner_post_type');
+
+/**
+ * Ensure thumbnail support for theme (if not already added)
+ */
+add_action('after_setup_theme', 'dealsindia_banner_thumbnail_support');
+function dealsindia_banner_thumbnail_support() {
+    add_theme_support('post-thumbnails', array('hero_banner'));
+}

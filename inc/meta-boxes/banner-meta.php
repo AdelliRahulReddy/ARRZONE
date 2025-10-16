@@ -1,10 +1,9 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Hero Banner Meta Box
  * Custom fields for Hero Banner post type
  */
-
-if (!defined('ABSPATH')) exit;
 
 /**
  * Add Banner Meta Box

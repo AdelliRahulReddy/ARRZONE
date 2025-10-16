@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) exit; 
 /**
  * Standard Page Template
  * Displays WordPress Pages (Contact, Privacy Policy, About, etc.)
