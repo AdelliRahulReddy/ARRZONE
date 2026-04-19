@@ -8,7 +8,8 @@ QR-first loyalty SaaS for offline merchants.
 
 Core behavior:
 - Customers do not authenticate.
-- Customers join via branch QR and get a long-lived signed pass link.
+- Customers join via a branch-specific QR or join link and get a long-lived signed pass link.
+- `/join` is a helper landing page that accepts either a full branch join link or a short branch code, but the real enrollment route is `/join/[branchCode]`.
 - Static `PASS` QR only opens the pass and supports staff earning lookup.
 - Actual redemption requires a short-lived single-use `REDEEM` token.
 - Staff/admin auth is handled by Firebase Auth session cookies.
@@ -21,6 +22,8 @@ Core behavior:
 ## 2. Current Real Status
 
 As of the current repo state:
+- GitHub remote is `AdelliRahulReddy/ARRZONE`.
+- Production is deployed on Vercel at `https://arrzone.vercel.app`.
 - Firestore database exists in Firebase project `arrcloud-637ec`.
 - Default database `(default)` was created in `asia-south1` (Mumbai).
 - Delete protection is enabled on the Firestore database.
@@ -73,6 +76,7 @@ If a future agent has limited context budget, start here:
 There is one app, but four route surfaces:
 
 - Member public flow
+  - `/join`
   - `/join/[branchCode]`
   - `/pass/[token]`
   - `/pass/[token]/history`
@@ -153,6 +157,8 @@ Main env vars:
 - optional `FIRESTORE_EMULATOR_HOST`
 
 Notes:
+- `NEXT_PUBLIC_APP_URL` drives public pass URLs and branch join links/QRs. In production it must point at the real public domain.
+- For local phone testing, `NEXT_PUBLIC_APP_URL` should be set to the machine's LAN URL rather than `localhost`.
 - In dev, `PASS_TOKEN_SECRET` and `REDEEM_TOKEN_PEPPER` have fallback dev defaults.
 - In production, both must be explicitly set.
 - Local service-account JSON is intentionally kept in `.secrets/`, which is gitignored.
@@ -289,10 +295,12 @@ Most of the app’s real behavior is implemented as exported functions in `src/l
 
 - `createEnrollment`
 - `getPassSnapshot`
+- `getPassHistory`
 - `issueRedeemToken`
 - `lookupMembershipByPassPayload`
 - `searchMembershipsByPhone`
 - `getMembershipSnapshotForStaff`
+- `getStaffWorkspaceSnapshot`
 - `addPurchase`
 - `consumeRedeemToken`
 - `redeemByRecovery`
@@ -303,7 +311,20 @@ Most of the app’s real behavior is implemented as exported functions in `src/l
 - `createPlan`
 - `updatePlan`
 - `createBranch`
+- `updateBranch`
 - `createStaffUser`
+- `updateStaffUserStatus`
+- `updateStaffUser`
+- `createTenant`
+- `updateTenant`
+- `createPlatformAdminUser`
+- `updatePlatformAdminUser`
+- `createBusinessAdminUser`
+- `updateBusinessAdminStatus`
+- `getPlatformOverviewReport`
+- `listPlatformAdminUsers`
+- `listTenantDirectory`
+- `listBusinessAdminDirectory`
 - `getOverviewReport`
 - `getStaffActivityReport`
 - `getExceptionsReport`
@@ -334,14 +355,21 @@ Route handlers are thin wrappers around validation + service calls.
 - `POST /api/v1/plans`
 - `PATCH /api/v1/plans/[id]`
 - `POST /api/v1/branches`
+- `PATCH /api/v1/branches/[id]`
 - `POST /api/v1/staff-users`
+- `PATCH /api/v1/staff-users/[id]`
 - `GET /api/v1/reports/overview`
 - `GET /api/v1/reports/staff-activity`
 - `GET /api/v1/reports/exceptions`
 
 ### Platform admin
-- `/platform` currently reads cross-tenant security data server-side through `getPlatformExceptionsReport()`
-- there is no dedicated `/api/v1/platform/*` route group yet
+- `POST /api/v1/tenants`
+- `PATCH /api/v1/tenants/[id]`
+- `POST /api/v1/platform-admin-users`
+- `PATCH /api/v1/platform-admin-users/[id]`
+- `POST /api/v1/business-admin-users`
+- `PATCH /api/v1/business-admin-users/[id]`
+- `/platform` also reads cross-tenant overview and security data server-side through `getPlatformOverviewReport()` and `getPlatformExceptionsReport()`
 
 Validation schemas live in `src/lib/validation.ts`.
 
@@ -350,15 +378,24 @@ Validation schemas live in `src/lib/validation.ts`.
 ### Home
 - `src/app/page.tsx`
 - Marketing/overview only
+- Primary public CTA now points to branch enrollment, not a generic member dashboard
 
 ### Enrollment
+- `src/app/join/page.tsx`
+- Landing page that accepts either a full branch join link or a raw branch code
+- Members should ideally arrive from a branch-specific link/QR, not type a code manually
 - `src/app/join/[branchCode]/page.tsx`
 - Uses `EnrollmentForm`
 - Active branch plans are loaded server-side and auto-selected in the form
+- Enrollment form state is preserved locally per branch
+- If a member already enrolled on the device, the page can offer an `Open saved pass` shortcut before re-entering details
+- `src/app/join/[branchCode]/not-found.tsx`
+- Dedicated invalid-branch experience for missing/inactive/bad branch links
 
 ### Pass
 - `src/app/pass/[token]/page.tsx`
 - Shows pass summary and static pass QR
+- Pass visits persist the branch/pass link locally so returning to the same branch can reopen the saved pass
 - `RedeemTokenPanel` generates live redeem token
 
 ### Member history
@@ -369,22 +406,35 @@ Validation schemas live in `src/lib/validation.ts`.
 - `src/components/staff/staff-console.tsx`
 - Main operational UI today
 - Handles:
-  - pass lookup by QR payload
-  - phone fallback for earning
+  - live camera scanning for pass QR and redeem QR
+  - screenshot/photo upload fallback for QR decoding
+  - manual QR payload paste
+  - phone search fallback for earning
   - purchase add
   - redeem consume
   - manager/business-admin correction controls
   - offline queue status
+- Live camera scanning is on-demand and stops after a successful decode
+- A phone cannot scan a QR displayed on its own screen; screenshot/photo upload exists for that case
+- Main scanner component lives in `src/components/staff/qr-camera-scanner.tsx`
+- The workspace was re-laid out for mobile-first use so lookup and selected-member state stay close together on smaller screens
 
 ### Business admin
 - `src/app/business-admin/page.tsx`
 - Reads overview, branches, plans, staff, and tenant security events
-- Supports create/edit actions for branches, plans, and staff invites
+- Supports create/edit actions for branches, plans, and staff records, plus inline status management
+- Branch directory now includes a deterministic member join-link tool:
+  - copyable branch join URL
+  - shareable branch QR generated from `/join/[branchCode]`
+  - dialog implementation lives in `src/components/merchant/merchant-admin-dashboard.tsx`
+- Dashboard uses a shared premium/mobile-first shell with card-based mobile states and inline edit dialogs
 
 ### Platform admin
 - `src/app/platform/page.tsx`
 - Uses `requirePlatformActor()` plus platform overview, tenant directory, platform-admin roster, and security event reads
 - Does not rely on `staff_users`
+- Supports tenant creation/status updates, platform-admin creation/editing, and business-admin provisioning/status control
+- Dashboard uses the same shared premium/mobile-first shell as the business-admin surface
 
 ## 16. Offline Queue
 
@@ -449,6 +499,7 @@ Reality:
 - unit coverage is okay for helpers and config
 - there is no full seeded Firestore integration test suite yet
 - Playwright only contains a smoke check for the landing page
+- There is no automated browser coverage for camera permissions, live QR scanning, or screenshot-upload decoding yet
 
 ## 20. Known Gaps / Honest Status
 
@@ -456,19 +507,19 @@ These are important and should be assumed true until changed:
 
 - No automatic merchant bootstrap flow exists yet
 - Merchant analytics still need date-range and comparative reporting
-- Platform console still needs tenant lifecycle controls such as suspend or archive
+- Platform console still lacks deeper provisioning/billing automation beyond tenant/admin record management
 - No Firestore-backed integration test harness exists yet
-- No production deployment config for Hostinger is wired yet
+- No meaningful browser automation exists yet for the QR scanner flows across real mobile permission states
 - Bootstrap data can be created with `npm run firebase:seed:demo`, but production onboarding is still manual
 
 ## 21. Recommended Next Work
 
 Best next steps, in order:
 
-1. Add Firestore integration tests around `loyalty-service.ts`.
-2. Add a Hostinger/VPS deployment secret strategy so Firebase credentials are injected safely.
+1. Add browser-level verification for live camera scan, screenshot-upload decode, and permission-denied fallback states.
+2. Add Firestore integration tests around `loyalty-service.ts`.
 3. Add date-range, branch, and plan filters to business reporting.
-4. Add tenant lifecycle controls and audit views to the platform console.
+4. Add delete/archive confirmation flows and deeper audit views across the admin consoles.
 
 ## 22. If You Need to Change Business Rules
 

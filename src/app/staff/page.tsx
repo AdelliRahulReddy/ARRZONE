@@ -1,5 +1,6 @@
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { SurfaceStateCard } from "@/components/auth/surface-state-card";
+import { DashboardHero } from "@/components/admin/dashboard-primitives";
 import { SetupCallout } from "@/components/setup-callout";
 import { StaffConsole } from "@/components/staff/staff-console";
 import {
@@ -89,21 +90,31 @@ export default async function StaffPage() {
   }
 
   return (
-    <main className="container-edge min-h-screen space-y-6 py-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">
-            Store operations
-          </p>
-          <h1 className="text-4xl font-semibold tracking-tight">
-            {getStaffRoleDisplayName(actor.role)} workspace
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Open members, add purchases, and redeem rewards for the branches assigned to this account.
-          </p>
-        </div>
-        <SignOutButton />
-      </div>
+    <main className="container-edge min-h-screen space-y-8 py-6 sm:py-10">
+      <DashboardHero
+        eyebrow="Store operations"
+        title={`${getStaffRoleDisplayName(actor.role)} workspace`}
+        description="Open members, add purchases, redeem rewards, and manage exception flows across the branches assigned to this account."
+        actions={<SignOutButton />}
+        stats={[
+          {
+            label: "Assigned branches",
+            value: workspace.accessibleBranches.length,
+          },
+          {
+            label: "Active members",
+            value: workspace.activeMembershipCount,
+          },
+          {
+            label: "Recent members",
+            value: workspace.recentMemberships.length,
+          },
+          {
+            label: "Access role",
+            value: getStaffRoleDisplayName(actor.role),
+          },
+        ]}
+      />
       <StaffConsole
         role={actor.role}
         accessibleBranches={workspace.accessibleBranches}

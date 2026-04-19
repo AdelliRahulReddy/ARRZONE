@@ -35,19 +35,24 @@ export function parseScanPayload(rawValue: string): ParsedScanPayload {
     };
   }
 
-  try {
-    const url = new URL(raw);
-    const match = url.pathname.match(/\/pass\/([^/]+)/);
-    if (match?.[1]) {
-      return {
-        type: "PASS",
-        raw,
-        token: decodeURIComponent(match[1]),
-        href: url.toString(),
-      };
-    }
-  } catch {
-    // Ignore invalid URLs and fall through to unknown payload.
+  const passPathMatch = raw.match(/(?:https?:\/\/[^/\s]+)?\/pass\/([^/?#\s]+)/i);
+  if (passPathMatch?.[1]) {
+    const token = decodeURIComponent(passPathMatch[1]);
+    return {
+      type: "PASS",
+      raw,
+      token,
+      href: raw,
+    };
+  }
+
+  if (/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(raw)) {
+    return {
+      type: "PASS",
+      raw,
+      token: raw,
+      href: `/pass/${encodeURIComponent(raw)}`,
+    };
   }
 
   return { type: "UNKNOWN", raw };

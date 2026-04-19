@@ -179,8 +179,8 @@ export function MerchantAdminDashboard({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="space-y-8">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <AdminMetricCard
           title="Active Members"
           value={overview.activeMemberships}
@@ -213,18 +213,31 @@ export function MerchantAdminDashboard({
         />
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList variant="line" className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="plans">Plans</TabsTrigger>
-          <TabsTrigger value="branches">Branches</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-5">
+        <TabsList
+          variant="line"
+          className="w-full justify-start overflow-x-auto rounded-full border border-border/60 bg-background/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
+        >
+          <TabsTrigger value="overview" className="min-w-fit rounded-full px-4">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="plans" className="min-w-fit rounded-full px-4">
+            Plans
+          </TabsTrigger>
+          <TabsTrigger value="branches" className="min-w-fit rounded-full px-4">
+            Branches
+          </TabsTrigger>
+          <TabsTrigger value="team" className="min-w-fit rounded-full px-4">
+            Team
+          </TabsTrigger>
+          <TabsTrigger value="security" className="min-w-fit rounded-full px-4">
+            Security
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-sm">
+            <div className="rounded-[1.9rem] border border-border/60 bg-card/95 p-6 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.18)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">
@@ -239,7 +252,7 @@ export function MerchantAdminDashboard({
                 </Badge>
               </div>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                <div className="rounded-[1.35rem] border border-border/60 bg-background/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <p className="text-sm font-medium">Store manager coverage</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     {managerRows.length === 0
@@ -252,7 +265,7 @@ export function MerchantAdminDashboard({
                     </p>
                   ) : null}
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                <div className="rounded-[1.35rem] border border-border/60 bg-background/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <p className="text-sm font-medium">Operational throughput</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     Staff activity is measured from immutable ledger events so purchases,
@@ -370,43 +383,82 @@ export function MerchantAdminDashboard({
                   description="Create at least one branch so enrollment, staff access, and plan applicability have a real operational scope."
                 />
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Member Join</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Timezone</TableHead>
-                      <TableHead>Created</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <>
+                  <div className="grid gap-3 md:hidden">
                     {branches.map((branch) => (
-                      <TableRow key={branch.id}>
-                        <TableCell>
-                          <div>
+                      <div
+                        key={branch.id}
+                        className="rounded-2xl border border-border/70 bg-background/80 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
                             <p className="font-medium">{branch.name}</p>
                             <p className="text-xs text-muted-foreground">{branch.id}</p>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                          <DashboardStatusBadge value={branch.status} />
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2 text-sm text-muted-foreground">
                           <Badge variant="outline" className="rounded-full">
                             {branch.code}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
+                          <Badge variant="outline" className="rounded-full">
+                            {branch.timezone}
+                          </Badge>
+                          <Badge variant="outline" className="rounded-full">
+                            Created {formatDate(branch.createdAt)}
+                          </Badge>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
                           <BranchJoinToolsDialog branch={branch} />
-                        </TableCell>
-                        <TableCell>
-                          <DashboardStatusBadge value={branch.status} />
-                        </TableCell>
-                        <TableCell>{branch.timezone}</TableCell>
-                        <TableCell>{formatDate(branch.createdAt)}</TableCell>
-                      </TableRow>
+                          <EditBranchDialog branch={branch} />
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Code</TableHead>
+                          <TableHead>Member Join</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Timezone</TableHead>
+                          <TableHead>Created</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {branches.map((branch) => (
+                          <TableRow key={branch.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{branch.name}</p>
+                                <p className="text-xs text-muted-foreground">{branch.id}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="rounded-full">
+                                {branch.code}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <BranchJoinToolsDialog branch={branch} />
+                            </TableCell>
+                            <TableCell>
+                              <DashboardStatusBadge value={branch.status} />
+                            </TableCell>
+                            <TableCell>{branch.timezone}</TableCell>
+                            <TableCell>{formatDate(branch.createdAt)}</TableCell>
+                            <TableCell className="text-right">
+                              <EditBranchDialog branch={branch} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -439,23 +491,8 @@ export function MerchantAdminDashboard({
                   description="Invite counter staff, store managers, or another business admin to start operating the tenant."
                 />
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Primary Branch</TableHead>
-                      <TableHead>Branch Scope</TableHead>
-                      <TableHead>Purchases</TableHead>
-                      <TableHead>Rewards</TableHead>
-                      <TableHead>Total Actions</TableHead>
-                      <TableHead>Last Activity</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <>
+                  <div className="grid gap-3 md:hidden">
                     {staffActivity.map((staff) => {
                       const primaryBranch = staff.primaryBranchName ?? "Unassigned";
                       const shouldActivate = staff.status !== "ACTIVE";
@@ -463,31 +500,53 @@ export function MerchantAdminDashboard({
                       const actionLabel = shouldActivate ? "Activate" : "Disable";
 
                       return (
-                        <TableRow key={staff.id}>
-                          <TableCell>
-                            <div>
+                        <div
+                          key={staff.id}
+                          className="rounded-2xl border border-border/70 bg-background/80 p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
                               <p className="font-medium">{staff.fullName}</p>
+                              <p className="text-sm text-muted-foreground">{staff.email}</p>
                               <p className="text-xs text-muted-foreground">{staff.id}</p>
                             </div>
-                          </TableCell>
-                          <TableCell>{staff.email}</TableCell>
-                          <TableCell>{getStaffRoleDisplayName(staff.role)}</TableCell>
-                          <TableCell>
                             <DashboardStatusBadge value={staff.status} />
-                          </TableCell>
-                          <TableCell>{primaryBranch}</TableCell>
-                          <TableCell>
+                          </div>
+                          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                Role
+                              </p>
+                              <p className="mt-1">{getStaffRoleDisplayName(staff.role)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                Primary branch
+                              </p>
+                              <p className="mt-1">{primaryBranch}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                Actions
+                              </p>
+                              <p className="mt-1">{staff.totalActions}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                Last activity
+                              </p>
+                              <p className="mt-1">
+                                {staff.lastActionAt ? formatDate(staff.lastActionAt) : "No activity"}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="mt-4 text-sm text-muted-foreground">
                             {staff.branchNames.length === 0
                               ? "No branch assignments"
                               : staff.branchNames.join(", ")}
-                          </TableCell>
-                          <TableCell>{staff.purchaseAdds}</TableCell>
-                          <TableCell>{staff.rewardsRedeemed}</TableCell>
-                          <TableCell>{staff.totalActions}</TableCell>
-                          <TableCell>
-                            {staff.lastActionAt ? formatDate(staff.lastActionAt) : "No activity"}
-                          </TableCell>
-                          <TableCell className="text-right">
+                          </p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <EditStaffDialog staff={staff} branches={branches} />
                             {staff.canManageStatus ? (
                               <Button
                                 type="button"
@@ -505,12 +564,89 @@ export function MerchantAdminDashboard({
                                 {staff.isCurrentUser ? "Current account" : "Read only"}
                               </Badge>
                             )}
-                          </TableCell>
-                        </TableRow>
+                          </div>
+                        </div>
                       );
                     })}
-                  </TableBody>
-                </Table>
+                  </div>
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Primary Branch</TableHead>
+                          <TableHead>Branch Scope</TableHead>
+                          <TableHead>Purchases</TableHead>
+                          <TableHead>Rewards</TableHead>
+                          <TableHead>Total Actions</TableHead>
+                          <TableHead>Last Activity</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {staffActivity.map((staff) => {
+                          const primaryBranch = staff.primaryBranchName ?? "Unassigned";
+                          const shouldActivate = staff.status !== "ACTIVE";
+                          const nextStatus = shouldActivate ? "ACTIVE" : "DISABLED";
+                          const actionLabel = shouldActivate ? "Activate" : "Disable";
+
+                          return (
+                            <TableRow key={staff.id}>
+                              <TableCell>
+                                <div>
+                                  <p className="font-medium">{staff.fullName}</p>
+                                  <p className="text-xs text-muted-foreground">{staff.id}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell>{staff.email}</TableCell>
+                              <TableCell>{getStaffRoleDisplayName(staff.role)}</TableCell>
+                              <TableCell>
+                                <DashboardStatusBadge value={staff.status} />
+                              </TableCell>
+                              <TableCell>{primaryBranch}</TableCell>
+                              <TableCell>
+                                {staff.branchNames.length === 0
+                                  ? "No branch assignments"
+                                  : staff.branchNames.join(", ")}
+                              </TableCell>
+                              <TableCell>{staff.purchaseAdds}</TableCell>
+                              <TableCell>{staff.rewardsRedeemed}</TableCell>
+                              <TableCell>{staff.totalActions}</TableCell>
+                              <TableCell>
+                                {staff.lastActionAt ? formatDate(staff.lastActionAt) : "No activity"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <EditStaffDialog staff={staff} branches={branches} />
+                                  {staff.canManageStatus ? (
+                                    <Button
+                                      type="button"
+                                      variant={nextStatus === "DISABLED" ? "outline" : "default"}
+                                      className="rounded-full"
+                                      disabled={statusPendingId === staff.id}
+                                      onClick={() =>
+                                        void handleStaffStatusChange(staff.id, nextStatus)
+                                      }
+                                    >
+                                      {statusPendingId === staff.id ? "Saving..." : actionLabel}
+                                    </Button>
+                                  ) : (
+                                    <Badge variant="secondary" className="rounded-full">
+                                      {staff.isCurrentUser ? "Current account" : "Read only"}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -743,6 +879,118 @@ function BranchJoinToolsDialog({ branch }: { branch: BranchDoc }) {
             Members can open this link directly. They do not need to type the branch code if you share the full link or QR.
           </p>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditBranchDialog({ branch }: { branch: BranchDoc }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<BranchDoc["status"]>(branch.status);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setErrorMessage("");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      await requestJson(`/api/v1/branches/${branch.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: String(formData.get("name") ?? ""),
+          timezone: String(formData.get("timezone") ?? ""),
+          address: String(formData.get("address") ?? "") || null,
+          status,
+        }),
+      });
+      setOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to update branch.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-full">
+          Edit
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Branch</DialogTitle>
+          <DialogDescription>
+            Update branch presentation, join availability, and storefront details.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`branch-name-${branch.id}`}>Branch name</Label>
+              <Input
+                id={`branch-name-${branch.id}`}
+                name="name"
+                defaultValue={branch.name}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`branch-timezone-${branch.id}`}>Timezone</Label>
+              <Input
+                id={`branch-timezone-${branch.id}`}
+                name="timezone"
+                defaultValue={branch.timezone}
+                required
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`branch-address-${branch.id}`}>Address</Label>
+              <Input
+                id={`branch-address-${branch.id}`}
+                name="address"
+                defaultValue={branch.address ?? ""}
+                placeholder="Optional"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={(value) => setStatus(value as BranchDoc["status"])}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {errorMessage ? (
+            <Alert variant="destructive">
+              <AlertTriangle />
+              <AlertTitle>Branch update failed</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          ) : null}
+          <DialogFooter>
+            <Button type="submit" className="rounded-full" disabled={pending}>
+              {pending ? "Saving..." : "Save Branch"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
@@ -1175,6 +1423,166 @@ function InviteStaffDialog({
               disabled={pending || (requiresBranchAssignment && branches.length === 0)}
             >
               {pending ? "Inviting..." : "Create Staff Record"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditStaffDialog({
+  staff,
+  branches,
+}: {
+  staff: MerchantAdminDashboardProps["staffActivity"][number];
+  branches: BranchDoc[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [role, setRole] = useState<StaffUserDoc["role"]>(staff.role);
+  const [status, setStatus] = useState<StaffUserDoc["status"]>(staff.status);
+  const [primaryBranchId, setPrimaryBranchId] = useState(staff.primaryBranchId ?? branches[0]?.id ?? "");
+  const requiresBranchAssignment = role !== "MERCHANT_ADMIN";
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setErrorMessage("");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const branchIds =
+      role === "MERCHANT_ADMIN"
+        ? branches.map((branch) => branch.id)
+        : primaryBranchId
+          ? [primaryBranchId]
+          : [];
+
+    try {
+      await requestJson(`/api/v1/staff-users/${staff.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName: String(formData.get("fullName") ?? ""),
+          email: String(formData.get("email") ?? ""),
+          role,
+          status,
+          primaryBranchId: role === "MERCHANT_ADMIN" ? branchIds[0] ?? null : primaryBranchId,
+          branchIds,
+        }),
+      });
+      setOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to update staff.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-full">
+          Edit
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Staff</DialogTitle>
+          <DialogDescription>
+            Update the role, branch placement, and access state for this account.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`staff-edit-name-${staff.id}`}>Full name</Label>
+              <Input
+                id={`staff-edit-name-${staff.id}`}
+                name="fullName"
+                defaultValue={staff.fullName}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`staff-edit-email-${staff.id}`}>Email</Label>
+              <Input
+                id={`staff-edit-email-${staff.id}`}
+                name="email"
+                type="email"
+                defaultValue={staff.email}
+                required
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={role} onValueChange={(value) => setRole(value as StaffUserDoc["role"])}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CASHIER">{ROLE_LABELS.CASHIER}</SelectItem>
+                  <SelectItem value="MANAGER">{ROLE_LABELS.MANAGER}</SelectItem>
+                  <SelectItem value="MERCHANT_ADMIN">{ROLE_LABELS.MERCHANT_ADMIN}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={(value) => setStatus(value as StaffUserDoc["status"])}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INVITED">Invited</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="DISABLED">Disabled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Primary branch</Label>
+            {requiresBranchAssignment ? (
+              <Select value={primaryBranchId} onValueChange={setPrimaryBranchId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="rounded-lg border border-border/70 bg-background px-3 py-2 text-sm text-muted-foreground">
+                Business admins continue to inherit all current branch assignments in this tenant.
+              </div>
+            )}
+          </div>
+          {errorMessage ? (
+            <Alert variant="destructive">
+              <AlertTriangle />
+              <AlertTitle>Staff update failed</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          ) : null}
+          <DialogFooter>
+            <Button
+              type="submit"
+              className="rounded-full"
+              disabled={pending || (requiresBranchAssignment && branches.length === 0)}
+            >
+              {pending ? "Saving..." : "Save Staff"}
             </Button>
           </DialogFooter>
         </form>

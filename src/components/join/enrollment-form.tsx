@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  clearEnrollmentDraft,
+  saveEnrollmentDraft,
+  getEnrollmentDraft,
+  saveMemberPass,
+} from "@/lib/member-local-state";
 
 const enrollmentSchema = z.object({
   branchCode: z.string().min(1),
@@ -46,7 +51,6 @@ export function EnrollmentForm({
   branchCode: string;
   plans: EnrollmentPlanOption[];
 }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const {
     control,
@@ -54,6 +58,7 @@ export function EnrollmentForm({
     handleSubmit,
     formState: { errors },
     setError,
+    reset,
   } = useForm<EnrollmentFormValues>({
     resolver: zodResolver(enrollmentSchema),
     defaultValues: {
@@ -67,34 +72,88 @@ export function EnrollmentForm({
     control,
     name: "planId",
   });
+  const watchedDraft = useWatch({
+    control,
+  });
+  const hydratedDraftRef = useRef(false);
   const selectedPlan =
     plans.find((plan) => plan.id === selectedPlanId) ?? plans[0] ?? null;
 
+  useEffect(() => {
+    const savedDraft = getEnrollmentDraft(branchCode);
+    if (!savedDraft) {
+      hydratedDraftRef.current = true;
+      return;
+    }
+
+    reset({
+      branchCode,
+      planId:
+        plans.some((plan) => plan.id === savedDraft.planId)
+          ? savedDraft.planId
+          : plans[0]?.id ?? "",
+      fullName: savedDraft.fullName,
+      phone: savedDraft.phone,
+      email: savedDraft.email,
+      consentVersion: "v1",
+      consentAccepted: true,
+    });
+    hydratedDraftRef.current = true;
+  }, [branchCode, plans, reset]);
+
+  useEffect(() => {
+    if (!hydratedDraftRef.current) {
+      return;
+    }
+
+    saveEnrollmentDraft(branchCode, {
+      fullName: watchedDraft.fullName ?? "",
+      phone: watchedDraft.phone ?? "",
+      email: watchedDraft.email ?? "",
+      planId: watchedDraft.planId ?? plans[0]?.id ?? "",
+    });
+  }, [
+    branchCode,
+    plans,
+    watchedDraft.email,
+    watchedDraft.fullName,
+    watchedDraft.phone,
+    watchedDraft.planId,
+  ]);
+
   const onSubmit = handleSubmit((values) => {
     startTransition(async () => {
-      const response = await fetch("/api/v1/enrollments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      const payload = (await response.json()) as {
-        ok: boolean;
-        data?: { passUrl: string };
-        error?: { message: string };
-      };
-
-      if (!response.ok || !payload.ok || !payload.data) {
-        setError("root", {
-          message:
-            payload.error?.message ?? "Enrollment failed. Check your setup.",
+      try {
+        const response = await fetch("/api/v1/enrollments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
         });
-        return;
-      }
 
-      router.push(payload.data.passUrl);
+        const payload = (await response.json()) as {
+          ok: boolean;
+          data?: { passUrl: string };
+          error?: { message: string };
+        };
+
+        if (!response.ok || !payload.ok || !payload.data) {
+          setError("root", {
+            message:
+              payload.error?.message ?? "Enrollment failed. Check your setup.",
+          });
+          return;
+        }
+
+        clearEnrollmentDraft(branchCode);
+        saveMemberPass(branchCode, payload.data.passUrl);
+        window.location.assign(payload.data.passUrl);
+      } catch {
+        setError("root", {
+          message: "Enrollment failed. Check your setup.",
+        });
+      }
     });
   });
 

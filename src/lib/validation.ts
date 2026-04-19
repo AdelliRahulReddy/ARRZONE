@@ -71,6 +71,13 @@ export const createBranchSchema = z.object({
   address: z.string().optional(),
 });
 
+export const updateBranchSchema = z.object({
+  name: z.string().min(2).optional(),
+  timezone: z.string().min(2).optional(),
+  address: z.string().nullable().optional(),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+});
+
 export const createTenantSchema = z.object({
   name: z.string().min(2),
   slug: z
@@ -80,10 +87,21 @@ export const createTenantSchema = z.object({
     .optional(),
 });
 
+export const updateTenantSchema = z.object({
+  name: z.string().min(2).optional(),
+  status: z.enum(["ACTIVE", "SUSPENDED", "ARCHIVED"]).optional(),
+});
+
 export const createPlatformAdminUserSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email(),
   authUserId: z.string().optional(),
+});
+
+export const updatePlatformAdminUserSchema = z.object({
+  fullName: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  status: z.enum(["INVITED", "ACTIVE", "DISABLED"]).optional(),
 });
 
 export const createStaffUserSchema = z.object({
@@ -98,6 +116,15 @@ export const createStaffUserSchema = z.object({
 
 export const updateStaffUserStatusSchema = z.object({
   status: z.enum(["ACTIVE", "DISABLED"]),
+});
+
+export const updateStaffUserSchema = z.object({
+  fullName: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  role: z.enum(["CASHIER", "MANAGER", "MERCHANT_ADMIN"]).optional(),
+  primaryBranchId: z.string().min(1).nullable().optional(),
+  branchIds: z.array(z.string()).optional(),
+  status: z.enum(["INVITED", "ACTIVE", "DISABLED"]).optional(),
 });
 
 export const createBusinessAdminUserSchema = z.object({

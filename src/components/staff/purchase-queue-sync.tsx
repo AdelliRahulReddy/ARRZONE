@@ -73,7 +73,7 @@ export function PurchaseQueueSync() {
   }
 
   return (
-    <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-950">
+    <div className="rounded-[1.6rem] border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-950 shadow-[0_18px_50px_-40px_rgba(161,98,7,0.45)]">
       <p className="font-medium">{queueCount} purchase event(s) waiting to sync.</p>
       {lastError ? <p className="mt-1 text-amber-950/80">{lastError}</p> : null}
     </div>

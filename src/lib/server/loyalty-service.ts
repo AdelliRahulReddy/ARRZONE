@@ -37,6 +37,7 @@ import {
   type RedeemTokenDoc,
   type SecurityEventDoc,
   type StaffBranchAssignmentDoc,
+  type StaffStatus,
   type StaffUserDoc,
   type TenantDoc,
 } from "@/lib/firebase/model";
@@ -444,6 +445,89 @@ async function assertStaffEmailAvailable(
     409,
     "STAFF_EMAIL_CONFLICT",
   );
+}
+
+async function assertPlatformAdminEmailAvailable(
+  db: AppDatabase,
+  emailNormalized: string,
+  tx?: AppTransaction,
+  excludePlatformAdminUserId?: string,
+) {
+  const matches = await readQuery<PlatformAdminUserDoc>(
+    db
+      .collection(COLLECTIONS.platformAdminUsers)
+      .where("emailNormalized", "==", emailNormalized),
+    tx,
+  );
+
+  const conflict = matches.find((platformAdmin) => platformAdmin.id !== excludePlatformAdminUserId);
+  invariant(
+    !conflict,
+    "A platform admin with this email already exists.",
+    409,
+    "PLATFORM_ADMIN_EMAIL_CONFLICT",
+  );
+}
+
+async function listTenantBranchIds(
+  db: AppDatabase,
+  tenantId: string,
+  tx?: AppTransaction,
+) {
+  const branches = await readQuery<BranchDoc>(
+    db.collection(COLLECTIONS.branches).where("tenantId", "==", tenantId),
+    tx,
+  );
+
+  return branches
+    .map((branch) => branch.id)
+    .sort((left, right) => left.localeCompare(right));
+}
+
+async function syncStaffBranchAssignments(input: {
+  database: AppDatabase;
+  tx: AppTransaction;
+  tenantId: string;
+  staffUserId: string;
+  branchIds: string[];
+  primaryBranchId: string | null;
+}) {
+  const existingAssignments = await readQuery<StaffBranchAssignmentDoc>(
+    input.database
+      .collection(COLLECTIONS.staffBranchAssignments)
+      .where("staffUserId", "==", input.staffUserId),
+    input.tx,
+  );
+
+  const existingAssignmentsById = new Map(
+    existingAssignments.map((assignment) => [assignment.id, assignment]),
+  );
+  const timestamp = nowIso();
+
+  for (const branchId of dedupeIds(input.branchIds)) {
+    const assignmentId = staffBranchAssignmentId(input.staffUserId, branchId);
+    const existingAssignment = existingAssignmentsById.get(assignmentId);
+    input.tx.set(
+      input.database.collection(COLLECTIONS.staffBranchAssignments).doc(assignmentId),
+      {
+        id: assignmentId,
+        tenantId: input.tenantId,
+        staffUserId: input.staffUserId,
+        branchId,
+        isPrimary: branchId === input.primaryBranchId,
+        createdAt: existingAssignment?.createdAt ?? timestamp,
+      } satisfies StaffBranchAssignmentDoc,
+    );
+    existingAssignmentsById.delete(assignmentId);
+  }
+
+  for (const staleAssignment of existingAssignmentsById.values()) {
+    input.tx.delete(
+      input.database
+        .collection(COLLECTIONS.staffBranchAssignments)
+        .doc(staleAssignment.id),
+    );
+  }
 }
 
 function getLineageMembershipIds(membership: MembershipDoc) {
@@ -1334,11 +1418,16 @@ export async function getPassSnapshot(passToken: string) {
 
   const membershipView = await getMembershipWithPlan(db, claims.membershipId);
   const summary = await getMembershipSummary(db, claims.membershipId);
+  const branch = await readDoc<BranchDoc>(
+    db.collection(COLLECTIONS.branches).doc(membershipView.branchId),
+  );
 
   return {
     pass,
     passToken,
     passUrl: passUrl(passToken),
+    branchCode: branch?.code ?? null,
+    branchName: branch?.name ?? membershipView.branchId,
     ...buildMembershipView(membershipView, summary),
   };
 }
@@ -2750,6 +2839,64 @@ export async function createBranch(
   );
 }
 
+export async function updateBranch(
+  branchId: string,
+  input: {
+    name?: string;
+    timezone?: string;
+    address?: string | null;
+    status?: "ACTIVE" | "INACTIVE";
+  },
+  actor: StaffActor,
+) {
+  if (actor.role !== "MERCHANT_ADMIN") {
+    throw new AppError("Only business admins can update branches.", 403, "FORBIDDEN");
+  }
+
+  const db = requireDb();
+  const existing = await readDoc<BranchDoc>(db.collection(COLLECTIONS.branches).doc(branchId));
+  invariant(existing, "Branch not found.", 404, "BRANCH_NOT_FOUND");
+  assertTenantScope(actor, existing.tenantId);
+
+  return withTenantTransaction(
+    {
+      tenantId: existing.tenantId,
+      actorId: actor.staffUserId,
+      actorRole: actor.role,
+    },
+    async (tx, database) => {
+      const current = await readDoc<BranchDoc>(
+        database.collection(COLLECTIONS.branches).doc(branchId),
+        tx,
+      );
+      invariant(current, "Branch not found.", 404, "BRANCH_NOT_FOUND");
+
+      const updated: BranchDoc = {
+        ...current,
+        name: input.name ?? current.name,
+        timezone: input.timezone ?? current.timezone,
+        address: input.address === undefined ? current.address : input.address,
+        status: input.status ?? current.status,
+      };
+      const updatedAt = nowIso();
+
+      tx.set(database.collection(COLLECTIONS.branches).doc(branchId), updated);
+      tx.set(
+        database.collection(COLLECTIONS.branchCodeLookups).doc(current.code),
+        {
+          id: current.code,
+          branchId: current.id,
+          tenantId: current.tenantId,
+          status: updated.status,
+          updatedAt,
+        } satisfies BranchCodeLookupDoc,
+      );
+
+      return updated;
+    },
+  );
+}
+
 export async function createStaffUser(
   input: {
     tenantId: string;
@@ -2890,6 +3037,142 @@ export async function updateStaffUserStatus(
   );
 }
 
+export async function updateStaffUser(
+  staffUserId: string,
+  input: {
+    fullName?: string;
+    email?: string;
+    role?: StaffActor["role"];
+    primaryBranchId?: string | null;
+    branchIds?: string[];
+    status?: StaffStatus;
+  },
+  actor: StaffActor,
+) {
+  if (actor.role !== "MERCHANT_ADMIN") {
+    throw new AppError("Only business admins can edit staff records.", 403, "FORBIDDEN");
+  }
+
+  const db = requireDb();
+  const existing = await readDoc<StaffUserDoc>(db.collection(COLLECTIONS.staffUsers).doc(staffUserId));
+  invariant(existing, "Staff account not found.", 404, "STAFF_NOT_FOUND");
+  assertTenantScope(actor, existing.tenantId);
+
+  if (existing.id === actor.staffUserId && input.role && input.role !== existing.role) {
+    throw new AppError("You cannot change your own role.", 400, "SELF_UPDATE_FORBIDDEN");
+  }
+
+  if (existing.id === actor.staffUserId && input.status === "DISABLED") {
+    throw new AppError("You cannot disable your own account.", 400, "SELF_UPDATE_FORBIDDEN");
+  }
+
+  const nextEmail = (input.email ?? existing.email).trim();
+  const nextEmailNormalized = normalizeEmailAddress(nextEmail);
+  if (nextEmailNormalized !== existing.emailNormalized) {
+    await assertStaffEmailAvailable(db, nextEmailNormalized, undefined, existing.id);
+  }
+
+  let nextRole = input.role ?? existing.role;
+  let nextBranchIds = dedupeIds(input.branchIds ?? existing.branchIds ?? []);
+  if (nextRole === "MERCHANT_ADMIN" && nextBranchIds.length === 0) {
+    nextBranchIds = await listTenantBranchIds(db, existing.tenantId);
+  }
+  if (nextBranchIds.length > 0) {
+    await ensureBranchIdsBelongToTenant(db, existing.tenantId, nextBranchIds);
+  }
+
+  const nextPrimaryBranchId =
+    input.primaryBranchId !== undefined ? input.primaryBranchId : existing.primaryBranchId;
+  const requiresBranchAssignment = nextRole !== "MERCHANT_ADMIN";
+  invariant(
+    !requiresBranchAssignment || (nextPrimaryBranchId && nextBranchIds.includes(nextPrimaryBranchId)),
+    "Primary branch must be part of branch assignments.",
+    400,
+    "PRIMARY_BRANCH_REQUIRED",
+  );
+  invariant(
+    requiresBranchAssignment ||
+      nextPrimaryBranchId === null ||
+      nextPrimaryBranchId === undefined ||
+      nextBranchIds.includes(nextPrimaryBranchId),
+    "Primary branch must be part of branch assignments.",
+    400,
+    "PRIMARY_BRANCH_REQUIRED",
+  );
+
+  return withTenantTransaction(
+    {
+      tenantId: existing.tenantId,
+      actorId: actor.staffUserId,
+      actorRole: actor.role,
+    },
+    async (tx, database) => {
+      const current = await readDoc<StaffUserDoc>(
+        database.collection(COLLECTIONS.staffUsers).doc(staffUserId),
+        tx,
+      );
+      invariant(current, "Staff account not found.", 404, "STAFF_NOT_FOUND");
+      assertTenantScope(actor, current.tenantId);
+
+      const updatedRole = input.role ?? current.role;
+      let updatedBranchIds = dedupeIds(input.branchIds ?? current.branchIds ?? []);
+      if (updatedRole === "MERCHANT_ADMIN" && updatedBranchIds.length === 0) {
+        updatedBranchIds = await listTenantBranchIds(database, current.tenantId, tx);
+      }
+      if (updatedBranchIds.length > 0) {
+        await ensureBranchIdsBelongToTenant(database, current.tenantId, updatedBranchIds, tx);
+      }
+
+      const updatedPrimaryBranchId =
+        input.primaryBranchId !== undefined ? input.primaryBranchId : current.primaryBranchId;
+      const updatedRequiresBranchAssignment = updatedRole !== "MERCHANT_ADMIN";
+      invariant(
+        !updatedRequiresBranchAssignment ||
+          (updatedPrimaryBranchId && updatedBranchIds.includes(updatedPrimaryBranchId)),
+        "Primary branch must be part of branch assignments.",
+        400,
+        "PRIMARY_BRANCH_REQUIRED",
+      );
+      invariant(
+        updatedRequiresBranchAssignment ||
+          updatedPrimaryBranchId === null ||
+          updatedPrimaryBranchId === undefined ||
+          updatedBranchIds.includes(updatedPrimaryBranchId),
+        "Primary branch must be part of branch assignments.",
+        400,
+        "PRIMARY_BRANCH_REQUIRED",
+      );
+
+      if (nextEmailNormalized !== current.emailNormalized) {
+        await assertStaffEmailAvailable(database, nextEmailNormalized, tx, current.id);
+      }
+
+      const updated: StaffUserDoc = {
+        ...current,
+        fullName: input.fullName?.trim() ?? current.fullName,
+        email: nextEmail,
+        emailNormalized: nextEmailNormalized,
+        role: updatedRole,
+        primaryBranchId: updatedPrimaryBranchId ?? null,
+        branchIds: updatedBranchIds,
+        status: input.status ?? current.status,
+      };
+
+      tx.set(database.collection(COLLECTIONS.staffUsers).doc(current.id), updated);
+      await syncStaffBranchAssignments({
+        database,
+        tx,
+        tenantId: current.tenantId,
+        staffUserId: current.id,
+        branchIds: updated.branchIds,
+        primaryBranchId: updated.primaryBranchId,
+      });
+
+      return updated;
+    },
+  );
+}
+
 export async function createTenant(
   input: {
     name: string;
@@ -2921,6 +3204,32 @@ export async function createTenant(
   });
 }
 
+export async function updateTenant(
+  tenantId: string,
+  input: {
+    name?: string;
+    status?: TenantDoc["status"];
+  },
+) {
+  const db = requireDb();
+
+  return db.runTransaction(async (tx) => {
+    const tenantRef = db.collection(COLLECTIONS.tenants).doc(tenantId);
+    const snapshot = await tx.get(tenantRef);
+    invariant(snapshot.exists, "Tenant not found.", 404, "TENANT_NOT_FOUND");
+
+    const current = snapshot.data() as TenantDoc;
+    const updated: TenantDoc = {
+      ...current,
+      name: input.name?.trim() ?? current.name,
+      status: input.status ?? current.status,
+    };
+
+    tx.set(tenantRef, updated);
+    return updated;
+  });
+}
+
 export async function createPlatformAdminUser(
   input: {
     fullName: string;
@@ -2930,18 +3239,7 @@ export async function createPlatformAdminUser(
 ) {
   const db = requireDb();
   const emailNormalized = normalizeEmailAddress(input.email);
-  const existing = await db
-    .collection(COLLECTIONS.platformAdminUsers)
-    .where("emailNormalized", "==", emailNormalized)
-    .limit(1)
-    .get();
-
-  invariant(
-    existing.empty,
-    "A platform admin with this email already exists.",
-    409,
-    "PLATFORM_ADMIN_EMAIL_CONFLICT",
-  );
+  await assertPlatformAdminEmailAvailable(db, emailNormalized);
 
   const platformAdmin: PlatformAdminUserDoc = {
     id: randomUUID(),
@@ -2955,6 +3253,61 @@ export async function createPlatformAdminUser(
 
   await db.collection(COLLECTIONS.platformAdminUsers).doc(platformAdmin.id).set(platformAdmin);
   return platformAdmin;
+}
+
+export async function updatePlatformAdminUser(
+  platformAdminUserId: string,
+  input: {
+    fullName?: string;
+    email?: string;
+    status?: StaffStatus;
+  },
+  actor: PlatformActor,
+) {
+  const db = requireDb();
+  const existing = await readDoc<PlatformAdminUserDoc>(
+    db.collection(COLLECTIONS.platformAdminUsers).doc(platformAdminUserId),
+  );
+  invariant(existing, "Platform admin account not found.", 404, "PLATFORM_ADMIN_NOT_FOUND");
+
+  if (
+    existing.id === actor.platformAdminUserId &&
+    input.status === "DISABLED"
+  ) {
+    throw new AppError("You cannot disable your own platform admin account.", 400, "SELF_UPDATE_FORBIDDEN");
+  }
+
+  const nextEmail = (input.email ?? existing.email).trim();
+  const nextEmailNormalized = normalizeEmailAddress(nextEmail);
+  if (nextEmailNormalized !== existing.emailNormalized) {
+    await assertPlatformAdminEmailAvailable(db, nextEmailNormalized, undefined, existing.id);
+  }
+
+  return db.runTransaction(async (tx) => {
+    const ref = db.collection(COLLECTIONS.platformAdminUsers).doc(platformAdminUserId);
+    const snapshot = await tx.get(ref);
+    invariant(snapshot.exists, "Platform admin account not found.", 404, "PLATFORM_ADMIN_NOT_FOUND");
+
+    const current = snapshot.data() as PlatformAdminUserDoc;
+    if (current.id === actor.platformAdminUserId && input.status === "DISABLED") {
+      throw new AppError("You cannot disable your own platform admin account.", 400, "SELF_UPDATE_FORBIDDEN");
+    }
+
+    if (nextEmailNormalized !== current.emailNormalized) {
+      await assertPlatformAdminEmailAvailable(db, nextEmailNormalized, tx, current.id);
+    }
+
+    const updated: PlatformAdminUserDoc = {
+      ...current,
+      fullName: input.fullName?.trim() ?? current.fullName,
+      email: nextEmail,
+      emailNormalized: nextEmailNormalized,
+      status: input.status ?? current.status,
+    };
+
+    tx.set(ref, updated);
+    return updated;
+  });
 }
 
 export async function createBusinessAdminUser(

@@ -56,6 +56,7 @@ export function RedeemTokenPanel({ passToken }: { passToken: string }) {
             <QrCodeBox
               value={redeemPayload}
               label="This QR expires in 60 seconds and can only be consumed once."
+              size={280}
             />
             <p className="text-sm text-muted-foreground">
               Expires at {expiresAt ? new Date(expiresAt).toLocaleTimeString() : "--"}.

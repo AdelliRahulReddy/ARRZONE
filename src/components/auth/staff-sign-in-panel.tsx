@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { FirebaseError } from "firebase/app";
 import {
   GoogleAuthProvider,
@@ -10,7 +10,6 @@ import {
   type AuthCredential,
   type UserCredential,
 } from "firebase/auth";
-import { useRouter } from "next/navigation";
 import { Globe, LoaderCircle, LockKeyhole } from "lucide-react";
 import {
   getAuthSurfaceDefinition,
@@ -114,7 +113,6 @@ export function StaffSignInPanel({
   redirectTo,
   sessionIssue,
 }: StaffSignInPanelProps) {
-  const router = useRouter();
   const definition = getAuthSurfaceDefinition(surface);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -174,10 +172,7 @@ export function StaffSignInPanel({
 
     const idToken = await userCredential.user.getIdToken(true);
     const nextRedirect = await exchangeIdToken(idToken, redirectTo);
-    startTransition(() => {
-      router.replace(nextRedirect);
-      router.refresh();
-    });
+    window.location.assign(nextRedirect);
   }
 
   async function handlePasswordSignIn(event: FormEvent<HTMLFormElement>) {
@@ -192,6 +187,9 @@ export function StaffSignInPanel({
 
     try {
       const auth = await getFirebaseClientAuth();
+      await auth.signOut().catch(() => {
+        // Ignore stale client-session cleanup failures and continue with the requested sign-in.
+      });
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await finalizeSignIn(userCredential);
     } catch (error) {

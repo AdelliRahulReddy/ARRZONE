@@ -9,18 +9,24 @@ type QrCodeBoxProps = {
   value: string;
   label: string;
   className?: string;
+  size?: number;
 };
 
-export function QrCodeBox({ value, label, className }: QrCodeBoxProps) {
+export function QrCodeBox({
+  value,
+  label,
+  className,
+  size = 224,
+}: QrCodeBoxProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     void QRCode.toDataURL(value, {
-      errorCorrectionLevel: "M",
-      margin: 1,
-      scale: 8,
+      errorCorrectionLevel: "H",
+      margin: 2,
+      width: Math.max(size * 2, 384),
     }).then((url: string) => {
       if (!cancelled) {
         setDataUrl(url);
@@ -34,18 +40,21 @@ export function QrCodeBox({ value, label, className }: QrCodeBoxProps) {
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="inline-flex rounded-[28px] border border-border/70 bg-white p-4 shadow-sm">
+      <div className="inline-flex rounded-[32px] border border-slate-200/80 bg-white p-4 shadow-lg shadow-slate-900/10">
         {dataUrl ? (
           <Image
             src={dataUrl}
             alt={label}
-            className="size-52 rounded-2xl bg-white object-contain"
-            width={208}
-            height={208}
+            className="rounded-[24px] bg-white object-contain"
+            width={size}
+            height={size}
             unoptimized
           />
         ) : (
-          <div className="size-52 animate-pulse rounded-2xl bg-muted" />
+          <div
+            className="animate-pulse rounded-[24px] bg-muted"
+            style={{ width: size, height: size }}
+          />
         )}
       </div>
       <p className="text-sm leading-6 text-muted-foreground">{label}</p>

@@ -202,17 +202,17 @@ export function StaffQrCameraScanner({
   const selectedConstraints = selectedDeviceId
     ? {
         deviceId: { exact: selectedDeviceId },
-        width: { ideal: 720 },
-        height: { ideal: 720 },
+        width: { ideal: 1080 },
+        height: { ideal: 1080 },
         aspectRatio: { ideal: 1 },
-        frameRate: { ideal: 18, max: 24 },
+        frameRate: { ideal: 24, max: 30 },
       }
     : {
         facingMode: { ideal: "environment" },
-        width: { ideal: 720 },
-        height: { ideal: 720 },
+        width: { ideal: 1080 },
+        height: { ideal: 1080 },
         aspectRatio: { ideal: 1 },
-        frameRate: { ideal: 18, max: 24 },
+        frameRate: { ideal: 24, max: 30 },
       };
 
   return (
@@ -256,7 +256,8 @@ export function StaffQrCameraScanner({
       </div>
 
       <p className="text-xs leading-6 text-muted-foreground">
-        If the member QR is on this same phone, use the screenshot fallback below or open the member pass on another device.
+        Accepted formats: full member pass URL, relative <span className="font-mono">/pass/...</span> path,
+        raw pass token, or a live <span className="font-mono">LOYALTY_REDEEM:</span> token.
       </p>
 
       {availableDevices.length > 1 ? (
@@ -297,7 +298,7 @@ export function StaffQrCameraScanner({
           constraints={selectedConstraints}
           formats={["qr_code"]}
           paused={!shouldRenderLiveCamera}
-          scanDelay={250}
+          scanDelay={150}
           onError={(error) => {
             const message = getScannerErrorMessage(error);
             setCameraError(message);

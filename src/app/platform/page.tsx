@@ -1,6 +1,7 @@
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { PlatformAdminDashboard } from "@/components/platform/platform-admin-dashboard";
 import { SurfaceStateCard } from "@/components/auth/surface-state-card";
+import { DashboardHero } from "@/components/admin/dashboard-primitives";
 import { SetupCallout } from "@/components/setup-callout";
 import {
   getAuthIssuePresentation,
@@ -116,22 +117,31 @@ export default async function PlatformPage() {
   }
 
   return (
-    <main className="container-edge min-h-screen space-y-6 py-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">
-            Platform admin
-          </p>
-          <h1 className="text-4xl font-semibold tracking-tight">
-            Platform operations dashboard
-          </h1>
-          <p className="text-lg leading-7 text-muted-foreground">
-            Provision businesses, manage platform admins, and review cross-business
-            security from one place.
-          </p>
-        </div>
-        <SignOutButton />
-      </div>
+    <main className="container-edge min-h-screen space-y-8 py-6 sm:py-10">
+      <DashboardHero
+        eyebrow="Platform admin"
+        title="Platform operations dashboard"
+        description="Provision tenants, manage elevated access, and review cross-business security posture from a single control plane."
+        actions={<SignOutButton />}
+        stats={[
+          {
+            label: "Tenants",
+            value: overview.totalTenants,
+          },
+          {
+            label: "Branches",
+            value: overview.totalBranches,
+          },
+          {
+            label: "Platform admins",
+            value: overview.totalPlatformAdmins,
+          },
+          {
+            label: "Security events",
+            value: overview.totalSecurityEvents,
+          },
+        ]}
+      />
       <PlatformAdminDashboard
         overview={overview}
         tenants={tenants}

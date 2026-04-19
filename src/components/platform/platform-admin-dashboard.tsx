@@ -155,9 +155,33 @@ export function PlatformAdminDashboard({
     }
   }
 
+  async function handlePlatformAdminStatusChange(
+    platformAdminId: string,
+    nextStatus: "ACTIVE" | "DISABLED",
+  ) {
+    setStatusPendingId(platformAdminId);
+    setStatusError("");
+
+    try {
+      await requestJson(`/api/v1/platform-admin-users/${platformAdminId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      setStatusError(
+        error instanceof Error ? error.message : "Failed to update platform admin status.",
+      );
+    } finally {
+      setStatusPendingId(null);
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="space-y-8">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <AdminMetricCard
           title="Tenants"
           value={overview.totalTenants}
@@ -190,18 +214,37 @@ export function PlatformAdminDashboard({
         />
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList variant="line" className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tenants">Tenants</TabsTrigger>
-          <TabsTrigger value="business-admins">Business Admins</TabsTrigger>
-          <TabsTrigger value="platform-admins">Platform Admins</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-5">
+        <TabsList
+          variant="line"
+          className="w-full justify-start overflow-x-auto rounded-full border border-border/60 bg-background/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
+        >
+          <TabsTrigger value="overview" className="min-w-fit rounded-full px-4">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="tenants" className="min-w-fit rounded-full px-4">
+            Tenants
+          </TabsTrigger>
+          <TabsTrigger
+            value="business-admins"
+            className="min-w-fit rounded-full px-4"
+          >
+            Business Admins
+          </TabsTrigger>
+          <TabsTrigger
+            value="platform-admins"
+            className="min-w-fit rounded-full px-4"
+          >
+            Platform Admins
+          </TabsTrigger>
+          <TabsTrigger value="security" className="min-w-fit rounded-full px-4">
+            Security
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-sm">
+            <div className="rounded-[1.9rem] border border-border/60 bg-card/95 p-6 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.18)]">
               <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">
                 Global health
               </p>
@@ -209,25 +252,25 @@ export function PlatformAdminDashboard({
                 Cross-tenant operations at a glance
               </h2>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                <div className="rounded-[1.35rem] border border-border/60 bg-background/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <p className="text-sm font-medium">Active tenants</p>
                   <p className="mt-2 text-4xl font-semibold tracking-tight">
                     {overview.activeTenants}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                <div className="rounded-[1.35rem] border border-border/60 bg-background/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <p className="text-sm font-medium">Membership footprint</p>
                   <p className="mt-2 text-4xl font-semibold tracking-tight">
                     {overview.totalMemberships}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                <div className="rounded-[1.35rem] border border-border/60 bg-background/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <p className="text-sm font-medium">Business admin coverage</p>
                   <p className="mt-2 text-4xl font-semibold tracking-tight">
                     {overview.totalBusinessAdmins}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                <div className="rounded-[1.35rem] border border-border/60 bg-background/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <p className="text-sm font-medium">Merchant staff footprint</p>
                   <p className="mt-2 text-4xl font-semibold tracking-tight">
                     {overview.totalMerchantStaff}
@@ -269,45 +312,105 @@ export function PlatformAdminDashboard({
                   description="Create the first tenant to start onboarding branches, plans, and merchant staff."
                 />
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tenant</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Branches</TableHead>
-                      <TableHead>Plans</TableHead>
-                      <TableHead>Staff</TableHead>
-                      <TableHead>Memberships</TableHead>
-                      <TableHead>Business Admins</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <>
+                  <div className="grid gap-3 md:hidden">
                     {tenants.map((tenant) => (
-                      <TableRow key={tenant.id}>
-                        <TableCell>
-                          <div>
+                      <div
+                        key={tenant.id}
+                        className="rounded-2xl border border-border/70 bg-background/80 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
                             <p className="font-medium">{tenant.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {tenant.slug} · {tenant.id}
                             </p>
                           </div>
-                        </TableCell>
-                        <TableCell>
                           <DashboardStatusBadge value={tenant.status} />
-                        </TableCell>
-                        <TableCell>{tenant.branchCount}</TableCell>
-                        <TableCell>{tenant.planCount}</TableCell>
-                        <TableCell>{tenant.staffCount}</TableCell>
-                        <TableCell>{tenant.membershipCount}</TableCell>
-                        <TableCell>
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              Branches
+                            </p>
+                            <p className="mt-1">{tenant.branchCount}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              Plans
+                            </p>
+                            <p className="mt-1">{tenant.planCount}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              Staff
+                            </p>
+                            <p className="mt-1">{tenant.staffCount}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                              Memberships
+                            </p>
+                            <p className="mt-1">{tenant.membershipCount}</p>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm text-muted-foreground">
                           {tenant.merchantAdmins.length === 0
-                            ? "Unassigned"
+                            ? "No business admins assigned yet."
                             : tenant.merchantAdmins.join(", ")}
-                        </TableCell>
-                      </TableRow>
+                        </p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <EditTenantDialog tenant={tenant} />
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tenant</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Branches</TableHead>
+                          <TableHead>Plans</TableHead>
+                          <TableHead>Staff</TableHead>
+                          <TableHead>Memberships</TableHead>
+                          <TableHead>Business Admins</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {tenants.map((tenant) => (
+                          <TableRow key={tenant.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{tenant.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {tenant.slug} · {tenant.id}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <DashboardStatusBadge value={tenant.status} />
+                            </TableCell>
+                            <TableCell>{tenant.branchCount}</TableCell>
+                            <TableCell>{tenant.planCount}</TableCell>
+                            <TableCell>{tenant.staffCount}</TableCell>
+                            <TableCell>{tenant.membershipCount}</TableCell>
+                            <TableCell>
+                              {tenant.merchantAdmins.length === 0
+                                ? "Unassigned"
+                                : tenant.merchantAdmins.join(", ")}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <EditTenantDialog tenant={tenant} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -440,51 +543,136 @@ export function PlatformAdminDashboard({
               <InvitePlatformAdminDialog />
             </div>
             <div className="mt-6">
+              {statusError ? (
+                <Alert variant="destructive">
+                  <AlertTriangle />
+                  <AlertTitle>Platform admin update failed</AlertTitle>
+                  <AlertDescription>{statusError}</AlertDescription>
+                </Alert>
+              ) : null}
               {platformAdmins.length === 0 ? (
                 <DashboardEmptyState
                   title="No platform admins invited"
                   description="Create a platform admin record to grant access to the platform console."
                 />
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Sign-In Status</TableHead>
-                      <TableHead>Created</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {platformAdmins.map((platformAdmin) => (
-                      <TableRow key={platformAdmin.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{platformAdmin.fullName}</p>
-                            <p className="text-xs text-muted-foreground">{platformAdmin.id}</p>
+                <>
+                  <div className="grid gap-3 md:hidden">
+                    {platformAdmins.map((platformAdmin) => {
+                      const shouldActivate = platformAdmin.status !== "ACTIVE";
+                      const nextStatus = shouldActivate ? "ACTIVE" : "DISABLED";
+                      const actionLabel = shouldActivate ? "Activate" : "Disable";
+
+                      return (
+                        <div
+                          key={platformAdmin.id}
+                          className="rounded-2xl border border-border/70 bg-background/80 p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <p className="font-medium">{platformAdmin.fullName}</p>
+                              <p className="text-sm text-muted-foreground">{platformAdmin.email}</p>
+                              <p className="text-xs text-muted-foreground">{platformAdmin.id}</p>
+                            </div>
+                            <DashboardStatusBadge value={platformAdmin.status} />
                           </div>
-                        </TableCell>
-                        <TableCell>{platformAdmin.email}</TableCell>
-                        <TableCell>
-                          <DashboardStatusBadge value={platformAdmin.status} />
-                        </TableCell>
-                        <TableCell>
-                          {platformAdmin.authUserId ? (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {platformAdmin.authUserId ? (
+                              <Badge variant="outline" className="rounded-full">
+                                Linked
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="rounded-full">
+                                Awaiting first login
+                              </Badge>
+                            )}
                             <Badge variant="outline" className="rounded-full">
-                              Linked
+                              Created {formatDate(platformAdmin.createdAt)}
                             </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="rounded-full">
-                              Awaiting first login
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>{formatDate(platformAdmin.createdAt)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </div>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <EditPlatformAdminDialog platformAdmin={platformAdmin} />
+                            <Button
+                              type="button"
+                              variant={nextStatus === "DISABLED" ? "outline" : "default"}
+                              className="rounded-full"
+                              disabled={statusPendingId === platformAdmin.id}
+                              onClick={() =>
+                                void handlePlatformAdminStatusChange(platformAdmin.id, nextStatus)
+                              }
+                            >
+                              {statusPendingId === platformAdmin.id ? "Saving..." : actionLabel}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Sign-In Status</TableHead>
+                          <TableHead>Created</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {platformAdmins.map((platformAdmin) => {
+                          const shouldActivate = platformAdmin.status !== "ACTIVE";
+                          const nextStatus = shouldActivate ? "ACTIVE" : "DISABLED";
+                          const actionLabel = shouldActivate ? "Activate" : "Disable";
+
+                          return (
+                            <TableRow key={platformAdmin.id}>
+                              <TableCell>
+                                <div>
+                                  <p className="font-medium">{platformAdmin.fullName}</p>
+                                  <p className="text-xs text-muted-foreground">{platformAdmin.id}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell>{platformAdmin.email}</TableCell>
+                              <TableCell>
+                                <DashboardStatusBadge value={platformAdmin.status} />
+                              </TableCell>
+                              <TableCell>
+                                {platformAdmin.authUserId ? (
+                                  <Badge variant="outline" className="rounded-full">
+                                    Linked
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="secondary" className="rounded-full">
+                                    Awaiting first login
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>{formatDate(platformAdmin.createdAt)}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <EditPlatformAdminDialog platformAdmin={platformAdmin} />
+                                  <Button
+                                    type="button"
+                                    variant={nextStatus === "DISABLED" ? "outline" : "default"}
+                                    className="rounded-full"
+                                    disabled={statusPendingId === platformAdmin.id}
+                                    onClick={() =>
+                                      void handlePlatformAdminStatusChange(platformAdmin.id, nextStatus)
+                                    }
+                                  >
+                                    {statusPendingId === platformAdmin.id ? "Saving..." : actionLabel}
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -608,6 +796,101 @@ function CreateTenantDialog() {
           <DialogFooter>
             <Button type="submit" className="rounded-full" disabled={pending}>
               {pending ? "Creating..." : "Create Tenant"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditTenantDialog({
+  tenant,
+}: {
+  tenant: PlatformAdminDashboardProps["tenants"][number];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [status, setStatus] = useState(tenant.status);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setErrorMessage("");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      await requestJson(`/api/v1/tenants/${tenant.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: String(formData.get("name") ?? ""),
+          status,
+        }),
+      });
+      setOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to update tenant.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-full">
+          Edit
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Tenant</DialogTitle>
+          <DialogDescription>
+            Update the business label and tenant lifecycle state.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`tenant-name-${tenant.id}`}>Tenant name</Label>
+              <Input
+                id={`tenant-name-${tenant.id}`}
+                name="name"
+                defaultValue={tenant.name}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  <SelectItem value="ARCHIVED">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {errorMessage ? (
+            <Alert variant="destructive">
+              <AlertTriangle />
+              <AlertTitle>Tenant update failed</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          ) : null}
+          <DialogFooter>
+            <Button type="submit" className="rounded-full" disabled={pending}>
+              {pending ? "Saving..." : "Save Tenant"}
             </Button>
           </DialogFooter>
         </form>
@@ -813,6 +1096,117 @@ function InvitePlatformAdminDialog() {
           <DialogFooter>
             <Button type="submit" className="rounded-full" disabled={pending}>
               {pending ? "Creating..." : "Create Platform Admin"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditPlatformAdminDialog({
+  platformAdmin,
+}: {
+  platformAdmin: PlatformAdminUserDoc;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [status, setStatus] = useState(platformAdmin.status);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setErrorMessage("");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      await requestJson(`/api/v1/platform-admin-users/${platformAdmin.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName: String(formData.get("fullName") ?? ""),
+          email: String(formData.get("email") ?? ""),
+          status,
+        }),
+      });
+      setOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to update platform admin.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-full">
+          Edit
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Platform Admin</DialogTitle>
+          <DialogDescription>
+            Update platform-admin identity details and access state.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`platform-admin-name-${platformAdmin.id}`}>Full name</Label>
+              <Input
+                id={`platform-admin-name-${platformAdmin.id}`}
+                name="fullName"
+                defaultValue={platformAdmin.fullName}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`platform-admin-email-${platformAdmin.id}`}>Email</Label>
+              <Input
+                id={`platform-admin-email-${platformAdmin.id}`}
+                name="email"
+                type="email"
+                defaultValue={platformAdmin.email}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select
+              value={status}
+              onValueChange={(value) => setStatus(value as typeof platformAdmin.status)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="INVITED">Invited</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="DISABLED">Disabled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {errorMessage ? (
+            <Alert variant="destructive">
+              <AlertTriangle />
+              <AlertTitle>Platform admin update failed</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          ) : null}
+          <DialogFooter>
+            <Button type="submit" className="rounded-full" disabled={pending}>
+              {pending ? "Saving..." : "Save Platform Admin"}
             </Button>
           </DialogFooter>
         </form>

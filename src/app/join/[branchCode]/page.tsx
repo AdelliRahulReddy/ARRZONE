@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnrollmentForm } from "@/components/join/enrollment-form";
+import { SavedPassCard } from "@/components/join/saved-pass-card";
 import { SetupCallout } from "@/components/setup-callout";
 import { ROLE_LABELS } from "@/lib/auth/role-labels";
 import { appEnv } from "@/lib/env";
@@ -55,6 +56,7 @@ export default async function JoinPage({
             message="Enrollment needs secure server credentials plus an active branch and plan before members can complete this flow."
           />
         ) : null}
+        <SavedPassCard branchCode={branch.code} branchName={branch.name} />
         <Card className="border-border/70 bg-card/85">
           <CardHeader>
             <CardTitle>Branch context</CardTitle>

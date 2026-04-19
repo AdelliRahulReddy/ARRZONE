@@ -3,6 +3,7 @@ import { AlertCircle, ShieldCheck, Ticket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PassPersistenceBridge } from "@/components/pass/pass-persistence-bridge";
 import { QrCodeBox } from "@/components/qr-code-box";
 import { RedeemTokenPanel } from "@/components/pass/redeem-token-panel";
 import { SetupCallout } from "@/components/setup-callout";
@@ -44,6 +45,7 @@ export default async function PassPage({
 
   return (
     <main className="container-edge grid min-h-screen gap-10 py-10 lg:grid-cols-[1fr_0.95fr]">
+      <PassPersistenceBridge branchCode={pass.branchCode} passUrl={pass.passUrl} />
       <section className="space-y-6">
         <div className="space-y-3">
           <Badge className="rounded-full px-3 py-1 tracking-[0.22em]">
@@ -53,7 +55,7 @@ export default async function PassPage({
             {pass.customerName}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {pass.planName} • {pass.maskedPhone}
+            {pass.planName} • {pass.maskedPhone} • {pass.branchName}
           </p>
         </div>
         <Card className="border-border/70 bg-card/90">
@@ -106,6 +108,7 @@ export default async function PassPage({
             <QrCodeBox
               value={pass.passUrl}
               label="This QR only opens the pass and supports earning lookup. It cannot redeem rewards."
+              size={304}
             />
           </CardContent>
         </Card>
