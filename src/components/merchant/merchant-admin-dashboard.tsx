@@ -188,7 +188,7 @@ export function MerchantAdminDashboard({
         <AdminMetricCard
           title="Memberships"
           value={overview.totalMemberships}
-          description="Total live memberships currently stored in Firestore."
+          description="Total live memberships in this business."
           icon={Sparkles}
         />
         <AdminMetricCard
@@ -517,8 +517,8 @@ export function MerchantAdminDashboard({
               <div>
                 <p className="font-medium">Tenant security signal feed</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  These are the most recent Firestore-backed security events recorded for this
-                  tenant, including suspicious activity, rate limits, and corrective actions.
+                  These are the most recent security events recorded for this
+                  business, including suspicious activity, rate limits, and corrective actions.
                 </p>
               </div>
             </div>
@@ -526,7 +526,7 @@ export function MerchantAdminDashboard({
               {exceptions.length === 0 ? (
                 <DashboardEmptyState
                   title="No security events recorded"
-                  description="Events appear here when rate limits, suspicious activity, or corrective flows write into security_events."
+                  description="Events appear here when rate limits, suspicious activity, or corrective flows are recorded for this business."
                 />
               ) : (
                 <Table>
@@ -1000,7 +1000,7 @@ function InviteStaffDialog({
         <DialogHeader>
           <DialogTitle>Invite Staff</DialogTitle>
           <DialogDescription>
-            Create a Firestore staff record. The Firebase user binds automatically on first verified login.
+            Create a staff access record. The account links automatically on first verified login.
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>

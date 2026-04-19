@@ -47,15 +47,15 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       <main className="container-edge flex min-h-screen items-center justify-center py-16">
         <div className="w-full max-w-xl space-y-6">
           <SetupCallout
-            title="Firebase Auth is not configured"
-            message={`Add the Firebase web auth env vars and Firebase Admin credentials to enable ${definition.surfaceLabel.toLowerCase()} sign-in.`}
+            title="Sign-in is not configured"
+            message={`Add the required sign-in keys and secure server credentials to enable ${definition.surfaceLabel.toLowerCase()} access.`}
           />
           <Card className="border-border/70 bg-card/90">
             <CardHeader>
               <CardTitle>Next Step</CardTitle>
             </CardHeader>
             <CardContent className="text-sm leading-6 text-muted-foreground">
-              Once Firebase Auth is configured, this route will render the{" "}
+              Once sign-in is configured, this route will render the{" "}
               {definition.panelTitle.toLowerCase()} experience. For now, return to the
               overview to continue wiring the app.
               <div className="mt-4">

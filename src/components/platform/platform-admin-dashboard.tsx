@@ -161,7 +161,7 @@ export function PlatformAdminDashboard({
         <AdminMetricCard
           title="Tenants"
           value={overview.totalTenants}
-          description="Merchant accounts currently provisioned in Firestore."
+          description="Businesses currently provisioned on the platform."
           icon={Building2}
         />
         <AdminMetricCard
@@ -347,7 +347,7 @@ export function PlatformAdminDashboard({
                       <TableHead>Business</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Branch Scope</TableHead>
-                      <TableHead>Firebase Link</TableHead>
+                      <TableHead>Sign-In Status</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
@@ -452,7 +452,7 @@ export function PlatformAdminDashboard({
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Firebase Link</TableHead>
+                      <TableHead>Sign-In Status</TableHead>
                       <TableHead>Created</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -784,7 +784,7 @@ function InvitePlatformAdminDialog() {
         <DialogHeader>
           <DialogTitle>Invite Platform Admin</DialogTitle>
           <DialogDescription>
-            Create a `platform_admin_users` record. The Firebase account binds on first verified login.
+            Create a platform admin access record. The account links automatically on first verified login.
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>

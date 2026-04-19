@@ -51,8 +51,8 @@ export default async function JoinPage({
         </div>
         {!appEnv.hasFirebaseAdmin ? (
           <SetupCallout
-            title="Firebase setup required"
-            message="Enrollment requires Firebase Admin credentials plus an active branch and plan configuration before members can complete this flow."
+            title="Enrollment setup required"
+            message="Enrollment needs secure server credentials plus an active branch and plan before members can complete this flow."
           />
         ) : null}
         <Card className="border-border/70 bg-card/85">

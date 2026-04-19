@@ -86,7 +86,7 @@ export default function Home() {
                 href: "/platform",
                 icon: ShieldCheck,
                 title: ROLE_LABELS.PLATFORM_ADMIN,
-                copy: "Multi-tenant oversight, Firestore policy hygiene, and suspicious activity review.",
+                copy: "Multi-business oversight, access hygiene, and suspicious activity review.",
               },
             ].map((item) => (
               <Link
@@ -121,7 +121,7 @@ export default function Home() {
           {
             icon: ShieldCheck,
             title: "Server-enforced isolation",
-            copy: "Privileged writes stay behind Next.js APIs, Firestore rules deny direct client access, and transaction guards enforce the invariants.",
+            copy: "Privileged writes stay behind secure APIs, and transaction guards enforce the program rules.",
           },
           {
             icon: QrCode,

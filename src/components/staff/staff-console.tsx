@@ -35,6 +35,7 @@ import {
   getQueuedPurchaseAdds,
 } from "@/lib/offline/purchase-queue";
 import { PurchaseQueueSync } from "@/components/staff/purchase-queue-sync";
+import { StaffQrCameraScanner } from "@/components/staff/qr-camera-scanner";
 
 type BranchSummary = {
   id: string;
@@ -142,6 +143,8 @@ type StaffConsoleProps = {
   branchPerformance: BranchPerformance[];
   teamMembers: TeamMember[];
 };
+
+type LookupMode = "scan" | "phone";
 
 function formatTimestamp(value: string | null) {
   if (!value) {
@@ -254,6 +257,7 @@ export function StaffConsole({
   const [phone, setPhone] = useState("");
   const [searchResults, setSearchResults] = useState<MemberListItem[]>([]);
   const [memberFeed, setMemberFeed] = useState<WorkspaceMembership[]>(recentMemberships);
+  const [activeLookupMode, setActiveLookupMode] = useState<LookupMode>("scan");
   const [activeMembership, setActiveMembership] = useState<WorkspaceMembership | null>(
     recentMemberships[0] ?? null,
   );
@@ -264,6 +268,8 @@ export function StaffConsole({
       : null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const [scannerPaused, setScannerPaused] = useState(false);
   const [queuedCount, setQueuedCount] = useState(0);
   const [isOnline, setIsOnline] = useState(
     typeof window === "undefined" ? true : window.navigator.onLine,
@@ -491,11 +497,12 @@ export function StaffConsole({
     });
   }
 
-  async function handleResolvePayload() {
+  async function handleResolvePayload(rawOverride?: string) {
     setStatus(null);
     setError(null);
 
-    const parsed = parseScanPayload(scanPayload);
+    const resolvedPayload = (rawOverride ?? scanPayload).trim();
+    const parsed = parseScanPayload(resolvedPayload);
     if (parsed.type === "UNKNOWN") {
       setError("The scanner could not classify this payload.");
       return;
@@ -509,7 +516,7 @@ export function StaffConsole({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ qrPayload: scanPayload }),
+          body: JSON.stringify({ qrPayload: resolvedPayload }),
         },
       );
       const nextMember = normalizeMembershipRecord(membership);
@@ -539,6 +546,18 @@ export function StaffConsole({
       redemption.payload.membershipId,
       `Reward redeemed. Remaining balance: ${redemption.payload.rewardBalance}.`,
     );
+  }
+
+  function handleCameraDetected(rawValue: string) {
+    const normalizedPayload = rawValue.trim();
+    if (!normalizedPayload) {
+      return;
+    }
+
+    setScanPayload(normalizedPayload);
+    setScannerError(null);
+    setScannerPaused(true);
+    startTransition(() => void handleResolvePayload(normalizedPayload));
   }
 
   async function handlePhoneSearch() {
@@ -605,7 +624,7 @@ export function StaffConsole({
         <WorkspaceStat
           label="Branch access"
           value={accessibleBranches.length}
-          description="Branch scope enforced server-side for every lookup and write."
+          description="Branches this signed-in account can operate."
         />
         <WorkspaceStat
           label="Offline queue"
@@ -808,35 +827,76 @@ export function StaffConsole({
             </>
           ) : null}
 
-          <Tabs defaultValue="scan" className="space-y-4">
+          <Tabs
+            value={activeLookupMode}
+            onValueChange={(value) => setActiveLookupMode(value as LookupMode)}
+            className="space-y-4"
+          >
             <TabsList className="grid w-full grid-cols-2 rounded-full">
-              <TabsTrigger value="scan">Scan / Paste payload</TabsTrigger>
-              <TabsTrigger value="phone">Phone fallback</TabsTrigger>
+              <TabsTrigger value="scan">Camera scanner</TabsTrigger>
+              <TabsTrigger value="phone">Phone search</TabsTrigger>
             </TabsList>
 
             <TabsContent value="scan">
               <Card className="border-border/70 bg-card/90">
                 <CardHeader>
-                  <CardTitle>Resolve pass or live redeem token</CardTitle>
+                  <CardTitle>Scan member pass or redeem token</CardTitle>
                   <CardDescription>
-                    Pass lookup opens the member. Redeem-token scan consumes a live reward.
+                    Use the camera for checkout, or paste the code manually when scanning is unavailable.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Label htmlFor="scanPayload">QR payload</Label>
+                  <div className="space-y-3 rounded-3xl border border-border/70 bg-background/70 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1">
+                        <p className="font-medium">Live camera scanner</p>
+                        <p className="text-sm leading-6 text-muted-foreground">
+                          Point the rear camera at a member pass or live redeem QR to resolve it instantly.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() => {
+                          setScannerPaused((current) => !current);
+                          setScannerError(null);
+                        }}
+                      >
+                        {scannerPaused ? "Resume camera" : "Pause camera"}
+                      </Button>
+                    </div>
+                    <p className="text-xs leading-6 text-muted-foreground">
+                      Use another device to display the QR code. This phone cannot scan a QR that is on its own screen.
+                    </p>
+                    <StaffQrCameraScanner
+                      paused={activeLookupMode !== "scan" || scannerPaused || isPending}
+                      onDetected={handleCameraDetected}
+                      onError={setScannerError}
+                    />
+                    {scannerError ? (
+                      <div className="rounded-2xl border border-dashed border-border/80 bg-card/80 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                        {scannerError}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <Separator />
+
+                  <Label htmlFor="scanPayload">Manual QR payload</Label>
                   <Textarea
                     id="scanPayload"
                     value={scanPayload}
                     onChange={(event) => setScanPayload(event.target.value)}
-                    placeholder="Paste a pass URL or LOYALTY_REDEEM token payload"
+                    placeholder="Paste a pass link or LOYALTY_REDEEM token if camera scanning is unavailable"
                     className="min-h-32"
                   />
                   <Button
-                    disabled={isPending}
+                    disabled={isPending || !scanPayload.trim()}
                     className="rounded-full"
                     onClick={() => startTransition(() => void handleResolvePayload())}
                   >
-                    Resolve payload
+                    Resolve pasted payload
                   </Button>
                 </CardContent>
               </Card>
@@ -845,7 +905,7 @@ export function StaffConsole({
             <TabsContent value="phone">
               <Card className="border-border/70 bg-card/90">
                 <CardHeader>
-                  <CardTitle>Phone fallback</CardTitle>
+                  <CardTitle>Phone search</CardTitle>
                   <CardDescription>
                     Search active members by phone for earning or store-manager review.
                   </CardDescription>

@@ -24,8 +24,8 @@ export default async function BusinessAdminPage() {
     return (
       <main className="container-edge py-10">
         <SetupCallout
-          title="Business admin requires Firebase Auth"
-          message="Configure Firebase Auth and seed staff_users records to unlock the admin portal."
+          title="Business admin sign-in is not configured"
+          message="Finish sign-in setup and invite an approved business admin to unlock this workspace."
           actionHref={`/sign-in?redirectTo=${encodeURIComponent(BUSINESS_ADMIN_ROUTE)}`}
           actionLabel="Open sign-in"
         />
@@ -124,7 +124,7 @@ export default async function BusinessAdminPage() {
             Business operations dashboard
           </h1>
           <p className="text-lg leading-7 text-muted-foreground">
-            Manage branches, reward plans, and tenant staff from one Firestore-backed console.
+            Manage branches, reward plans, and team access from one place.
           </p>
         </div>
         <SignOutButton />

@@ -17,8 +17,8 @@ export default async function StaffPage() {
     return (
       <main className="container-edge py-10">
         <SetupCallout
-          title="Store operations auth is not configured"
-          message="Configure Firebase Auth web keys and Firebase Admin credentials to enable signed-in operations access, branch-scoped access, and protected write APIs."
+          title="Store operations sign-in is not configured"
+          message="Finish sign-in setup to enable protected store operations and branch-based access."
           actionHref="/sign-in?redirectTo=%2Fstaff"
           actionLabel="Open sign-in route"
         />
@@ -99,8 +99,7 @@ export default async function StaffPage() {
             {getStaffRoleDisplayName(actor.role)} workspace
           </h1>
           <p className="text-lg text-muted-foreground">
-            Tenant-scoped by Firebase Auth, app-level role checks, and server-side
-            Firestore transactions.
+            Open members, add purchases, and redeem rewards for the branches assigned to this account.
           </p>
         </div>
         <SignOutButton />

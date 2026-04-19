@@ -22,8 +22,8 @@ export default async function PlatformPage() {
     return (
       <main className="container-edge py-10">
         <SetupCallout
-          title="Platform admin sign-in required"
-          message="Configure Firebase Auth and an active `platform_admin_users` record to review cross-tenant health."
+          title="Platform admin sign-in is not configured"
+          message="Finish sign-in setup and invite an approved platform admin to review cross-business health."
           actionHref="/sign-in?redirectTo=%2Fplatform"
           actionLabel="Open sign-in"
         />
@@ -126,8 +126,8 @@ export default async function PlatformPage() {
             Platform operations dashboard
           </h1>
           <p className="text-lg leading-7 text-muted-foreground">
-            Provision tenants, manage platform admins, and review cross-tenant
-            security from one Firestore-backed console.
+            Provision businesses, manage platform admins, and review cross-business
+            security from one place.
           </p>
         </div>
         <SignOutButton />

@@ -57,10 +57,12 @@ function getFirebaseErrorMessage(error: unknown) {
       return "The Google popup was blocked. Allow popups for this site and try again.";
     case "auth/popup-closed-by-user":
       return "The Google sign-in popup was closed before completion.";
+    case "auth/unauthorized-domain":
+      return "This site is not approved for Google sign-in yet. Ask an admin to finish the sign-in setup and try again.";
     case "auth/too-many-requests":
       return "Too many attempts. Try again in a few minutes.";
     default:
-      return error.message || "Authentication failed.";
+      return "Authentication failed. Check the account configuration and try again.";
   }
 }
 

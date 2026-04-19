@@ -98,7 +98,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
 
   if (boundSnapshot.size > 1) {
     throw new AppError(
-      `This Firebase Auth user is mapped to multiple ${options.accountLabel} records.`,
+      `This sign-in account is mapped to multiple ${options.accountLabel} records.`,
       409,
       accessCode(options.codePrefix, "MAPPING_AMBIGUOUS"),
     );
@@ -113,7 +113,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
   const email = session.email ? normalizeEmailAddress(session.email) : "";
   if (!email || session.email_verified !== true) {
     throw new AppError(
-      `A verified Firebase Auth email is required for ${options.accountLabel} access.`,
+      `A verified email address is required for ${options.accountLabel} access.`,
       403,
       accessCode(options.codePrefix, "EMAIL_NOT_VERIFIED"),
     );
@@ -127,7 +127,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
 
   if (emailSnapshot.empty) {
     throw new AppError(
-      `No ${options.accountLabel} record matched this Firebase account.`,
+      `No ${options.accountLabel} record matched this sign-in account.`,
       403,
       accessCode(options.codePrefix, "MAPPING_MISSING"),
     );
@@ -137,7 +137,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
   const activeBinding = records.find((record) => record.authUserId);
   if (activeBinding) {
     throw new AppError(
-      "This email is already linked to another Firebase Auth user.",
+      "This email is already linked to another sign-in account.",
       409,
       accessCode(options.codePrefix, "ALREADY_BOUND"),
     );
@@ -167,7 +167,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
     }
 
     throw new AppError(
-      `No active ${options.accountLabel} record matched this Firebase account.`,
+      `No active ${options.accountLabel} record matched this sign-in account.`,
       403,
       accessCode(options.codePrefix, "MAPPING_MISSING"),
     );
@@ -179,7 +179,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
     const snapshot = await tx.get(recordRef);
     if (!snapshot.exists) {
       throw new AppError(
-        `No ${options.accountLabel} record matched this Firebase account.`,
+        `No ${options.accountLabel} record matched this sign-in account.`,
         403,
         accessCode(options.codePrefix, "MAPPING_MISSING"),
       );
@@ -196,7 +196,7 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
 
     if (record.authUserId && record.authUserId !== session.uid) {
       throw new AppError(
-        "This email is already linked to another Firebase Auth user.",
+        "This email is already linked to another sign-in account.",
         409,
         accessCode(options.codePrefix, "ALREADY_BOUND"),
       );

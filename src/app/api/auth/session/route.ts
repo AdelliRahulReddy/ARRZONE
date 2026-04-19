@@ -35,14 +35,14 @@ export async function POST(request: Request) {
     if (requestedSurface === "platform") {
       const actor = await resolvePlatformActorFromClaims(decodedToken);
       if (!actor) {
-        throw new AppError("A valid Firebase session is required.", 401, "UNAUTHORIZED");
+        throw new AppError("A valid sign-in session is required.", 401, "UNAUTHORIZED");
       }
       nextRedirect = safeRedirectTarget ?? "/platform";
     } else {
       try {
         const actor = await resolveStaffActorFromClaims(decodedToken);
         if (!actor) {
-          throw new AppError("A valid Firebase session is required.", 401, "UNAUTHORIZED");
+          throw new AppError("A valid sign-in session is required.", 401, "UNAUTHORIZED");
         }
 
         const minimumRole = requestedSurface
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
         if (!requestedSurface && shouldFallbackToPlatform(error)) {
           const platformActor = await resolvePlatformActorFromClaims(decodedToken);
           if (!platformActor) {
-            throw new AppError("A valid Firebase session is required.", 401, "UNAUTHORIZED");
+            throw new AppError("A valid sign-in session is required.", 401, "UNAUTHORIZED");
           }
           nextRedirect = "/platform";
         } else {

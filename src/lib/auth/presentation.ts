@@ -37,14 +37,14 @@ const surfaceDefinitions: Record<AuthSurface, AuthSurfaceDefinition> = {
     eyebrow: "Store Operations",
     heroTitle: "Sign in to Store Operations",
     heroDescription:
-      "Use a verified Firebase account that already matches an active counter-staff, store-manager, or business-admin record. Firestore still decides branch scope and server-side permissions.",
-    panelBadge: "Branch-Scoped Access",
+      "Use an approved store account that already matches active counter-staff, store-manager, or business-admin access.",
+    panelBadge: "Branch Access",
     panelTitle: "Store Operations Sign-In",
     panelDescription:
       "Email/password and Google are both supported. After sign-in, the app returns you to the operations workspace you requested.",
     requirements: [
-      "Verified Firebase email",
-      "Active staff_users record",
+      "Verified email",
+      "Active staff access",
       `${ROLE_LABELS.CASHIER}, ${ROLE_LABELS.MANAGER}, or ${ROLE_LABELS.MERCHANT_ADMIN} role`,
     ],
     requiredRoleLabel: ACTIVE_STAFF_ROLE_LABELS.join(", "),
@@ -55,14 +55,14 @@ const surfaceDefinitions: Record<AuthSurface, AuthSurfaceDefinition> = {
     eyebrow: ROLE_LABELS.MERCHANT_ADMIN,
     heroTitle: `Sign in to ${ROLE_LABELS.MERCHANT_ADMIN}`,
     heroDescription:
-      "Use a verified Firebase account mapped to an active business-admin record before reviewing plans, branches, staff, and reports.",
+      "Use an approved business-admin account before reviewing plans, branches, staff, and reports.",
     panelBadge: "Tenant Admin Access",
     panelTitle: `${ROLE_LABELS.MERCHANT_ADMIN} Sign-In`,
     panelDescription:
       "Only business admins can open tenant reporting and configuration surfaces.",
     requirements: [
-      "Verified Firebase email",
-      "Active staff_users record",
+      "Verified email",
+      "Active business-admin access",
       `${ROLE_LABELS.MERCHANT_ADMIN} role`,
     ],
     requiredRoleLabel: ROLE_LABELS.MERCHANT_ADMIN,
@@ -73,15 +73,15 @@ const surfaceDefinitions: Record<AuthSurface, AuthSurfaceDefinition> = {
     eyebrow: ROLE_LABELS.PLATFORM_ADMIN,
     heroTitle: "Sign in to the Platform Console",
     heroDescription:
-      "Use a verified Firebase account mapped to an active platform-admin record before reviewing cross-tenant operations, alerts, and platform controls.",
+      "Use an approved platform-admin account before reviewing cross-business operations, alerts, and platform controls.",
     panelBadge: "Platform-Wide Access",
     panelTitle: `${ROLE_LABELS.PLATFORM_ADMIN} Sign-In`,
     panelDescription:
       "Only platform admins can open the multi-tenant oversight surface and platform-only controls.",
     requirements: [
-      "Verified Firebase email",
-      "Active platform_admin_users record",
-      "Platform admin access managed outside tenant staff",
+      "Verified email",
+      "Active platform-admin access",
+      "Platform console privileges",
     ],
     requiredRoleLabel: `Active ${ROLE_LABELS.PLATFORM_ADMIN.toLowerCase()} account`,
   },
@@ -177,7 +177,7 @@ export function getAuthIssuePresentation(
     case "UNAUTHORIZED":
       return {
         title: `${definition.surfaceLabel} sign-in required`,
-        message: `Sign in with a verified Firebase account before opening ${definition.surfaceLabel.toLowerCase()}.`,
+        message: `Sign in with an approved account before opening ${definition.surfaceLabel.toLowerCase()}.`,
         showSignOut: false,
       };
     case "FORBIDDEN":
@@ -188,86 +188,86 @@ export function getAuthIssuePresentation(
       };
     case "PLATFORM_ADMIN_DISABLED":
       return {
-        title: "Platform admin disabled",
+        title: "Platform access disabled",
         message:
-          "This platform admin record is disabled in Firestore. Reactivate it or sign in with a different platform account.",
+          "This platform access record is disabled. Reactivate it or sign in with a different platform account.",
         showSignOut: true,
       };
     case "PLATFORM_ADMIN_NOT_ACTIVE":
       return {
-        title: "Platform admin not active",
+        title: "Platform access not active",
         message:
-          "This platform admin record is not active yet. Activate it before signing in again.",
+          "This platform access record is not active yet. Activate it before signing in again.",
         showSignOut: true,
       };
     case "PLATFORM_ADMIN_EMAIL_NOT_VERIFIED":
       return {
         title: "Verified email required",
         message:
-          "Firebase must report a verified email before this account can bind to a platform admin record. Verify the email, then try again.",
+          "This email address must be verified before the account can be used for platform access. Verify the email, then try again.",
         showSignOut: true,
       };
     case "PLATFORM_ADMIN_MAPPING_MISSING":
       return {
-        title: "No matching platform admin record",
+        title: "No matching platform access",
         message:
-          "This Firebase account signed in successfully, but no active platform_admin_users record matched it. Create the platform admin record first, then try again.",
+          "This account signed in successfully, but it is not on the active platform admin access list. Add it first, then try again.",
         showSignOut: true,
       };
     case "PLATFORM_ADMIN_MAPPING_AMBIGUOUS":
       return {
-        title: "Multiple platform admin records matched",
+        title: "Multiple platform access records matched",
         message:
-          "This email matched more than one platform admin record, so the app could not decide which account to bind. Clean up the duplicate records and try again.",
+          "This email matched more than one platform access record, so the app could not decide which account to use. Clean up the duplicates and try again.",
         showSignOut: true,
       };
     case "PLATFORM_ADMIN_ALREADY_BOUND":
       return {
         title: "Platform account already linked",
         message:
-          "This email is already bound to another Firebase Auth user. Sign in with the originally linked account or update the platform admin record.",
+          "This email is already linked to another sign-in account. Sign in with the originally linked account or update the platform access record.",
         showSignOut: true,
       };
     case "STAFF_DISABLED":
       return {
-        title: "Staff account disabled",
+        title: "Staff access disabled",
         message:
-          "This staff record is disabled in Firestore. Ask an admin to reactivate it or sign in with a different account.",
+          "This staff access record is disabled. Ask an admin to reactivate it or sign in with a different account.",
         showSignOut: true,
       };
     case "STAFF_NOT_ACTIVE":
       return {
-        title: "Staff account not active",
+        title: "Staff access not active",
         message:
-          "This staff record is not active yet. Ask an admin to activate it before signing in again.",
+          "This staff access record is not active yet. Ask an admin to activate it before signing in again.",
         showSignOut: true,
       };
     case "STAFF_EMAIL_NOT_VERIFIED":
       return {
         title: "Verified email required",
         message:
-          "Firebase must report a verified email before this account can bind to a staff record. Verify the email, then try again.",
+          "This email address must be verified before the account can be used for staff access. Verify the email, then try again.",
         showSignOut: true,
       };
     case "STAFF_MAPPING_MISSING":
       return {
-        title: "No matching staff record",
+        title: "No matching staff access",
         message:
-          "This Firebase account signed in successfully, but no active staff_users record matched it. Invite this email first or correct the existing staff record.",
+          "This account signed in successfully, but it is not on the active staff access list. Invite this email first or correct the existing access record.",
         showSignOut: true,
       };
     case "STAFF_MAPPING_AMBIGUOUS":
       return {
-        title: "Multiple staff records matched",
+        title: "Multiple staff access records matched",
         message:
-          "This email matched more than one staff record, so the app could not decide which account to bind. Clean up the duplicate records and try again.",
+          "This email matched more than one staff access record, so the app could not decide which account to use. Clean up the duplicates and try again.",
         showSignOut: true,
       };
     case "STAFF_ALREADY_BOUND":
       return {
         title: "Account already linked",
         message:
-          "This email is already bound to another Firebase Auth user. Sign in with the originally linked account or update the staff record.",
+          "This email is already linked to another sign-in account. Sign in with the originally linked account or update the staff access record.",
         showSignOut: true,
       };
     default:

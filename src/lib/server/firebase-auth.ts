@@ -21,7 +21,7 @@ export function getFirebaseAdminAuth() {
 export async function createStaffSessionCookie(idToken: string) {
   if (!appEnv.hasFirebaseAdmin) {
     throw new AppError(
-      "Firebase Admin is not configured.",
+      "Secure server credentials are not configured.",
       503,
       "SETUP_REQUIRED",
     );
@@ -35,7 +35,7 @@ export async function createStaffSessionCookie(idToken: string) {
 export async function verifyStaffIdToken(idToken: string) {
   if (!appEnv.hasFirebaseAdmin) {
     throw new AppError(
-      "Firebase Admin is not configured.",
+      "Secure server credentials are not configured.",
       503,
       "SETUP_REQUIRED",
     );
@@ -45,7 +45,7 @@ export async function verifyStaffIdToken(idToken: string) {
     return await getFirebaseAdminAuth().verifyIdToken(idToken, true);
   } catch {
     throw new AppError(
-      "The Firebase sign-in token is invalid or expired. Try signing in again.",
+      "The sign-in token is invalid or expired. Try signing in again.",
       401,
       "UNAUTHORIZED",
     );
