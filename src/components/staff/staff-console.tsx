@@ -268,8 +268,6 @@ export function StaffConsole({
       : null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [scannerError, setScannerError] = useState<string | null>(null);
-  const [scannerPaused, setScannerPaused] = useState(false);
   const [queuedCount, setQueuedCount] = useState(0);
   const [isOnline, setIsOnline] = useState(
     typeof window === "undefined" ? true : window.navigator.onLine,
@@ -555,8 +553,7 @@ export function StaffConsole({
     }
 
     setScanPayload(normalizedPayload);
-    setScannerError(null);
-    setScannerPaused(true);
+    setError(null);
     startTransition(() => void handleResolvePayload(normalizedPayload));
   }
 
@@ -842,44 +839,14 @@ export function StaffConsole({
                 <CardHeader>
                   <CardTitle>Scan member pass or redeem token</CardTitle>
                   <CardDescription>
-                    Use the camera for checkout, or paste the code manually when scanning is unavailable.
+                    Use the live scanner for checkout, or fall back to a screenshot or pasted payload when needed.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3 rounded-3xl border border-border/70 bg-background/70 p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="space-y-1">
-                        <p className="font-medium">Live camera scanner</p>
-                        <p className="text-sm leading-6 text-muted-foreground">
-                          Point the rear camera at a member pass or live redeem QR to resolve it instantly.
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-full"
-                        onClick={() => {
-                          setScannerPaused((current) => !current);
-                          setScannerError(null);
-                        }}
-                      >
-                        {scannerPaused ? "Resume camera" : "Pause camera"}
-                      </Button>
-                    </div>
-                    <p className="text-xs leading-6 text-muted-foreground">
-                      Use another device to display the QR code. This phone cannot scan a QR that is on its own screen.
-                    </p>
-                    <StaffQrCameraScanner
-                      paused={activeLookupMode !== "scan" || scannerPaused || isPending}
-                      onDetected={handleCameraDetected}
-                      onError={setScannerError}
-                    />
-                    {scannerError ? (
-                      <div className="rounded-2xl border border-dashed border-border/80 bg-card/80 px-4 py-3 text-sm leading-6 text-muted-foreground">
-                        {scannerError}
-                      </div>
-                    ) : null}
-                  </div>
+                  <StaffQrCameraScanner
+                    active={activeLookupMode === "scan" && !isPending}
+                    onDetected={handleCameraDetected}
+                  />
 
                   <Separator />
 

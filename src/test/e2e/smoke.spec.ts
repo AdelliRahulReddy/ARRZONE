@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("overview page renders the loyalty landing surface", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("Run a checkout-speed loyalty program")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open Member Enrollment" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open Branch Enrollment" })).toBeVisible();
 });
 
 test("sign-in route renders the sign-in surface", async ({ page }) => {

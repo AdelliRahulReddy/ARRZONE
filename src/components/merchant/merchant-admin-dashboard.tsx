@@ -1,6 +1,7 @@
 "use client";
 
-import { startTransition, useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { startTransition, useEffect, useMemo, useState, type FormEvent } from "react";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -47,6 +48,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QrCodeBox } from "@/components/qr-code-box";
 import { getStaffRoleDisplayName, ROLE_LABELS } from "@/lib/auth/role-labels";
 import type {
   BranchDoc,
@@ -356,7 +358,7 @@ export function MerchantAdminDashboard({
                   Branches
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-                  Branch directory and join codes
+                  Branch directory and member join links
                 </h2>
               </div>
               <CreateBranchDialog tenantId={tenantId} />
@@ -373,6 +375,7 @@ export function MerchantAdminDashboard({
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Code</TableHead>
+                      <TableHead>Member Join</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Timezone</TableHead>
                       <TableHead>Created</TableHead>
@@ -391,6 +394,9 @@ export function MerchantAdminDashboard({
                           <Badge variant="outline" className="rounded-full">
                             {branch.code}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <BranchJoinToolsDialog branch={branch} />
                         </TableCell>
                         <TableCell>
                           <DashboardStatusBadge value={branch.status} />
@@ -649,6 +655,94 @@ function CreateBranchDialog({ tenantId }: { tenantId: string }) {
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BranchJoinToolsDialog({ branch }: { branch: BranchDoc }) {
+  const [origin, setOrigin] = useState("");
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const joinPath = `/join/${encodeURIComponent(branch.code)}`;
+  const joinUrl = origin ? new URL(joinPath, origin).toString() : "";
+
+  async function handleCopyLink() {
+    if (!joinUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-full">
+          Join link
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>{branch.name} join link</DialogTitle>
+          <DialogDescription>
+            Share this unique branch link with members so they can open the correct enrollment page directly.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Branch join URL
+            </p>
+            <p className="mt-2 break-all text-sm leading-6 text-foreground">
+              {joinUrl || joinPath}
+            </p>
+          </div>
+
+          {joinUrl ? (
+            <QrCodeBox
+              value={joinUrl}
+              label="Print or share this QR. Scanning it opens this branch's member enrollment page."
+            />
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border/80 bg-background/60 p-4 text-sm leading-6 text-muted-foreground">
+              Preparing the branch QR...
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              type="button"
+              className="rounded-full"
+              onClick={() => void handleCopyLink()}
+              disabled={!joinUrl}
+            >
+              {copyState === "copied"
+                ? "Copied join link"
+                : copyState === "failed"
+                  ? "Copy failed"
+                  : "Copy join link"}
+            </Button>
+            <Button asChild type="button" variant="outline" className="rounded-full">
+              <Link href={joinPath} target="_blank">
+                Open enrollment
+              </Link>
+            </Button>
+          </div>
+
+          <p className="text-sm leading-6 text-muted-foreground">
+            Members can open this link directly. They do not need to type the branch code if you share the full link or QR.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

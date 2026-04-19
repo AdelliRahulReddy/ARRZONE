@@ -34,7 +34,7 @@ export default function Home() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="h-12 rounded-full px-6">
               <Link href="/join">
-                Open Member Enrollment
+                Open Branch Enrollment
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
