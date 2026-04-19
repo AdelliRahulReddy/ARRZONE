@@ -13,6 +13,7 @@ Core behavior:
 - Static `PASS` QR only opens the pass and supports staff earning lookup.
 - Actual redemption requires a short-lived single-use `REDEEM` token.
 - Staff/admin auth is handled by Firebase Auth session cookies.
+- Protected staff/admin APIs now also accept Firebase ID tokens through `Authorization: Bearer <token>` for mobile clients.
 - Firestore is the primary database.
 - Firebase Admin SDK is used for all sensitive reads/writes.
 - `ledger_events` is the source of truth.
@@ -29,6 +30,12 @@ As of the current repo state:
 - Delete protection is enabled on the Firestore database.
 - Firestore rules and indexes have already been deployed from this repo.
 - Local Firebase Admin credentials are wired through `.env.local` and a repo-local `.secrets/` directory.
+- A native operator-app starter now exists inside this repo at `mobile/store_ops_app`.
+- The Flutter starter currently exposes a temporary manual bootstrap screen for:
+  - backend base URL
+  - Firebase ID token
+  - `GET /api/auth/mobile/me`
+- The local Android build output is `mobile/store_ops_app/build/app/outputs/flutter-apk/app-release.apk`.
 - Demo bootstrap data has been seeded once into the live project:
   - tenant `tenant:demo-merchant`
   - branch `branch:demo-merchant:demo-branch`
@@ -41,6 +48,7 @@ As of the current repo state:
 Still missing for real app usage:
 - Production-specific seed data beyond the local bootstrap defaults.
 - Better merchant setup UX; currently some setup is still API/data driven.
+- Firestore quota headroom/monitoring; current development testing has already hit `8 RESOURCE_EXHAUSTED: Quota exceeded.`
 
 ## 3. Stack
 
@@ -106,6 +114,8 @@ Pattern:
 - Platform-admin access maps to Firestore `platform_admin_users`
 - Active staff lookup is done in `src/lib/server/auth.ts`
 - Branch authorization comes from `staff_users.branchIds`
+- Browser web uses Firebase session cookies
+- Mobile clients can use Firebase ID tokens as bearer tokens against protected APIs
 - Generic `/sign-in` is surface-aware:
   - `/staff` and `/business-admin` resolve through `staff_users`
   - `/platform` resolves through `platform_admin_users`
@@ -120,6 +130,7 @@ Main files:
   - Global shell only; auth is handled by Firebase session routes and client Firebase SDK.
 - `src/proxy.ts`
   - Protects staff/admin pages and protected API groups with a cookie-presence gate.
+  - Protected APIs now bypass the cookie gate when a valid bearer token is present, so Flutter/native clients can call the same server endpoints.
 
 Protected route groups:
 - `/staff(.*)`
@@ -136,6 +147,7 @@ Public APIs:
 - enrollment
 - public pass snapshot
 - pass redeem-token generation
+- mobile actor bootstrap via `GET /api/auth/mobile/me`
 
 ## 8. Environment / Secrets
 
@@ -339,6 +351,16 @@ Route handlers are thin wrappers around validation + service calls.
 - `GET /api/v1/passes/[token]`
 - `POST /api/v1/passes/[token]/redeem-token`
 
+### Auth and mobile bootstrap
+- `POST /api/auth/session`
+- `POST /api/auth/logout`
+- `GET /api/auth/mobile/me`
+  - Accepts `Authorization: Bearer <firebase-id-token>`
+  - Resolves the caller to either:
+    - staff actor with `tenantId`, `branchIds`, role, and available surfaces
+    - platform-admin actor with available platform surface
+  - Current honest status: the route is implemented, but in the present Firebase project it can fail with Firestore `RESOURCE_EXHAUSTED` until quota resets or billing/usage is corrected
+
 ### Staff APIs
 - `POST /api/v1/memberships/lookup-by-qr`
 - `GET /api/v1/memberships/search`
@@ -418,6 +440,13 @@ Validation schemas live in `src/lib/validation.ts`.
 - A phone cannot scan a QR displayed on its own screen; screenshot/photo upload exists for that case
 - Main scanner component lives in `src/components/staff/qr-camera-scanner.tsx`
 - The workspace was re-laid out for mobile-first use so lookup and selected-member state stay close together on smaller screens
+- Current operator UI is still web, but the backend auth contract now supports a future Flutter/native counter app without changing loyalty-service business rules
+- A Flutter starter app now exists in `mobile/store_ops_app`
+- The current Flutter UI is intentionally temporary and only verifies:
+  - backend connectivity
+  - Firebase bearer-token auth
+  - mobile actor bootstrap
+- Proper Firebase mobile sign-in, scanner flows, and cashier/member workflows are not implemented yet
 
 ### Business admin
 - `src/app/business-admin/page.tsx`
@@ -510,16 +539,23 @@ These are important and should be assumed true until changed:
 - Platform console still lacks deeper provisioning/billing automation beyond tenant/admin record management
 - No Firestore-backed integration test harness exists yet
 - No meaningful browser automation exists yet for the QR scanner flows across real mobile permission states
+- Flutter/native operator app is only a starter shell right now:
+  - path: `mobile/store_ops_app`
+  - includes Android project scaffolding
+  - includes a temporary bootstrap screen
+  - does not yet include real Firebase sign-in, QR scanning, member lookup, purchase-add, or redemption workflows
+- Mobile bootstrap can currently fail even with a valid token because Firestore authz lookups are hitting `8 RESOURCE_EXHAUSTED: Quota exceeded.`
 - Bootstrap data can be created with `npm run firebase:seed:demo`, but production onboarding is still manual
 
 ## 21. Recommended Next Work
 
 Best next steps, in order:
 
-1. Add browser-level verification for live camera scan, screenshot-upload decode, and permission-denied fallback states.
-2. Add Firestore integration tests around `loyalty-service.ts`.
-3. Add date-range, branch, and plan filters to business reporting.
-4. Add delete/archive confirmation flows and deeper audit views across the admin consoles.
+1. Fix Firebase/Firestore quota exhaustion so authz lookups and `GET /api/auth/mobile/me` work reliably again.
+2. Replace the temporary Flutter bootstrap form with real Firebase mobile sign-in and automatic bearer-token handling.
+3. Build Flutter cashier flows against the existing membership/redemption APIs.
+4. Add browser-level verification for live camera scan, screenshot-upload decode, and permission-denied fallback states while web staff remains in use.
+5. Add Firestore integration tests around `loyalty-service.ts`.
 
 ## 22. If You Need to Change Business Rules
 

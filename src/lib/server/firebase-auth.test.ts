@@ -4,12 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   cookiesMock,
+  headersMock,
   getAuthMock,
   verifySessionCookieMock,
   createSessionCookieMock,
   verifyIdTokenMock,
 } = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
+  headersMock: vi.fn(),
   getAuthMock: vi.fn(),
   verifySessionCookieMock: vi.fn(),
   createSessionCookieMock: vi.fn(),
@@ -18,6 +20,7 @@ const {
 
 vi.mock("next/headers", () => ({
   cookies: cookiesMock,
+  headers: headersMock,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -49,6 +52,9 @@ import {
 describe("firebase auth session helpers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    headersMock.mockResolvedValue({
+      get: vi.fn(() => undefined),
+    });
     getAuthMock.mockReturnValue({
       verifySessionCookie: verifySessionCookieMock,
       createSessionCookie: createSessionCookieMock,
@@ -89,6 +95,29 @@ describe("firebase auth session helpers", () => {
       uid: "firebase-uid-1",
       email: "staff@example.com",
     });
+  });
+
+  it("prefers a Firebase bearer token when the request carries Authorization", async () => {
+    verifyIdTokenMock.mockResolvedValue({
+      uid: "firebase-uid-2",
+      email: "staff@example.com",
+      email_verified: true,
+    });
+
+    await expect(
+      getCurrentStaffSessionClaims({
+        request: {
+          headers: new Headers({
+            authorization: "Bearer mobile-id-token",
+          }),
+        } as Request,
+      }),
+    ).resolves.toMatchObject({
+      uid: "firebase-uid-2",
+    });
+
+    expect(verifyIdTokenMock).toHaveBeenCalledWith("mobile-id-token", true);
+    expect(verifySessionCookieMock).not.toHaveBeenCalled();
   });
 
   it("creates a Firebase session cookie for a valid id token", async () => {

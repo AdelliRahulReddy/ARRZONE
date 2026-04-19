@@ -8,6 +8,12 @@ import {
 } from "@/lib/firebase/model";
 import { normalizeEmailAddress } from "@/lib/email";
 import {
+  assertClaimStatus,
+  readAccessClaim,
+  syncPlatformAccessClaims,
+  syncStaffAccessClaims,
+} from "@/lib/server/access-claims";
+import {
   getCurrentStaffSessionClaims,
   type StaffSessionClaims,
 } from "@/lib/server/firebase-auth";
@@ -216,6 +222,21 @@ async function resolveAccessRecordFromClaims<TRecord extends AccessRecord>(
 export async function resolveStaffActorFromClaims(
   session: Pick<StaffSessionClaims, "uid" | "email" | "email_verified"> | null,
 ) {
+  if (session) {
+    const accessClaim = readAccessClaim(session as StaffSessionClaims & Record<string, unknown>);
+    if (accessClaim?.actorType === "staff") {
+      assertClaimStatus(accessClaim);
+      return {
+        userId: session.uid,
+        staffUserId: accessClaim.staffUserId,
+        tenantId: accessClaim.tenantId,
+        role: accessClaim.role,
+        branchIds: accessClaim.branchIds,
+        authUserId: accessClaim.authUserId,
+      } satisfies StaffActor;
+    }
+  }
+
   const staffUser = await resolveAccessRecordFromClaims(session, {
     collectionName: COLLECTIONS.staffUsers,
     codePrefix: "STAFF",
@@ -225,6 +246,10 @@ export async function resolveStaffActorFromClaims(
 
   if (!staffUser || !session?.uid) {
     return null;
+  }
+
+  if (staffUser.authUserId === session.uid) {
+    await syncStaffAccessClaims(staffUser);
   }
 
   return {
@@ -240,6 +265,19 @@ export async function resolveStaffActorFromClaims(
 export async function resolvePlatformActorFromClaims(
   session: Pick<StaffSessionClaims, "uid" | "email" | "email_verified"> | null,
 ) {
+  if (session) {
+    const accessClaim = readAccessClaim(session as StaffSessionClaims & Record<string, unknown>);
+    if (accessClaim?.actorType === "platform_admin") {
+      assertClaimStatus(accessClaim);
+      return {
+        userId: session.uid,
+        platformAdminUserId: accessClaim.platformAdminUserId,
+        role: "PLATFORM_ADMIN",
+        authUserId: accessClaim.authUserId,
+      } satisfies PlatformActor;
+    }
+  }
+
   const platformAdmin = await resolveAccessRecordFromClaims(session, {
     collectionName: COLLECTIONS.platformAdminUsers,
     codePrefix: "PLATFORM_ADMIN",
@@ -249,6 +287,10 @@ export async function resolvePlatformActorFromClaims(
 
   if (!platformAdmin || !session?.uid) {
     return null;
+  }
+
+  if (platformAdmin.authUserId === session.uid) {
+    await syncPlatformAccessClaims(platformAdmin);
   }
 
   return {

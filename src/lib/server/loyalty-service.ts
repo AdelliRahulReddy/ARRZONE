@@ -44,6 +44,10 @@ import {
 import { normalizeEmailAddress } from "@/lib/email";
 import { maskPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { buildRedeemQrPayload, parseScanPayload } from "@/lib/qr";
+import {
+  syncPlatformAccessClaims,
+  syncStaffAccessClaims,
+} from "@/lib/server/access-claims";
 import type { PlatformActor, StaffActor } from "@/lib/server/auth";
 import { assertBranchAccess } from "@/lib/server/auth";
 import type { AppDatabase, AppTransaction } from "@/lib/server/db";
@@ -2935,7 +2939,7 @@ export async function createStaffUser(
   }
   await assertStaffEmailAvailable(db, normalizeEmailAddress(input.email));
 
-  return withTenantTransaction(
+  const createdStaff = await withTenantTransaction(
     {
       tenantId: input.tenantId,
       actorId: actor.staffUserId,
@@ -2979,6 +2983,9 @@ export async function createStaffUser(
       return staff;
     },
   );
+
+  await syncStaffAccessClaims(createdStaff);
+  return createdStaff;
 }
 
 export async function updateStaffUserStatus(
@@ -3005,7 +3012,7 @@ export async function updateStaffUserStatus(
     "FORBIDDEN",
   );
 
-  return withTenantTransaction(
+  const updated = await withTenantTransaction(
     {
       tenantId: existing.tenantId,
       actorId: actor.staffUserId,
@@ -3035,6 +3042,9 @@ export async function updateStaffUserStatus(
       return updated;
     },
   );
+
+  await syncStaffAccessClaims(updated);
+  return updated;
 }
 
 export async function updateStaffUser(
@@ -3100,7 +3110,7 @@ export async function updateStaffUser(
     "PRIMARY_BRANCH_REQUIRED",
   );
 
-  return withTenantTransaction(
+  const updated = await withTenantTransaction(
     {
       tenantId: existing.tenantId,
       actorId: actor.staffUserId,
@@ -3171,6 +3181,9 @@ export async function updateStaffUser(
       return updated;
     },
   );
+
+  await syncStaffAccessClaims(updated);
+  return updated;
 }
 
 export async function createTenant(
@@ -3252,6 +3265,7 @@ export async function createPlatformAdminUser(
   };
 
   await db.collection(COLLECTIONS.platformAdminUsers).doc(platformAdmin.id).set(platformAdmin);
+  await syncPlatformAccessClaims(platformAdmin);
   return platformAdmin;
 }
 
@@ -3283,7 +3297,7 @@ export async function updatePlatformAdminUser(
     await assertPlatformAdminEmailAvailable(db, nextEmailNormalized, undefined, existing.id);
   }
 
-  return db.runTransaction(async (tx) => {
+  const updated = await db.runTransaction(async (tx) => {
     const ref = db.collection(COLLECTIONS.platformAdminUsers).doc(platformAdminUserId);
     const snapshot = await tx.get(ref);
     invariant(snapshot.exists, "Platform admin account not found.", 404, "PLATFORM_ADMIN_NOT_FOUND");
@@ -3308,6 +3322,9 @@ export async function updatePlatformAdminUser(
     tx.set(ref, updated);
     return updated;
   });
+
+  await syncPlatformAccessClaims(updated);
+  return updated;
 }
 
 export async function createBusinessAdminUser(
@@ -3330,7 +3347,7 @@ export async function createBusinessAdminUser(
   const branchIds = branchRows.map((branch) => branch.id).sort((left, right) => left.localeCompare(right));
   const primaryBranchId = branchIds[0] ?? null;
 
-  return withTenantTransaction(
+  const staff = await withTenantTransaction(
     {
       tenantId: input.tenantId,
       actorId: actor.platformAdminUserId,
@@ -3372,6 +3389,9 @@ export async function createBusinessAdminUser(
       return staff;
     },
   );
+
+  await syncStaffAccessClaims(staff);
+  return staff;
 }
 
 export async function updateBusinessAdminStatus(
@@ -3393,7 +3413,7 @@ export async function updateBusinessAdminStatus(
     "ROLE_MISMATCH",
   );
 
-  return withTenantTransaction(
+  const updated = await withTenantTransaction(
     {
       tenantId: existing.tenantId,
       actorId: actor.platformAdminUserId,
@@ -3420,6 +3440,9 @@ export async function updateBusinessAdminStatus(
       return updated;
     },
   );
+
+  await syncStaffAccessClaims(updated);
+  return updated;
 }
 
 export async function listBranches(actor: StaffActor) {

@@ -108,6 +108,21 @@ function pickUserByEmail(users, email) {
   return users.find((user) => user.email?.toLowerCase() === email.toLowerCase()) ?? null;
 }
 
+async function syncAccessClaims(user, accessClaim) {
+  if (!user?.uid || !accessClaim) {
+    return;
+  }
+
+  const currentUser = await admin.auth().getUser(user.uid);
+  const nextClaims = {
+    ...(currentUser.customClaims ?? {}),
+    arrzAccess: accessClaim,
+  };
+
+  await admin.auth().setCustomUserClaims(user.uid, nextClaims);
+  await admin.auth().revokeRefreshTokens(user.uid);
+}
+
 async function main() {
   initializeFirebaseAdmin();
 
@@ -258,6 +273,37 @@ async function main() {
   }
 
   await batch.commit();
+
+  await Promise.all([
+    syncAccessClaims(
+      platformUser,
+      platformUser
+        ? {
+            v: 1,
+            actorType: "platform_admin",
+            platformAdminUserId: platformAdminId,
+            role: "PLATFORM_ADMIN",
+            status: "ACTIVE",
+            authUserId: platformUser.uid,
+          }
+        : null,
+    ),
+    syncAccessClaims(
+      merchantUser,
+      merchantUser && merchantStaffId
+        ? {
+            v: 1,
+            actorType: "staff",
+            staffUserId: merchantStaffId,
+            tenantId,
+            role: "MERCHANT_ADMIN",
+            branchIds: [branchId],
+            status: "ACTIVE",
+            authUserId: merchantUser.uid,
+          }
+        : null,
+    ),
+  ]);
 
   console.log(
     JSON.stringify(

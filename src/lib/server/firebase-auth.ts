@@ -1,13 +1,44 @@
 import "server-only";
 import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
 import { getApps } from "firebase-admin/app";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { appEnv } from "@/lib/env";
 import { STAFF_SESSION_COOKIE_NAME, STAFF_SESSION_TTL_MS } from "@/lib/auth/constants";
 import { AppError } from "@/lib/server/errors";
 import { getFirestoreAdmin } from "@/lib/firebase/admin";
 
 export type StaffSessionClaims = DecodedIdToken;
+
+type SessionClaimsOptions = {
+  request?: Request | Pick<Request, "headers"> | null;
+};
+
+function getBearerTokenFromAuthorizationHeader(
+  authorizationHeader: string | null | undefined,
+) {
+  if (!authorizationHeader) {
+    return null;
+  }
+
+  const [scheme, ...tokenParts] = authorizationHeader.trim().split(/\s+/);
+  if (!scheme || scheme.toLowerCase() !== "bearer" || tokenParts.length === 0) {
+    return null;
+  }
+
+  const token = tokenParts.join(" ").trim();
+  return token || null;
+}
+
+async function getAuthorizationHeader(
+  request?: Request | Pick<Request, "headers"> | null,
+) {
+  if (request) {
+    return request.headers.get("authorization");
+  }
+
+  const headerStore = await headers();
+  return headerStore.get("authorization");
+}
 
 export function getFirebaseAdminAuth() {
   const app = getApps()[0];
@@ -52,7 +83,20 @@ export async function verifyStaffIdToken(idToken: string) {
   }
 }
 
-export async function getCurrentStaffSessionClaims() {
+export async function getCurrentStaffSessionClaims(
+  options?: SessionClaimsOptions,
+) {
+  const authorizationHeader = await getAuthorizationHeader(options?.request ?? null);
+  const bearerToken = getBearerTokenFromAuthorizationHeader(authorizationHeader);
+
+  if (bearerToken) {
+    try {
+      return await getFirebaseAdminAuth().verifyIdToken(bearerToken, true);
+    } catch {
+      return null;
+    }
+  }
+
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(STAFF_SESSION_COOKIE_NAME)?.value;
   if (!sessionCookie) {

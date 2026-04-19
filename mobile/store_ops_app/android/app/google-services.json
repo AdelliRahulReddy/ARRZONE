@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "519662663037",
+    "project_id": "arrcloud-637ec",
+    "storage_bucket": "arrcloud-637ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519662663037:android:11272de422df2fd707c814",
+        "android_client_info": {
+          "package_name": "com.arrzone.store_ops_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "519662663037-c07klrs21c4pbll2be679bkvvfn76dkl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arrzone.store_ops_app",
+            "certificate_hash": "983e8cc8203edacd6d14ec589cd5c2c42ddd68b8"
+          }
+        },
+        {
+          "client_id": "519662663037-l1djl01njpph4i5t06ddg7htr9dl0cmv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjrhvTFP68RQF_nLvV7s1Kh-vKzDL6Zok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "519662663037-l1djl01njpph4i5t06ddg7htr9dl0cmv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

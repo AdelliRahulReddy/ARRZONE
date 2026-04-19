@@ -7,6 +7,18 @@ const { getCurrentStaffSessionClaimsMock, requireDbMock } = vi.hoisted(() => ({
   requireDbMock: vi.fn(),
 }));
 
+const {
+  readAccessClaimMock,
+  assertClaimStatusMock,
+  syncStaffAccessClaimsMock,
+  syncPlatformAccessClaimsMock,
+} = vi.hoisted(() => ({
+  readAccessClaimMock: vi.fn(),
+  assertClaimStatusMock: vi.fn(),
+  syncStaffAccessClaimsMock: vi.fn(),
+  syncPlatformAccessClaimsMock: vi.fn(),
+}));
+
 vi.mock("@/lib/server/firebase-auth", () => ({
   getCurrentStaffSessionClaims: getCurrentStaffSessionClaimsMock,
 }));
@@ -15,6 +27,13 @@ vi.mock("server-only", () => ({}));
 
 vi.mock("@/lib/server/db", () => ({
   requireDb: requireDbMock,
+}));
+
+vi.mock("@/lib/server/access-claims", () => ({
+  readAccessClaim: readAccessClaimMock,
+  assertClaimStatus: assertClaimStatusMock,
+  syncStaffAccessClaims: syncStaffAccessClaimsMock,
+  syncPlatformAccessClaims: syncPlatformAccessClaimsMock,
 }));
 
 import {
@@ -205,6 +224,7 @@ function createAuthDb(input: {
 describe("auth resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    readAccessClaimMock.mockReturnValue(null);
   });
 
   it("returns null when no Firebase session is present", async () => {
@@ -231,6 +251,40 @@ describe("auth resolution", () => {
       role: "MANAGER",
       authUserId: "firebase-uid-1",
     });
+    expect(syncStaffAccessClaimsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "staff-1",
+      }),
+    );
+  });
+
+  it("returns the staff actor directly from Firebase access claims without Firestore", async () => {
+    readAccessClaimMock.mockReturnValue({
+      actorType: "staff",
+      staffUserId: "staff-claims-1",
+      tenantId: "tenant-claims-1",
+      role: "MANAGER",
+      branchIds: ["branch-claims-1"],
+      authUserId: "firebase-uid-claims",
+      status: "ACTIVE",
+    });
+    getCurrentStaffSessionClaimsMock.mockResolvedValue({
+      uid: "firebase-uid-claims",
+      email: "staff@example.com",
+      email_verified: true,
+    });
+
+    await expect(getCurrentStaffActor()).resolves.toMatchObject({
+      userId: "firebase-uid-claims",
+      staffUserId: "staff-claims-1",
+      tenantId: "tenant-claims-1",
+      role: "MANAGER",
+      branchIds: ["branch-claims-1"],
+    });
+
+    expect(assertClaimStatusMock).toHaveBeenCalled();
+    expect(requireDbMock).not.toHaveBeenCalled();
+    expect(syncStaffAccessClaimsMock).not.toHaveBeenCalled();
   });
 
   it("binds the first verified login by normalized email and activates invited staff", async () => {
@@ -282,6 +336,36 @@ describe("auth resolution", () => {
       role: "PLATFORM_ADMIN",
       platformAdminUserId: "platform-1",
     });
+    expect(syncPlatformAccessClaimsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "platform-1",
+      }),
+    );
+  });
+
+  it("returns the platform actor directly from Firebase access claims without Firestore", async () => {
+    readAccessClaimMock.mockReturnValue({
+      actorType: "platform_admin",
+      platformAdminUserId: "platform-claims-1",
+      role: "PLATFORM_ADMIN",
+      authUserId: "firebase-platform-claims",
+      status: "ACTIVE",
+    });
+    getCurrentStaffSessionClaimsMock.mockResolvedValue({
+      uid: "firebase-platform-claims",
+      email: "platform@example.com",
+      email_verified: true,
+    });
+
+    await expect(getCurrentPlatformActor()).resolves.toMatchObject({
+      userId: "firebase-platform-claims",
+      platformAdminUserId: "platform-claims-1",
+      role: "PLATFORM_ADMIN",
+    });
+
+    expect(assertClaimStatusMock).toHaveBeenCalled();
+    expect(requireDbMock).not.toHaveBeenCalled();
+    expect(syncPlatformAccessClaimsMock).not.toHaveBeenCalled();
   });
 
   it("binds the first verified login for a platform admin outside staff records", async () => {

@@ -28,6 +28,15 @@ export default function proxy(request: NextRequest) {
   const hasSessionCookie = Boolean(
     request.cookies.get(STAFF_SESSION_COOKIE_NAME)?.value,
   );
+  const hasBearerToken = request.headers
+    .get("authorization")
+    ?.trim()
+    .toLowerCase()
+    .startsWith("bearer ");
+
+  if (hasBearerToken && isProtectedPrefix(pathname, protectedApiPrefixes)) {
+    return NextResponse.next();
+  }
 
   if (hasSessionCookie) {
     return NextResponse.next();
