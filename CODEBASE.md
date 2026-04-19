@@ -31,11 +31,13 @@ As of the current repo state:
 - Firestore rules and indexes have already been deployed from this repo.
 - Local Firebase Admin credentials are wired through `.env.local` and a repo-local `.secrets/` directory.
 - A native operator-app starter now exists inside this repo at `mobile/store_ops_app`.
-- The Flutter starter currently exposes a temporary manual bootstrap screen for:
-  - backend base URL
-  - Firebase ID token
-  - `GET /api/auth/mobile/me`
-- The local Android build output is `mobile/store_ops_app/build/app/outputs/flutter-apk/app-release.apk`.
+- The Flutter app now has:
+  - Firebase email/password sign-in
+  - Google sign-in
+  - automatic bearer-token bootstrap against `GET /api/auth/mobile/me`
+  - role-aware navigation for counter staff, managers, business admins, and platform admins
+  - a native QR scanner tab that posts scanned pass payloads to `POST /api/v1/memberships/lookup-by-qr`
+- The local Android build output used during development is `mobile/store_ops_app/build/app/outputs/flutter-apk/app-debug.apk`.
 - Demo bootstrap data has been seeded once into the live project:
   - tenant `tenant:demo-merchant`
   - branch `branch:demo-merchant:demo-branch`
@@ -442,11 +444,12 @@ Validation schemas live in `src/lib/validation.ts`.
 - The workspace was re-laid out for mobile-first use so lookup and selected-member state stay close together on smaller screens
 - Current operator UI is still web, but the backend auth contract now supports a future Flutter/native counter app without changing loyalty-service business rules
 - A Flutter starter app now exists in `mobile/store_ops_app`
-- The current Flutter UI is intentionally temporary and only verifies:
-  - backend connectivity
-  - Firebase bearer-token auth
-  - mobile actor bootstrap
-- Proper Firebase mobile sign-in, scanner flows, and cashier/member workflows are not implemented yet
+- The current Flutter app now includes:
+  - Firebase sign-in for real operator sessions
+  - mobile actor bootstrap using Firebase bearer tokens
+  - role-aware workspace shells with separate store and platform surfaces
+  - a camera-based QR scan tab that resolves members through the existing protected lookup API
+- Member search, purchase add, redeem, and manager/admin action screens still need to be wired beyond the new mobile shell and scan lookup
 
 ### Business admin
 - `src/app/business-admin/page.tsx`
@@ -539,11 +542,12 @@ These are important and should be assumed true until changed:
 - Platform console still lacks deeper provisioning/billing automation beyond tenant/admin record management
 - No Firestore-backed integration test harness exists yet
 - No meaningful browser automation exists yet for the QR scanner flows across real mobile permission states
-- Flutter/native operator app is only a starter shell right now:
+- Flutter/native operator app is still an early product shell rather than a complete counter system:
   - path: `mobile/store_ops_app`
   - includes Android project scaffolding
-  - includes a temporary bootstrap screen
-  - does not yet include real Firebase sign-in, QR scanning, member lookup, purchase-add, or redemption workflows
+  - includes real Firebase sign-in and role-aware navigation
+  - includes QR scanning and member lookup by scanned pass payload
+  - does not yet include complete purchase-add, redemption, phone search, or manager correction workflows
 - Mobile bootstrap can currently fail even with a valid token because Firestore authz lookups are hitting `8 RESOURCE_EXHAUSTED: Quota exceeded.`
 - Bootstrap data can be created with `npm run firebase:seed:demo`, but production onboarding is still manual
 

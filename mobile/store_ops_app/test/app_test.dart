@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:store_ops_app/main.dart';
+import 'package:store_ops_app/src/services/mobile_bootstrap_service.dart';
 
 void main() {
   test('normalizes backend base URLs', () {
