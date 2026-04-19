@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // This application keeps all critical reads and writes behind Next.js route
+    // handlers that use the Firebase Admin SDK. Direct client SDK access is not
+    // part of the production data path, so the safest default is to deny it.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

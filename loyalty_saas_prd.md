@@ -16,7 +16,7 @@
 
 This product is a web-based loyalty SaaS for offline merchants that helps stores enroll walk-in customers into a repeat-purchase program without requiring app download, prepaid subscription, WhatsApp dependency, or SMS OTP as part of the core flow.
 
-Customers scan a store QR, join a loyalty plan using name and phone number, and receive a digital membership pass with a member QR. At the counter, staff scan the pass or search by phone number to add eligible purchases. Rewards unlock automatically based on plan rules such as **Buy 10, Get 2 Free**. Customers redeem rewards by presenting their pass QR, and staff confirm redemption.
+Customers scan a store QR, join a loyalty plan using name and phone number, and receive a digital membership pass with a member QR. At the counter, staff scan the pass or search by phone number to add eligible purchases. Rewards unlock automatically based on plan rules such as **Buy 10, Get 2 Free**. Customers open their pass from the long-lived pass QR/link, generate a short-lived redeem QR when needed, and staff confirm redemption from that live redeem token.
 
 The system is designed for real-world retail conditions:
 - low billing maturity
@@ -132,9 +132,9 @@ The first production release will **not** attempt to be:
 8. Cashier taps **Add Purchase**.
 9. System writes loyalty event and updates progress.
 10. When milestone threshold is reached, reward balance unlocks automatically.
-11. Customer redeems reward by presenting pass QR.
-12. Cashier confirms redemption.
-13. System writes redemption event and updates remaining balance.
+11. Customer opens pass and generates short-lived redeem token when redemption is needed.
+12. Cashier scans redeem token and confirms redemption.
+13. System consumes redeem token, writes redemption event, and updates remaining balance.
 
 ### Example Plan
 - **Plan Name:** Simple Juice Loyalty
@@ -171,7 +171,7 @@ The first production release will **not** attempt to be:
 - manages branches and staff
 - wants transparency and growth metrics
 
-### 9.5 SaaS Platform Admin
+### 9.5 SaaS Admin
 - manages tenant onboarding
 - monitors system health
 - supports merchant escalations
@@ -184,7 +184,7 @@ The first production release will **not** attempt to be:
 ### Customer Stories
 - As a customer, I want to join a loyalty program by scanning a QR code so that I do not need to download an app.
 - As a customer, I want to see my progress in real time so that I trust the reward system.
-- As a customer, I want to redeem my reward by showing my pass so that the process is simple and fast.
+- As a customer, I want to redeem my reward from my pass without needing login or OTP so that the process is simple and fast.
 
 ### Cashier Stories
 - As a cashier, I want to scan a customer pass quickly so I can add a purchase without slowing the line.
@@ -312,6 +312,8 @@ Digital pass must display:
 ### Pass Capabilities
 - pass persists via magic link/session/local device storage strategy
 - pass can be reopened from saved link
+- static pass QR opens the pass and supports earning lookup only
+- redemption requires a server-issued short-lived single-use redeem token
 - pass can be reissued by manager/admin
 - old pass versions can be revoked
 
@@ -319,6 +321,7 @@ Digital pass must display:
 - pass QR loads reliably on mobile
 - cashier can scan pass in under 2 seconds on normal connectivity
 - revoked pass cannot be used after reissue or admin action
+- expired, consumed, or revoked redeem tokens cannot be used for redemption
 
 ---
 
@@ -334,7 +337,7 @@ Digital pass must display:
 - cashier
 - manager
 - merchant admin
-- platform admin
+- SaaS admin
 
 ### Acceptance Criteria
 - cashier can only perform allowed actions for assigned branch
@@ -366,6 +369,8 @@ Digital pass must display:
 - one purchase action equals one eligible order
 - multiple quick adds for same membership require rule-based warning or manager override
 - purchase add must be idempotent to avoid double tap duplication
+- purchase add is the only action allowed to queue and retry offline
+- offline retry is allowed only after the membership was resolved in a live session
 
 ### Acceptance Criteria
 - purchase add completes in 3 taps or fewer after lookup
@@ -394,23 +399,27 @@ Digital pass must display:
 Redemption must be stricter than earning.
 
 Redemption flow:
-1. customer presents pass QR
-2. cashier scans pass
-3. system shows reward balance and redeemable items
-4. cashier taps **Redeem Reward**
-5. system confirms balance availability
-6. system writes `REWARD_REDEEMED`
+1. customer opens pass from long-lived pass QR/link
+2. customer requests a short-lived server-issued redeem token
+3. pass screen shows redeem QR with short validity window
+4. cashier scans redeem QR
+5. system validates token, pass version, branch access, and reward balance
+6. system atomically consumes the redeem token and writes `REWARD_REDEEMED`
 7. UI shows remaining balance
 
 ### Rules
 - spoken phone number alone is insufficient for redemption in standard flow
+- static pass QR must never be redeemable directly
+- redeem token must be short-lived, single-use, and revocable
 - reward balance cannot go below zero
 - redemption must be atomic
 - reversal requires elevated permissions
+- redemption must remain live-only and cannot use offline queueing
 
 ### Acceptance Criteria
 - reward cannot be redeemed twice from same balance event due to repeated taps
 - staff can only redeem against active, valid membership
+- reissued passes invalidate old pass versions and any outstanding redeem tokens
 
 ---
 
@@ -429,6 +438,7 @@ Managers must be able to:
 - all reversals create new ledger events, never destructive edits
 - manager identity must be logged
 - old and new state must remain auditable
+- reversal, reissue, merge, and phone update require live server confirmation and cannot queue offline
 
 ### Acceptance Criteria
 - no historical action is deleted from the ledger
@@ -446,6 +456,7 @@ Managers must be able to:
 ### Acceptance Criteria
 - one surviving membership can inherit valid ledger history as defined by merge logic
 - merged obsolete pass is revoked automatically
+- outstanding redeem tokens linked to obsolete or revoked passes are invalidated automatically
 
 ---
 
@@ -518,6 +529,7 @@ This design avoids making unverified phone numbers the sole system identity whil
 - token must include versioning or revocation capability
 - invalid or expired tokens must fail safely
 - pass reissue must invalidate old pass version
+- long-lived `PASS` token and short-lived `REDEEM` token must be separate token types with different capabilities
 
 ---
 
@@ -551,6 +563,7 @@ All sensitive actions must be logged with:
 ### Requirements
 - purchase add requests must include idempotency key
 - redemption requests must include idempotency key
+- all corrective and admin write APIs must include idempotency key
 - repeated request due to retry must return same result instead of creating duplicate state
 
 ---
@@ -569,11 +582,12 @@ All sensitive actions must be logged with:
 ## 13.6 Access Control
 
 ### Requirements
-- strict tenant isolation across all APIs and database queries
+- strict tenant isolation across all APIs and data access paths
 - role-based permissions enforced server-side
 - branch scoping enforced server-side
-- merchant users cannot access platform admin data
+- merchant users cannot access SaaS admin data
 - one merchant cannot ever access another merchant's customers or reports
+- Firestore data access must remain server-mediated for sensitive operations
 
 ---
 
@@ -584,7 +598,7 @@ All sensitive actions must be logged with:
 
 ### Customer forgets pass
 - cashier uses phone lookup fallback for earning only
-- for redemption, manager/cashier may use controlled recovery policy based on tenant configuration
+- for redemption, only a controlled manager recovery flow may be used if merchant policy allows it; standard cashier phone fallback is not allowed
 
 ### Customer changes phone number
 - manager/admin updates phone after identity verification policy defined by merchant
@@ -609,6 +623,7 @@ All sensitive actions must be logged with:
 
 ### Branch has poor internet
 - lightweight client and retry-safe APIs are required
+- only purchase add may queue for later retry; redemption and corrections remain blocked until live connectivity returns
 
 ---
 
@@ -642,108 +657,104 @@ All sensitive actions must be logged with:
 - apply consent and privacy disclosures during enrollment
 - support data export/deletion policies by tenant/jurisdiction requirements
 
+## 15.6 Persistence and Security Architecture
+- Firestore is the primary operational database
+- Firebase Admin SDK is used on the server for privileged data access
+- critical business writes must go through server route handlers or server modules, not direct client writes
+- Firestore transactions must preserve correctness for purchase add, reward unlock, redeem consume, pass reissue, merge, and reversal flows
+- business invariants that are not natively enforced by Firestore must be enforced in deterministic server transaction logic
+- Firestore Security Rules should deny or tightly restrict any direct client data access that is not explicitly required
+
 ---
 
 ## 16. Data Model
 
-## 16.1 Core Entities
+## 16.1 Firestore Collections
+
+### Primary collections
+- `tenants`
+- `branches`
+- `plans`
+- `plan_versions`
+- `staff_users`
+- `staff_branch_assignments`
+- `customers`
+- `memberships`
+- `member_passes`
+- `redeem_tokens`
+- `ledger_events`
+- `membership_summaries`
+- `idempotency_requests`
+- `security_events`
+- `enrollment_consents`
+- `membership_merges`
+
+### Support collections / lookup documents
+- `branch_code_lookups`
+- `customer_phone_lookups`
+- `active_membership_lookups`
+
+## 16.2 Core Document Responsibilities
 
 ### tenants
-- tenant_id
-- name
-- status
-- branding
-- created_at
+- tenant identity, status, branding, and platform-level configuration
 
 ### branches
-- branch_id
-- tenant_id
-- name
-- address
-- timezone
-- status
+- branch metadata, enrollment QR mapping, status, and tenant scope
 
 ### staff_users
-- staff_user_id
-- tenant_id
-- primary_branch_id
-- role
-- name
-- email/login identifier
-- status
+- Clerk-linked staff identity, role, tenant scope, and status
+
+### staff_branch_assignments
+- explicit branch authorization records for staff users
 
 ### customers
-- customer_id
-- tenant_id
-- full_name
-- normalized_phone
-- email
-- phone_verified_flag (false by default)
-- status
-- created_at
+- tenant-scoped customer profile with normalized phone and optional email
 
 ### memberships
-- membership_id
-- tenant_id
-- branch_id or plan assignment scope
-- customer_id
-- plan_id
-- plan_version
-- status
-- started_at
+- tenant-scoped loyalty membership referencing customer, plan, status, active pass lineage, and merge lineage
 
 ### plans
-- plan_id
-- tenant_id
-- name
-- earning_unit_type
-- threshold_count
-- reward_credit_count
-- status
-- version
+- merchant-facing plan definition
+
+### plan_versions
+- immutable rule snapshot applied to memberships at enrollment time
 
 ### member_passes
-- pass_id
-- membership_id
-- pass_version
-- signed_token_reference
-- status
-- issued_at
-- revoked_at
+- pass lineage, pass version, status, revocation state, and token metadata
+
+### redeem_tokens
+- short-lived single-use redeem token state, hashed token reference, expiry, and consumption status
 
 ### ledger_events
-- event_id
-- tenant_id
-- branch_id
-- membership_id
-- customer_id
-- event_type
-- quantity
-- metadata_json
-- reason_code
-- idempotency_key
-- created_by_staff_user_id
-- created_at
+- immutable source-of-truth loyalty events and corrections
 
 ### membership_summaries
-- membership_id
-- purchase_count
-- reward_earned_count
-- reward_redeemed_count
-- reward_balance
-- last_activity_at
+- derived counters and reward balance projection rebuilt from ledger when required
 
-### audit_logs
-- audit_id
-- tenant_id
-- actor_id
-- actor_role
-- action
-- target_type
-- target_id
-- before_json
-- after_json
-- created_at
+### idempotency_requests
+- scoped request dedupe records for write APIs
+
+### security_events
+- suspicious activity, rate-limit breaches, anomaly flags, and operational security logs
+
+### enrollment_consents
+- accepted consent version, timestamp, and enrollment policy snapshot
+
+### membership_merges
+- survivor/obsolete membership mapping and merge audit metadata
+
+## 16.3 Required Invariants
+
+- one active pass per membership
+- one live redeem token per pass at a time
+- unique reward unlock per threshold cycle
+- reward balance cannot go below zero
+- branch authorization must be enforced for sensitive staff actions
+- every write endpoint must support idempotent retry behavior
+- pass reissue must revoke old pass lineage and old redeem tokens
+- static `PASS` QR can open pass and support earning lookup only, never redemption
+- `REDEEM` token must be short-lived, single-use, and consumed atomically
 
 ---
 
@@ -770,34 +781,38 @@ These events form the source of truth for balance reconstruction, dispute resolu
 ## 18. API Requirements
 
 ## 18.1 Customer APIs
-- `POST /enrollments`
-- `GET /passes/{pass_token}`
-- `GET /memberships/{membership_id}/summary`
+- `POST /api/v1/enrollments`
+- `GET /api/v1/passes/{pass_token}`
+- `POST /api/v1/passes/{pass_token}/redeem-token`
 
 ## 18.2 Staff APIs
-- `POST /staff/login`
-- `POST /memberships/lookup-by-qr`
-- `GET /memberships/search?phone=`
-- `POST /memberships/{id}/purchase-add`
-- `POST /memberships/{id}/redeem`
-- `POST /memberships/{id}/reissue-pass`
-- `POST /memberships/{id}/reverse-purchase`
-- `POST /memberships/{id}/reverse-redeem`
+- staff/admin authentication is handled by Clerk, not a custom `POST /staff/login` endpoint
+- `POST /api/v1/memberships/lookup-by-qr`
+- `GET /api/v1/memberships/search?phone=`
+- `GET /api/v1/memberships/{id}/summary`
+- `POST /api/v1/memberships/{id}/purchase-add`
+- `POST /api/v1/redemptions/consume`
+- `POST /api/v1/memberships/{id}/redeem`
+- `POST /api/v1/memberships/{id}/reissue-pass`
+- `POST /api/v1/memberships/{id}/reverse-purchase`
+- `POST /api/v1/memberships/{id}/reverse-redeem`
+- `POST /api/v1/memberships/merge`
 
 ## 18.3 Merchant Admin APIs
-- `POST /plans`
-- `PATCH /plans/{id}`
-- `POST /branches`
-- `POST /staff-users`
-- `GET /reports/overview`
-- `GET /reports/staff-activity`
-- `GET /reports/exceptions`
+- `POST /api/v1/plans`
+- `PATCH /api/v1/plans/{id}`
+- `POST /api/v1/branches`
+- `POST /api/v1/staff-users`
+- `GET /api/v1/reports/overview`
+- `GET /api/v1/reports/staff-activity`
+- `GET /api/v1/reports/exceptions`
 
 ## 18.4 API Rules
 - all write APIs require idempotency key
 - all APIs enforce tenant and role authorization
 - customer pass token must be verified on lookup
 - every write creates corresponding audit/ledger entry
+- sensitive writes execute server-side using Firebase Admin SDK, not direct client Firestore writes
 
 ---
 
@@ -810,6 +825,7 @@ These events form the source of truth for balance reconstruction, dispute resolu
 - success/pass screen
 - pass details page
 - progress view
+- redeem token generation panel
 
 ## 19.2 Staff Web App
 - login
@@ -891,6 +907,7 @@ These events form the source of truth for balance reconstruction, dispute resolu
 - plan creation
 - customer enrollment
 - pass generation
+- redeem token generation
 - purchase add
 - reward unlock
 - reward redemption
@@ -918,8 +935,8 @@ These events form the source of truth for balance reconstruction, dispute resolu
 3. **No WhatsApp dependency**
 4. **Web app only for customer experience**
 5. **Phone number is primary fallback lookup, not true system ID**
-6. **Customer pass QR is primary identity at counter**
-7. **Reward redemption requires pass-based flow, not only spoken phone number**
+6. **Customer pass QR is primary identity at counter for pass access and earning lookup**
+7. **Reward redemption requires live redeem-token flow, not static pass QR and not only spoken phone number**
 8. **All changes are ledger-based and auditable**
 9. **Corrections are additive events, not destructive edits**
 10. **Strict tenant isolation is mandatory**
@@ -954,7 +971,7 @@ These events form the source of truth for balance reconstruction, dispute resolu
 ## 25. Open Questions
 
 - should one tenant be allowed to share customer identity across branches by default or optionally?
-- should managers be allowed to redeem via phone lookup in recovery mode, or only via pass QR always?
+- should managers be allowed to redeem via phone-based recovery mode, or only through live redeem-token flow always?
 - what is the exact duplicate add lock window: 2 minutes, 5 minutes, or configurable?
 - should plan rules support multiple products later, or stay single-product initially?
 - should customer pass be link-based only, or support wallet-style save options later?
@@ -968,7 +985,9 @@ This product is a production-grade loyalty SaaS for offline merchants built arou
 - customer joins from QR in web app
 - no OTP required in core flow
 - no prepaid trust barrier
-- member QR is the main counter identity
+- member QR is the main counter identity for pass access and earning lookup
+- long-lived pass QR is not directly redeemable
+- live redeem token is required for actual redemption
 - phone number is fallback lookup
 - cashier adds purchases quickly
 - rewards unlock automatically
