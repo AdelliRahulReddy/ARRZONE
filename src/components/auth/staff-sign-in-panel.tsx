@@ -206,6 +206,9 @@ export function StaffSignInPanel({
 
     try {
       const auth = await getFirebaseClientAuth();
+      await auth.signOut().catch(() => {
+        // Ignore stale client-session cleanup failures and continue with a fresh popup flow.
+      });
       const result = await signInWithPopup(auth, createGoogleAuthProvider());
       await finalizeSignIn(result);
     } catch (error) {
